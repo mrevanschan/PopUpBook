@@ -29,10 +29,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -55,8 +53,6 @@ public class D1CreationState extends BaseAppState {
     private Node frameNode;
     private Material dotMaterial;
     private Material lineMaterial;
-    private String mode;
-    private String dragMode;
     private Geometry selected;
     private ArrayList<Vector3f> verticesA;
     private ArrayList<Vector3f> verticesB;
@@ -72,6 +68,7 @@ public class D1CreationState extends BaseAppState {
     public static final String D1_SELECT = "Select";
     public static final String D1_ADD = "ADD";
     public static final String D1_MOUSE_MOVE = "MouseMove";
+    public static final String D1_LOCK_ANGLE = "D1_Angle_Lock";
     public static final String D1_CONFIRM = "Confirm";
     private final ActionListener d1BasicInput = new D1BasicListener();
     private final D1MoustListener d1MouseListener = new D1MoustListener();
@@ -80,6 +77,11 @@ public class D1CreationState extends BaseAppState {
     private final int sample = 20;
     private final float angleConstant = FastMath.PI / 8;
     private Sphere sphere;
+    
+    
+    private String mode;
+    private String dragMode;
+    private boolean angleLock;
 
     private class D1MoustListener implements AnalogListener {
 
@@ -160,7 +162,7 @@ public class D1CreationState extends BaseAppState {
                                 }
                                 verticesB.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length).add(verticesB.get(1)));
                             }
-                            
+
                             fitInBoundaries();
                             updateGraphics();
                             break;
@@ -180,7 +182,7 @@ public class D1CreationState extends BaseAppState {
                                 verticesA.get(2).set(PopUpBookTree.rotatePoint(verticesA.get(2), verticesA.get(1), verticesA.get(1).add(rotationNormal), currentAngle - targetAngle));
                                 updateBoundaries();
                             }
-                            
+
                             verticesA.get(2).set(Util.closestPointOnLine(verticesA.get(1), verticesA.get(2).subtract(verticesA.get(1)).normalize(), newPoint));
                             Plane plane = new Plane();
                             plane.setPlanePoints(verticesA.get(0), verticesA.get(1), verticesA.get(2));
@@ -200,7 +202,7 @@ public class D1CreationState extends BaseAppState {
                             break;
                         }
                         case "shift": {
-                            newPoint = Util.closestPointOnLine(verticesA.get(1), deltaAxis.normalize(), newPoint);
+                            newPoint = Util.closestPointOnLine(referencePoint, deltaAxis.normalize(), newPoint);
                             if (newPoint.distance(referencePoint) > FastMath.FLT_EPSILON) {
                                 app.text.setText("shift");
                                 Vector3f translation = newPoint.subtract(referencePoint);
@@ -328,97 +330,92 @@ public class D1CreationState extends BaseAppState {
                                 //drag movement
                                 closest.getGeometry().getMaterial().setColor("Color", ColorRGBA.Yellow);
                                 selected = closest.getGeometry();
-                                if (selected.getName().equals("Line")) {
-                                    //move whole structure
-                                    Vector3f centerAxis = verticesA.get(0).subtract(verticesA.get(1)).normalize().add(verticesB.get(0).subtract(verticesB.get(1)).normalize());
-                                    Vector3f topA = verticesA.get(1).add(centerAxis.normalize().mult(100)).add(verticesA.get(0).subtract(verticesB.get(0)).normalize().mult(50f));
-                                    Vector3f topB = verticesA.get(1).subtract(centerAxis.normalize().mult(100)).add(verticesA.get(0).subtract(verticesB.get(0)).normalize().mult(50f));
-                                    Vector3f botB = verticesA.get(1).subtract(centerAxis.normalize().mult(100)).add(verticesB.get(0).subtract(verticesA.get(0)).normalize().mult(50f));
-                                    Vector3f botA = verticesA.get(1).add(centerAxis.normalize().mult(100)).add(verticesB.get(0).subtract(verticesA.get(0)).normalize().mult(50f));
-                                    Vector3f[] temp = {botA, botB, topB, topA};
-                                    Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
-                                    collision.setMaterial(dotMaterial);
-                                    collisionNode.attachChild(collision);
-                                    //app.getRootNode().attachChild(collision);
-                                    results.clear();
-                                    collisionNode.collideWith(ray, results);
-                                    if (results.size() > 0) {
-                                        referencePoint = results.getClosestCollision().getContactPoint();
-                                        Vector3f midA = verticesA.get(1).add(deltaAxis.normalize().mult(100));
-                                        Vector3f midB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100));
-                                        float angle = referencePoint.subtract(midA).angleBetween(midB.subtract(midA));
-                                        referencePoint = midA.add(midB.subtract(midA).normalize().mult(FastMath.cos(angle) * referencePoint.distance(midA)));
-
-                                        dragMode = "shift";
-                                    }
-
-                                } else {
-                                    Vector3f selectedVertex = dotVecticesMap.get(selected);
-                                    if (selectedVertex.equals(verticesA.get(1))) {
-                                        //center point
-
-                                        app.text.setText("center");
-                                    } else if (selectedVertex.equals(verticesA.get(0)) || selectedVertex.equals(verticesB.get(0))) {
-                                        //side point
-                                        dragMode = "SideAngle";
-                                        Vector3f centerTop = verticesA.get(1).add(deltaAxis.normalize().mult(100));
-                                        Vector3f centerBot = verticesA.get(1).subtract(deltaAxis.normalize().mult(100));
-                                        Vector3f sideTop;
-                                        Vector3f sideBot;
-                                        if (verticesA.contains(selectedVertex)) {
-                                            sideTop = centerTop.add(axisTranslationA.normalize().mult(100));
-                                            sideBot = centerBot.add(axisTranslationA.normalize().mult(100));
-                                        } else {
-                                            sideTop = centerTop.add(axisTranslationB.normalize().mult(100));
-                                            sideBot = centerBot.add(axisTranslationB.normalize().mult(100));
-                                        }
-                                        Vector3f[] temp = {centerTop, centerBot, sideBot, sideTop};
-
-                                        Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
-                                        collision.setMaterial(dotMaterial);
-                                        collisionNode.attachChild(collision);
-
-                                    } else if (selectedVertex.equals(verticesA.get(2)) || selectedVertex.equals(verticesB.get(2))) {
-                                        //top point
-                                        app.text.setText("top");
-                                        dragMode = "TopAngle";
-                                        Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100f));
-                                        Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100f));
-                                        Vector3f up = verticesA.get(0).subtract(verticesA.get(1)).cross(verticesB.get(0).subtract(verticesB.get(1))).normalize();
-                                        if (up.add(verticesA.get(1)).distance(verticesA.get(2)) > up.negate().add(verticesA.get(1)).distance(verticesA.get(2))) {
-                                            up.negateLocal();
-                                        }
-                                        Vector3f topA = botA.add(up.mult(100f));
-                                        Vector3f topB = botB.add(up.mult(100f));
-
+                                switch (selected.getName()) {
+                                    case "Line": {
+                                        Vector3f[] points = lineVecticesMap.get(selected);
+                                        referencePoint = Util.closestPointOnLine(points[0], points[0].subtract(points[1]), closest.getContactPoint());
+                                        Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
+                                        Vector3f topA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                        Vector3f topB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                        Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                        Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
                                         Vector3f[] temp = {botA, botB, topB, topA};
-                                        for (Vector3f point : temp) {
-                                            addDot(point);
-                                        }
                                         Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
-                                        collision.setMaterial(dotMaterial);
                                         collisionNode.attachChild(collision);
-                                    } else {
-                                        //free movement
-                                        dragMode = "freeMove";
-
-                                        Vector3f up = verticesA.get(2).subtract(verticesA.get(1));
-                                        up = verticesA.get(1).add(up.normalize().mult(100));
-                                        Vector3f side;
-                                        if (verticesA.contains(selectedVertex)) {
-                                            side = verticesA.get(0).subtract(verticesA.get(1));
-                                        } else {
-                                            side = verticesB.get(0).subtract(verticesB.get(1));
-
-                                        }
-                                        side = verticesA.get(1).add(side.normalize().mult(100));
-                                        Vector3f[] temp = {up, verticesA.get(1), side};
-
-                                        Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
-                                        collision.setMaterial(dotMaterial);
-                                        collisionNode.attachChild(collision);
+                                        dragMode = "shift";
+                                        break;
                                     }
+                                    case "Dot": {
+                                        Vector3f selectedVertex = dotVecticesMap.get(selected);
+                                        if (selectedVertex.equals(verticesA.get(1))) {
+                                            //center point
+                                            referencePoint = selectedVertex.clone();
+                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
+                                            Vector3f topA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                            Vector3f topB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                            Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                            Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                            Vector3f[] temp = {botA, botB, topB, topA};
+                                            Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
+                                            collisionNode.attachChild(collision);
+                                            dragMode = "shift";
+                                        } else if (selectedVertex.equals(verticesA.get(0)) || selectedVertex.equals(verticesB.get(0))) {
+                                            //side point
+                                            dragMode = "SideAngle";
+                                            Vector3f centerTop = verticesA.get(1).add(deltaAxis.normalize().mult(100));
+                                            Vector3f centerBot = verticesA.get(1).subtract(deltaAxis.normalize().mult(100));
+                                            Vector3f sideTop;
+                                            Vector3f sideBot;
+                                            if (verticesA.contains(selectedVertex)) {
+                                                sideTop = centerTop.add(axisTranslationA.normalize().mult(100));
+                                                sideBot = centerBot.add(axisTranslationA.normalize().mult(100));
+                                            } else {
+                                                sideTop = centerTop.add(axisTranslationB.normalize().mult(100));
+                                                sideBot = centerBot.add(axisTranslationB.normalize().mult(100));
+                                            }
+                                            Vector3f[] temp = {centerTop, centerBot, sideBot, sideTop};
 
+                                            Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
+                                            collision.setMaterial(dotMaterial);
+                                            collisionNode.attachChild(collision);
+
+                                        } else if (selectedVertex.equals(verticesA.get(2)) || selectedVertex.equals(verticesB.get(2))) {
+                                            //top point
+                                            app.text.setText("top");
+                                            dragMode = "TopAngle";
+                                            Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100f));
+                                            Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100f));
+                                            Vector3f up = verticesA.get(2).subtract(verticesA.get(1));
+                                            Vector3f topA = botA.add(up.mult(100f));
+                                            Vector3f topB = botB.add(up.mult(100f));
+
+                                            Vector3f[] temp = {botA, botB, topB, topA};
+                                            Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
+                                            collision.setMaterial(dotMaterial);
+                                            collisionNode.attachChild(collision);
+                                        } else {
+                                            //free movement
+                                            dragMode = "freeMove";
+
+                                            Vector3f up = verticesA.get(2).subtract(verticesA.get(1));
+                                            up = verticesA.get(1).add(up.normalize().mult(100));
+                                            Vector3f side;
+                                            if (verticesA.contains(selectedVertex)) {
+                                                side = verticesA.get(0).subtract(verticesA.get(1));
+                                            } else {
+                                                side = verticesB.get(0).subtract(verticesB.get(1));
+
+                                            }
+                                            side = verticesA.get(1).add(side.normalize().mult(100));
+                                            Vector3f[] temp = {up, verticesA.get(1), side};
+
+                                            Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
+                                            collision.setMaterial(dotMaterial);
+                                            collisionNode.attachChild(collision);
+                                        }
+                                    }
+                                    default:
+                                        break;
                                 }
                             }
                         }
@@ -552,8 +549,8 @@ public class D1CreationState extends BaseAppState {
             if (endPoint.add(up).distance(testPoint) > endPoint.add(up.negate()).distance(testPoint)) {
                 up.negateLocal();
             }
-        }else{
-            if(verticesA.get(1).add(up).distance(app.getCamera().getLocation()) >verticesA.get(1).add(up.negate()).distance(app.getCamera().getLocation())){
+        } else {
+            if (verticesA.get(1).add(up).distance(app.getCamera().getLocation()) > verticesA.get(1).add(up.negate()).distance(app.getCamera().getLocation())) {
                 up.negateLocal();
             }
         }
@@ -750,7 +747,6 @@ public class D1CreationState extends BaseAppState {
     }
 
     private void updateBoundaries() {
-        System.out.println("called");
         ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(geometryA, geometryB, verticesA, verticesB, "D1Joint");
 
         if (results != null) {
@@ -816,11 +812,10 @@ public class D1CreationState extends BaseAppState {
         for (HashMap.Entry pair : dotVecticesMap.entrySet()) {
             ((Geometry) pair.getKey()).setLocalTranslation((Vector3f) pair.getValue());
         }
-        for (HashMap.Entry<Geometry,Vector3f[]> pair : lineVecticesMap.entrySet()) {
+        for (HashMap.Entry<Geometry, Vector3f[]> pair : lineVecticesMap.entrySet()) {
             Vector3f[] points = pair.getValue();
             updateLine(pair.getKey(), points[0], points[1]);
         }
     }
-
 
 }
