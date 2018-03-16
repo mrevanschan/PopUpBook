@@ -61,12 +61,12 @@ public class PopUpBookTree {
         lines = new Node("Line");
         app.getRootNode().attachChild(lines);
 
-        Sphere sphere = new Sphere(30, 30, 0.2f);
-        mark1 = new Geometry("BOOM!", sphere);
-        Material mark_mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        mark_mat.setColor("Color", ColorRGBA.Red);
-        mark1.setMaterial(mark_mat.clone());
-        planes.attachChild(mark1);
+//        Sphere sphere = new Sphere(30, 30, 0.2f);
+//        mark1 = new Geometry("BOOM!", sphere);
+//        Material mark_mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        mark_mat.setColor("Color", ColorRGBA.Red);
+//        mark1.setMaterial(mark_mat.clone());
+//        planes.attachChild(mark1);
 //        mark2 = new Geometry("BOOM!", sphere);
 //        mark_mat.setColor("Color", ColorRGBA.Yellow);
 //        mark2.setMaterial(mark_mat.clone());

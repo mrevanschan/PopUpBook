@@ -80,9 +80,8 @@ public class D2CreationState extends BaseAppState {
     private final ActionListener d2BasicInput = new D2BasicListener();
     private final D2MoustListener d2MouseListener = new D2MoustListener();
     private final float lineRadius = 0.05f;
-    private final float sphereRadius = 0.2f;
+    private final float sphereRadius = 0.15f;
     private final int sample = 20;
-    private final float angleConstant = FastMath.PI / 8;
     public static final float PI = 3.1f;
 
     private class D2MoustListener implements AnalogListener {
@@ -422,27 +421,26 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void initialize() {
-        geometryA = app.selected.get(0);
-        geometryB = app.selected.get(1);
-        PopUpBookTree.PageNode pageA = app.popUpBook.geomPageMap.get(geometryA);
-        PopUpBookTree.PageNode pageB = app.popUpBook.geomPageMap.get(geometryB);
+        
+        PopUpBookTree.PageNode pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
+        PopUpBookTree.PageNode pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
         normalA = pageB.getNormal();
         normalB = pageA.getNormal();
         midPlane = null;
         if (pageA.next.contains(pageB)) {
-            midPlane = new Plane();
-            Geometry temp = geometryA;
-            geometryA = geometryB;
-            geometryB = temp;
-            Vector3f[] boundary = pageB.boundary;
+            pageA = app.popUpBook.geomPageMap.get(app.selected.get(1));
+            pageB = app.popUpBook.geomPageMap.get(app.selected.get(0));
+            Vector3f[] boundary = pageA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);
         } else if (pageB.next.contains(pageA)) {
             midPlane = new Plane();
             Vector3f[] boundary = pageA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);
         }
-        Vector3f[] listA = BufferUtils.getVector3Array(geometryA.getMesh().getFloatBuffer(VertexBuffer.Type.Position));
-        Vector3f[] listB = BufferUtils.getVector3Array(geometryB.getMesh().getFloatBuffer(VertexBuffer.Type.Position));
+        geometryA = pageA.geometry;
+        geometryB = pageB.geometry;
+        Vector3f[] listA = pageA.boundary;
+        Vector3f[] listB = pageB.boundary;
         Vector3f[] jointPoint = app.popUpBook.axisBetween(geometryA, geometryB);
 
         axisPointA = jointPoint[0];

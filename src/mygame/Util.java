@@ -114,7 +114,7 @@ public final class Util {
     
     public static Vector3f lineToPointTranslation(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint){
         float angle = lineDirrection.normalize().angleBetween(targetPoint.subtract(linePoint).normalize());
-        return targetPoint.subtract(linePoint.add(lineDirrection.normalize().mult(targetPoint.distance(linePoint)*FastMath.cos(angle)))).normalize();
+        return targetPoint.subtract(linePoint.add(lineDirrection.normalize().mult(targetPoint.distance(linePoint)*FastMath.cos(angle))));
     }
     
     public static Vector3f closestPointOnLine(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint){
