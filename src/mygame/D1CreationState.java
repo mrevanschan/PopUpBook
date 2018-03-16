@@ -138,6 +138,7 @@ public class D1CreationState extends BaseAppState {
                                         point.set(plane.getClosestPoint(point));
                                     }
                                 }
+                                updateBoundaries();
                             }
 
                             if (verticesA.get(0).equals(dotVecticesMap.get(selected))) {
@@ -159,32 +160,28 @@ public class D1CreationState extends BaseAppState {
                                 }
                                 verticesB.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length).add(verticesB.get(1)));
                             }
-                            updateBoundaries();
+                            
                             fitInBoundaries();
                             updateGraphics();
                             break;
                         }
                         case "TopAngle": {
                             //TopAngle
-                            Vector3f centerAxis = verticesA.get(0).subtract(verticesA.get(1)).normalize().add(verticesB.get(0).subtract(verticesB.get(1)).normalize());
-                            Float targetAngle = angleConstant + angleConstant * Math.round((newPoint.subtract(verticesA.get(1)).normalize().angleBetween(centerAxis.normalize()) - angleConstant) / angleConstant);
+                            Float targetAngle = angleConstant + angleConstant * Math.round((newPoint.subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant) / angleConstant);
                             if (targetAngle == 0f) {
                                 targetAngle = angleConstant;
                             } else if (targetAngle == FastMath.PI) {
                                 targetAngle -= angleConstant;
                             }
                             app.text.setText("Angle: " + targetAngle * 180 / 3.14);
-                            Vector3f rotationNormal = centerAxis.cross(verticesA.get(2).subtract(verticesA.get(1)));
-                            Float currentAngle = angleConstant + angleConstant * Math.round((verticesA.get(2).subtract(verticesA.get(1)).normalize().angleBetween(centerAxis.normalize()) - angleConstant) / angleConstant);
+                            Vector3f rotationNormal = deltaAxis.cross(verticesA.get(2).subtract(verticesA.get(1)).normalize());
+                            Float currentAngle = angleConstant + angleConstant * Math.round((verticesA.get(2).subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant) / angleConstant);
                             if (FastMath.abs(currentAngle - targetAngle) > FastMath.FLT_EPSILON) {
                                 verticesA.get(2).set(PopUpBookTree.rotatePoint(verticesA.get(2), verticesA.get(1), verticesA.get(1).add(rotationNormal), currentAngle - targetAngle));
                                 updateBoundaries();
                             }
                             
-                            Vector3f original = newPoint.subtract(verticesA.get(1));
-                            float newLength = original.length() * FastMath.cos(original.angleBetween(verticesA.get(2).subtract(verticesA.get(1))));
-                            verticesA.get(2).set(verticesA.get(1).add(verticesA.get(2).subtract(verticesA.get(1)).normalize().mult(newLength)));
-                            fitInBoundaries();
+                            verticesA.get(2).set(Util.closestPointOnLine(verticesA.get(1), verticesA.get(2).subtract(verticesA.get(1)).normalize(), newPoint));
                             Plane plane = new Plane();
                             plane.setPlanePoints(verticesA.get(0), verticesA.get(1), verticesA.get(2));
                             for (Vector3f point : verticesA) {
@@ -198,14 +195,12 @@ public class D1CreationState extends BaseAppState {
                                     point.set(plane.getClosestPoint(point));
                                 }
                             }
+                            fitInBoundaries();
                             updateGraphics();
                             break;
                         }
                         case "shift": {
-                            Vector3f midA = verticesA.get(1).add(deltaAxis.normalize().mult(100));
-                            Vector3f midB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100));
-                            float angle = newPoint.subtract(midA).angleBetween(midB.subtract(midA));
-                            newPoint = midA.add(midB.subtract(midA).normalize().mult(FastMath.cos(angle) * newPoint.distance(midA)));
+                            newPoint = Util.closestPointOnLine(verticesA.get(1), deltaAxis.normalize(), newPoint);
                             if (newPoint.distance(referencePoint) > FastMath.FLT_EPSILON) {
                                 app.text.setText("shift");
                                 Vector3f translation = newPoint.subtract(referencePoint);
@@ -303,31 +298,28 @@ public class D1CreationState extends BaseAppState {
                                     Geometry line = closest.getGeometry();
                                     Vector3f[] points = lineVecticesMap.get(line);
                                     if (verticesA.get(1) != points[0] && verticesA.get(1) != points[1]) {
-                                        Vector3f h = closest.getContactPoint().subtract(points[0]);
-                                        Vector3f o = points[1].subtract(points[0]).normalize();
-                                        o = points[0].add(o.mult(FastMath.cos(h.normalize().angleBetween(o)) * h.length()));
+                                        Vector3f newPoint = Util.closestPointOnLine(points[0], points[1].subtract(points[0]), closest.getContactPoint());
                                         if (verticesA.contains(points[0]) && verticesA.contains(points[1])) {
                                             int index = Math.max(verticesA.indexOf(points[0]), verticesA.indexOf(points[1]));
                                             if (verticesA.indexOf(points[0]) == 0 || verticesA.indexOf(points[1]) == 0) {
-                                                verticesA.add(o);
+                                                verticesA.add(newPoint);
                                             } else {
-                                                verticesA.add(index, o);
+                                                verticesA.add(index, newPoint);
                                             }
                                         } else {
                                             int index = Math.max(verticesB.indexOf(points[0]), verticesB.indexOf(points[1]));
                                             if (verticesB.indexOf(points[0]) == 0 || verticesB.indexOf(points[1]) == 0) {
-                                                verticesB.add(o);
+                                                verticesB.add(newPoint);
                                             } else {
-                                                verticesB.add(index, o);
+                                                verticesB.add(index, newPoint);
                                             }
                                         }
 
-                                        addDot(o);
-                                        addLine(points[1], o);
-                                        ((Cylinder) line.getMesh()).updateGeometry(sample, sample, lineRadius, lineRadius, points[0].distance(o), false, false);
-                                        line.setLocalTranslation(points[0].add(o).divide(2f));
+                                        addDot(newPoint);
+                                        addLine(points[1], newPoint);
+                                        updateLine(line, points[0], newPoint);
                                         lineVecticesMap.get(line)[0] = points[0];
-                                        lineVecticesMap.get(line)[1] = o;
+                                        lineVecticesMap.get(line)[1] = newPoint;
 
                                     }
 
@@ -758,6 +750,7 @@ public class D1CreationState extends BaseAppState {
     }
 
     private void updateBoundaries() {
+        System.out.println("called");
         ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(geometryA, geometryB, verticesA, verticesB, "D1Joint");
 
         if (results != null) {
@@ -827,7 +820,6 @@ public class D1CreationState extends BaseAppState {
             Vector3f[] points = pair.getValue();
             updateLine(pair.getKey(), points[0], points[1]);
         }
-        frameNode.updateModelBound();
     }
 
 
