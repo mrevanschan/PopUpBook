@@ -111,17 +111,17 @@ public class D1CreationState extends BaseAppState {
                         for(int x = 0; x < pointSet.size();x++){
                             boolean matched = false;
                             if(x!=i && x!= 1 && x!=0){
-                               Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), newPoint);
+                               Vector3f newPointVector  = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
                                Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
-                               if(newPointVector.distance(thisPointVector) < 0.15f){
+                               if(newPointVector.distance(thisPointVector) < 0.5f){
                                    pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
                                    matched = true;
                                }
                             }
-                            if(x!=i && x!=2 && x!=1){
-                               Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), newPoint);
+                            if(x != i && x!=2 && x!=1){
+                               Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
                                Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
-                               if(newPointVector.distance(thisPointVector) < 0.15f){
+                               if(newPointVector.distance(thisPointVector) < 0.5f){
                                    pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
                                    matched = true;
                                }
