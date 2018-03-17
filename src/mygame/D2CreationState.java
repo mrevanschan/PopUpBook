@@ -70,7 +70,7 @@ public class D2CreationState extends BaseAppState {
     private HashMap<Geometry, Vector3f> dotVecticesMap;
     private HashMap<Geometry, Vector3f[]> lineVecticesMap;
     private Node collisionNode;
-    private Vector3f refferencePoint;
+    private Vector3f referencePoint;
     public static final String D2_ESCAPE = "D2_Escape";
     public static final String D2_CONFIRM = "D2_Confirm";
     public static final String D2_SELECT = "D2_Select";
@@ -93,106 +93,146 @@ public class D2CreationState extends BaseAppState {
                 Vector3f click3d = app.getCamera().getWorldCoordinates(click2d, 0f).clone();
                 Vector3f dir = app.getCamera().getWorldCoordinates(click2d, 1f).subtractLocal(click3d).normalizeLocal();
                 Ray ray = new Ray(click3d, dir);
-                collisionNode.collideWith(ray, results);
-                if (results.size() > 0) {
-                    Vector3f newPoint = results.getClosestCollision().getContactPoint();
-                    switch (dragMode) {
-                        case "shift": {
-                            float angle = verticesA.get(3).subtract(refferencePoint).normalize().angleBetween(newPoint.subtract(refferencePoint).normalize());
-                            Vector3f translation = verticesA.get(3).subtract(refferencePoint).normalize().mult(newPoint.distance(refferencePoint) * FastMath.cos(angle));
+
+                switch (dragMode) {
+                    case "shift": {
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
+                            float angle = verticesA.get(3).subtract(referencePoint).normalize().angleBetween(newPoint.subtract(referencePoint).normalize());
+                            Vector3f translation = verticesA.get(3).subtract(referencePoint).normalize().mult(newPoint.distance(referencePoint) * FastMath.cos(angle));
+                            ArrayList<ArrayList<Vector3f>> preTransState = copyCurrentState();
                             verticesA.get(2).addLocal(translation);
                             verticesA.get(3).addLocal(translation);
-                            if(Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) && Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))){
-                                for (Vector3f point : verticesA) {
-                                    if (!point.equals(verticesA.get(3)) && !point.equals(verticesA.get(2))) {
-                                        point.addLocal(translation);
-                                    }
+                            for (Vector3f point : verticesA) {
+                                if (!point.equals(verticesA.get(3)) && !point.equals(verticesA.get(2))) {
+                                    point.addLocal(translation);
                                 }
-                                for (Vector3f point : verticesB) {
-                                    if (!point.equals(verticesA.get(3)) && !point.equals(verticesA.get(2))) {
-                                        point.addLocal(translation);
-                                    }
-                                }
-                                
-                                fitInBoundaries();
-                                refferencePoint.addLocal(translation);
-                                updateGraphics();
-                            }else{
-                                verticesA.get(2).addLocal(translation.negate());
-                                verticesA.get(1).addLocal(translation.negate());
                             }
+                            for (Vector3f point : verticesB) {
+                                if (!point.equals(verticesA.get(3)) && !point.equals(verticesA.get(2))) {
+                                    point.addLocal(translation);
+                                }
+                            }
+                            if (Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) && Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))
+                                    && (Util.inBoundary(verticesA.get(0), pageA.boundary) || Util.inBoundary(verticesA.get(1), pageA.boundary))) {
 
-                            break;
+                                fitInBoundaries();
+                                referencePoint.addLocal(translation);
+                                updateGraphics();
+
+                            } else {
+                                for (int i = 0; i < verticesA.size(); i++) {
+                                    verticesA.get(i).set(preTransState.get(0).get(i));
+                                    if (i != 3 && i != 2) {
+                                        verticesB.get(i).set(preTransState.get(1).get(i));
+                                    }
+                                }
+                            }
                         }
-                        case "shiftA": {
-                            float angle = axisTranslationA.normalize().angleBetween(newPoint.subtract(refferencePoint).normalize());
-                            Vector3f translation = axisTranslationA.normalize().mult(newPoint.distance(refferencePoint) * FastMath.cos(angle));
-                            if(translation.normalize().distance(axisTranslationA.normalize())  > FastMath.FLT_EPSILON){
+                        break;
+                    }
+                    case "shiftA": {
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
+                            float angle = axisTranslationA.normalize().angleBetween(newPoint.subtract(referencePoint).normalize());
+                            Vector3f translation = axisTranslationA.normalize().mult(newPoint.distance(referencePoint) * FastMath.cos(angle));
+                            if (translation.normalize().distance(axisTranslationA.normalize()) > FastMath.FLT_EPSILON) {
                                 System.out.println("Wrong!!!");
                             }
                             for (Vector3f point : verticesA) {
                                 point.addLocal(translation);
                             }
-                            refferencePoint.addLocal(translation);
+                            referencePoint.addLocal(translation);
                             updateBoundaries();
                             if (boundaryA == null || boundaryA.get(3).distance(boundaryA.get(2)) < 0.5f) {
                                 translation.negateLocal();
                                 for (Vector3f point : verticesA) {
                                     point.addLocal(translation);
                                 }
-                                refferencePoint.addLocal(translation);
+                                referencePoint.addLocal(translation);
                                 updateBoundaries();
-                            }else{
+                            } else {
                                 fitInBoundaries();
                             }
                             updateGraphics();
-
-                            break;
                         }
-                        case "shiftB": {
-                            float angle = axisTranslationB.normalize().angleBetween(newPoint.subtract(refferencePoint).normalize());
-                            Vector3f translation = axisTranslationB.normalize().mult(newPoint.distance(refferencePoint) * FastMath.cos(angle));
+                        break;
+                    }
+                    case "shiftB": {
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
+                            float angle = axisTranslationB.normalize().angleBetween(newPoint.subtract(referencePoint).normalize());
+                            Vector3f translation = axisTranslationB.normalize().mult(newPoint.distance(referencePoint) * FastMath.cos(angle));
                             for (Vector3f point : verticesB) {
                                 point.addLocal(translation);
                             }
-                            refferencePoint.addLocal(translation);
+                            referencePoint.addLocal(translation);
                             updateBoundaries();
                             if (boundaryB == null || boundaryB.get(3).distance(boundaryB.get(2)) < 0.5f) {
                                 translation.negateLocal();
                                 for (Vector3f point : verticesB) {
                                     point.addLocal(translation);
                                 }
-                                refferencePoint.addLocal(translation);
+                                referencePoint.addLocal(translation);
                                 updateBoundaries();
-                            }else{
+                            } else {
                                 fitInBoundaries();
                             }
                             updateGraphics();
-                            break;
                         }
-                        case "shiftDot": {
-                            Vector3f point = dotVecticesMap.get(selected);
+                        break;
+                    }
+                    case "shiftDot": {
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
                             Vector3f pairPoint;
                             Vector3f boundaryPoint;
-                            if (verticesA.contains(point)) {
-                                pairPoint = verticesA.get(pairNum(verticesA.indexOf(point)));
-                                boundaryPoint = boundaryA.get(verticesA.indexOf(point));
+                            if (verticesA.contains(referencePoint)) {
+                                pairPoint = verticesA.get(pairNum(verticesA.indexOf(referencePoint)));
+                                boundaryPoint = boundaryA.get(verticesA.indexOf(referencePoint));
                             } else {
-                                pairPoint = verticesB.get(pairNum(verticesB.indexOf(point)));
-                                boundaryPoint = boundaryB.get(verticesB.indexOf(point));
+                                pairPoint = verticesB.get(pairNum(verticesB.indexOf(referencePoint)));
+                                boundaryPoint = boundaryB.get(verticesB.indexOf(referencePoint));
                             }
-                            float angle = pairPoint.subtract(point).normalize().angleBetween(newPoint.subtract(point).normalize());
-                            Vector3f translation = pairPoint.subtract(point).normalize().mult(newPoint.distance(point) * FastMath.cos(angle));
-                            if (pairPoint.distance(point.add(translation)) > 0.5f && pairPoint.distance(point.add(translation)) <= pairPoint.distance(boundaryPoint)) {
-                                point.addLocal(translation);
+                            results.clear();
+                            frameNode.collideWith(ray, results);
+                            if (results.size() > 1) {
+                                Geometry geom = results.getClosestCollision().getGeometry();
+                                if (geom.getName().equals("Dot") && !dotVecticesMap.get(geom).equals(pairPoint) && !geom.equals(selected)) {
+                                    geom.getMaterial().setColor("Color", ColorRGBA.Yellow);
+                                    newPoint.set(dotVecticesMap.get(geom));
+                                } else {
+                                    for (Geometry geometry : dotVecticesMap.keySet()) {
+                                        if (!geometry.equals(selected)) {
+                                            geometry.getMaterial().setColor("Color", ColorRGBA.Red);
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (Geometry geometry : dotVecticesMap.keySet()) {
+                                    if (!geometry.equals(selected)) {
+                                        geometry.getMaterial().setColor("Color", ColorRGBA.Red);
+                                    }
+                                }
+                            }
+                            Vector3f translation = Util.closestPointOnLine(referencePoint, deltaAxis, newPoint).subtract(referencePoint);
+                            if (pairPoint.distance(referencePoint.add(translation)) > 0.5f && pairPoint.distance(referencePoint.add(translation)) <= pairPoint.distance(boundaryPoint)) {
+                                referencePoint.addLocal(translation);
+                                fitInBoundaries();
                                 updateGraphics();
                             }
-
                         }
-                        default:
-                            break;
+                        break;
+
                     }
+                    default:
+                        break;
                 }
+
             }
 
         }
@@ -253,7 +293,7 @@ public class D2CreationState extends BaseAppState {
                             selected = closest.getGeometry();
                             switch (selected.getName()) {
                                 case "Line": {
-                                    refferencePoint = closest.getContactPoint();
+                                    referencePoint = closest.getContactPoint();
                                     Vector3f[] points = lineVecticesMap.get(selected);
                                     if ((verticesA.get(3).equals(points[0]) && verticesA.get(2).equals(points[1])) || (verticesA.get(2).equals(points[0]) && verticesA.get(3).equals(points[1]))) {
                                         //enlarge
@@ -261,18 +301,14 @@ public class D2CreationState extends BaseAppState {
                                         lineMaterialA.setColor("Color", ColorRGBA.Yellow);
                                         lineMaterialB.setColor("Color", ColorRGBA.Yellow);
                                         lineMaterialMid.setColor("Color", ColorRGBA.Yellow);
-                                        Vector3f h = closest.getContactPoint().subtract(points[0]);
-                                        Vector3f o = points[1].subtract(points[0]).normalize();
-                                        refferencePoint = points[0].add(o.mult(FastMath.cos(h.normalize().angleBetween(o)) * h.length()));
-
-                                        Vector3f dirrection1 = verticesA.get(0).subtract(verticesB.get(0)).mult(100f);
-                                        Vector3f dirrection2 = verticesA.get(1).subtract(verticesA.get(0)).mult(100f);
-                                        Vector3f point1 = refferencePoint.add(dirrection1).add(dirrection2);
-                                        Vector3f point2 = refferencePoint.add(dirrection1).add(dirrection2.negate());
-                                        Vector3f point3 = refferencePoint.add(dirrection1.negate()).add(dirrection2.negate());
-                                        Vector3f point4 = refferencePoint.add(dirrection1.negate()).add(dirrection2);
-
-                                        Geometry collision = new Geometry("Collision", Util.makeMesh(new Vector3f[]{point1, point2, point3, point4}));
+                                        referencePoint = Util.closestPointOnLine(points[0], points[1].subtract(points[0]), referencePoint);
+                                        Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
+                                        Vector3f topA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                        Vector3f topB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                        Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                        Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                        Vector3f[] temp = {botA, botB, topB, topA};
+                                        Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                         collisionNode.attachChild(collision);
 
                                         app.text.setText("shift");
@@ -281,16 +317,14 @@ public class D2CreationState extends BaseAppState {
                                             dragMode = "shiftA";
                                             lineMaterialA.setColor("Color", ColorRGBA.Yellow);
                                             lineMaterialMid.setColor("Color", ColorRGBA.Yellow);
-                                            Vector3f h = closest.getContactPoint().subtract(points[0]);
-                                            Vector3f o = points[1].subtract(points[0]).normalize();
-                                            refferencePoint = points[0].add(o.mult(FastMath.cos(h.normalize().angleBetween(o)) * h.length()));
-                                            Vector3f dirrection1 = verticesA.get(0).subtract(verticesA.get(1)).mult(100f);
-                                            Vector3f dirrection2 = axisTranslationA.normalize().mult(verticesB.get(0).distance(verticesB.get(3)) - 0.2f);
-                                            Vector3f point1 = refferencePoint.add(dirrection1).add(dirrection2.normalize().mult(100f));
-                                            Vector3f point2 = refferencePoint.add(dirrection1).add(dirrection2.negate());
-                                            Vector3f point3 = refferencePoint.add(dirrection1.negate()).add(dirrection2.negate());
-                                            Vector3f point4 = refferencePoint.add(dirrection1.negate()).add(dirrection2.normalize().mult(100f));
-                                            Geometry collision = new Geometry("Collision", Util.makeMesh(new Vector3f[]{point1, point2, point3, point4}));
+                                            referencePoint = Util.closestPointOnLine(points[0], points[1].subtract(points[0]), referencePoint);
+                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
+                                            Vector3f topA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                            Vector3f topB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide);
+                                            Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                            Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100)).add(deltaSide.negate());
+                                            Vector3f[] temp = {botA, botB, topB, topA};
+                                            Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
 
                                             app.text.setText("shiftA");
@@ -299,16 +333,18 @@ public class D2CreationState extends BaseAppState {
                                             lineMaterialB.setColor("Color", ColorRGBA.Yellow);
                                             lineMaterialMid.setColor("Color", ColorRGBA.Yellow);
 
-                                            Vector3f h = closest.getContactPoint().subtract(points[0]);
-                                            Vector3f o = points[1].subtract(points[0]).normalize();
-                                            refferencePoint = points[0].add(o.mult(FastMath.cos(h.normalize().angleBetween(o)) * h.length()));
-                                            Vector3f dirrection1 = verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(10f);
-                                            Vector3f dirrection2 = axisTranslationB.normalize().mult(verticesA.get(0).distance(verticesA.get(3)) - 0.2f);
-                                            Vector3f point1 = refferencePoint.add(dirrection1).add(dirrection2.normalize().mult(10f));
-                                            Vector3f point2 = refferencePoint.add(dirrection1).add(dirrection2.negate());
-                                            Vector3f point3 = refferencePoint.add(dirrection1.negate()).add(dirrection2.negate());
-                                            Vector3f point4 = refferencePoint.add(dirrection1.negate()).add(dirrection2.normalize().mult(10f));
-                                            Geometry collision = new Geometry("Collision", Util.makeMesh(new Vector3f[]{point1, point2, point3, point4}));
+                                            referencePoint = Util.closestPointOnLine(points[0], points[1].subtract(points[0]), referencePoint);
+                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, axisTranslationB, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(1f);
+                                            Vector3f point1 = referencePoint.add(deltaAxis.normalize().mult(1)).add(deltaSide);
+                                            Vector3f point2 = referencePoint.subtract(deltaAxis.normalize().mult(1)).add(deltaSide);
+                                            Vector3f point3 = referencePoint.subtract(deltaAxis.normalize().mult(1)).add(deltaSide.negate());
+                                            Vector3f point4 = referencePoint.add(deltaAxis.normalize().mult(1)).add(deltaSide.negate());
+                                            addDot(point1);
+                                            addDot(point2);
+                                            addDot(point3);
+                                            addDot(point4);
+                                            Vector3f[] temp = {point1, point2, point3, point4};
+                                            Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
                                             app.text.setText("shiftB");
                                         }
@@ -318,15 +354,16 @@ public class D2CreationState extends BaseAppState {
                                 case "Dot": {
                                     dragMode = "shiftDot";
                                     selected.getMaterial().setColor("Color", ColorRGBA.Yellow);
-                                    Vector3f point = dotVecticesMap.get(selected);
+                                    referencePoint = dotVecticesMap.get(selected);
                                     Vector3f pairPoint;
-                                    if (verticesA.contains(point)) {
-                                        pairPoint = verticesA.get(pairNum(verticesA.indexOf(point)));
+                                    if (verticesA.contains(referencePoint)) {
+                                        pairPoint = verticesA.get(pairNum(verticesA.indexOf(referencePoint)));
                                     } else {
-                                        pairPoint = verticesB.get(pairNum(verticesB.indexOf(point)));
+                                        pairPoint = verticesB.get(pairNum(verticesB.indexOf(referencePoint)));
                                     }
-                                    Vector3f dirrection1 = point.subtract(pairPoint).mult(2f);
-                                    Vector3f dirrection2 = verticesA.get(3).subtract(verticesA.get(0)).mult(2f);
+
+                                    Vector3f dirrection1 = referencePoint.subtract(pairPoint).mult(100f);
+                                    Vector3f dirrection2 = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
                                     Vector3f point1 = pairPoint.add(dirrection2);
                                     Vector3f point2 = pairPoint.add(dirrection2.negate());
                                     Vector3f point3 = point2.add(dirrection1);
@@ -343,23 +380,14 @@ public class D2CreationState extends BaseAppState {
                         }
 
                     } else {
-                        if (selected != null) {
-                            switch (selected.getName()) {
-                                case "Line": {
-                                    lineMaterialA.setColor("Color", ColorRGBA.Black);
-                                    lineMaterialB.setColor("Color", ColorRGBA.Black);
-                                    lineMaterialMid.setColor("Color", ColorRGBA.Black);
-                                    break;
-                                }
-                                case "Dot": {
-                                    selected.getMaterial().setColor("Color", ColorRGBA.Red);
-                                }
-                                default:
-                                    break;
+                        for (Geometry geometry : dotVecticesMap.keySet()) {
+                            if (!geometry.equals(selected)) {
+                                geometry.getMaterial().setColor("Color", ColorRGBA.Red);
                             }
-                            selected = null;
                         }
-
+                        lineMaterialA.setColor("Color", ColorRGBA.Black);
+                        lineMaterialB.setColor("Color", ColorRGBA.Black);
+                        lineMaterialMid.setColor("Color", ColorRGBA.Black);
                         collisionNode.detachAllChildren();
                         app.chaseCam.setEnabled(true);
                         dragMode = null;
@@ -419,7 +447,7 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void initialize() {
-        
+
         pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
         pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
         midPlane = null;
@@ -462,7 +490,7 @@ public class D2CreationState extends BaseAppState {
 
             }
         }
-        
+
         plane.setPlanePoints(jointPoint[0], jointPoint[1], jointPoint[1].add(listA[0].subtract(listA[1]).cross(listA[2].subtract(listA[1]))));
         distance = 0f;
         for (Vector3f point : listA) {
@@ -471,21 +499,21 @@ public class D2CreationState extends BaseAppState {
                 distance = FastMath.abs(plane.pseudoDistance(point));
             }
         }
-        
+
         axisTranslationB = Util.lineToPointTranslation(jointPoint[0], deltaAxis, deltaB);
         axisTranslationA = Util.lineToPointTranslation(jointPoint[0], deltaAxis, deltaA);
-        if(axisTranslationA.length() < axisTranslationB.length()){
-            float length = axisTranslationA.length()*0.5f;
+        if (axisTranslationA.length() < axisTranslationB.length()) {
+            float length = axisTranslationA.length() * 0.5f;
             axisTranslationA.normalizeLocal().multLocal(length);
             axisTranslationB.normalizeLocal().multLocal(length);
-        }else{
-            float length = axisTranslationB.length()*0.5f;
+        } else {
+            float length = axisTranslationB.length() * 0.5f;
             axisTranslationA.normalizeLocal().multLocal(length);
             axisTranslationB.normalizeLocal().multLocal(length);
         }
         verticesA = new ArrayList<>();
         verticesB = new ArrayList<>();
-        
+
         verticesA.add(pointA.add(axisTranslationA));
         verticesA.add(pointB.add(axisTranslationA));
 
@@ -494,22 +522,19 @@ public class D2CreationState extends BaseAppState {
 
         verticesA.add(verticesA.get(1).add(axisTranslationB));
         verticesA.add(verticesA.get(0).add(axisTranslationB));
-        
+
         verticesB.add(verticesA.get(2));
         verticesB.add(verticesA.get(3));
-        
+
         updateBoundaries();
         if (boundaryA == null) {
             //dun have enought space
             app.text.setText("Dun have enought space to build this joint");
             app.getStateManager().getState(ExplorationState.class).setEnabled(true);
             setEnabled(false);
-            
-            
+
         } else {
             fitInBoundaries();
-
-            
 
             addDot(verticesA.get(1));
             addDot(verticesA.get(0));
@@ -517,7 +542,6 @@ public class D2CreationState extends BaseAppState {
             addDot(verticesB.get(0));
             addDot(verticesA.get(2));
             addDot(verticesA.get(3));
-            
 
             addLine(verticesA.get(0), verticesA.get(1));
             addLine(verticesA.get(0), verticesA.get(3));
@@ -531,40 +555,34 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void fitInBoundaries() {
-        if(!Util.inBoundary(verticesA.get(0), pageA.boundary)){
+        if (!Util.inBoundary(verticesA.get(0), pageA.boundary)) {
             Vector3f temp = Util.castLineOnBoundary(verticesA.get(0), deltaAxis, pageA.boundary);
-            if(temp == null){
-                verticesA.get(0).set(verticesA.get(1).add(deltaAxis.negate().normalize().mult(0.5f)));
-            }else{
-                verticesA.get(0).set(temp);
-            }            
-        }
-        if(!Util.inBoundary(verticesA.get(1), pageA.boundary)){
-            Vector3f temp = Util.castLineOnBoundary(verticesA.get(1), deltaAxis.negate(), pageA.boundary);
-            if(temp == null){
+            verticesA.get(0).set(temp);
+            if (verticesA.get(1).distance(verticesA.get(0)) < 0.5f) {
                 verticesA.get(1).set(verticesA.get(0).add(deltaAxis.normalize().mult(0.5f)));
-            }else{
-                verticesA.get(1).set(temp);
-            }            
+            }
         }
-//        if(!Util.inBoundary(verticesB.get(0), pageB.boundary)){
-//            Vector3f temp = Util.castLineOnBoundary(verticesB.get(0), deltaAxis, pageB.boundary);
-//            if(temp != null){
-//                verticesB.get(0).set(Util.castLineOnBoundary(verticesB.get(0), deltaAxis, pageB.boundary));
-//            } else {
-//                verticesB.get(0).set(Util.castLineOnBoundary(verticesB.get(0), deltaAxis.negate(), pageB.boundary));
-//            }
-//            
-//        }
-//        if(!Util.inBoundary(verticesB.get(1), pageB.boundary)){
-//            Vector3f temp = Util.castLineOnBoundary(verticesB.get(1), deltaAxis.negate(), pageB.boundary);
-//            if(temp != null){
-//                verticesB.get(1).set(Util.castLineOnBoundary(verticesB.get(1), deltaAxis.negate(), pageB.boundary));
-//            } else {
-//                verticesB.get(1).set(Util.castLineOnBoundary(verticesB.get(1), deltaAxis, pageB.boundary));
-//            }
-//        }
-        
+        if (!Util.inBoundary(verticesA.get(1), pageA.boundary)) {
+            Vector3f temp = Util.castLineOnBoundary(verticesA.get(1), deltaAxis.negate(), pageA.boundary);
+            verticesA.get(1).set(temp);
+            if (verticesA.get(1).distance(verticesA.get(0)) < 0.5f) {
+                verticesA.get(0).set(verticesA.get(1).add(deltaAxis.negate().normalize().mult(0.5f)));
+            }
+        }
+        if (!Util.inBoundary(verticesB.get(0), pageB.boundary)) {
+            Vector3f temp = Util.castLineOnBoundary(verticesB.get(0), deltaAxis, pageB.boundary);
+            verticesB.get(0).set(temp);
+            if (verticesB.get(1).distance(verticesB.get(0)) < 0.5f) {
+                verticesB.get(1).set(verticesB.get(0).add(deltaAxis.normalize().mult(0.5f)));
+            }
+        }
+        if (!Util.inBoundary(verticesB.get(1), pageB.boundary)) {
+            Vector3f temp = Util.castLineOnBoundary(verticesB.get(1), deltaAxis.negate(), pageB.boundary);
+            verticesB.get(1).set(temp);
+            if (verticesB.get(1).distance(verticesB.get(0)) < 0.5f) {
+                verticesB.get(0).set(verticesB.get(1).add(deltaAxis.negate().normalize().mult(0.5f)));
+            }
+        }
 
         if (!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
             verticesA.get(2).set(boundaryA.get(2));
@@ -676,7 +694,8 @@ public class D2CreationState extends BaseAppState {
             updateLine((Geometry) pair.getKey(), points[0], points[1]);
         }
     }
-    private ArrayList<ArrayList<Vector3f>> copyCurrentState(){
+
+    private ArrayList<ArrayList<Vector3f>> copyCurrentState() {
         ArrayList<ArrayList<Vector3f>> returnList = new ArrayList<>();
         ArrayList<Vector3f> listACopy = new ArrayList<>();
         ArrayList<Vector3f> listBCopy = new ArrayList<>();
@@ -684,7 +703,7 @@ public class D2CreationState extends BaseAppState {
         listACopy.add(verticesA.get(1).clone());
         listACopy.add(verticesA.get(2).clone());
         listACopy.add(verticesA.get(3).clone());
-        
+
         listBCopy.add(verticesB.get(0).clone());
         listBCopy.add(verticesB.get(1).clone());
         listBCopy.add(listACopy.get(2));

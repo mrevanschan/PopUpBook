@@ -853,7 +853,7 @@ public class D1CreationState extends BaseAppState {
         private void updateLine(Geometry line, Vector3f vertexA, Vector3f vertexB) {
             if (line.getName().equals("Line")) {
                 line.setLocalTranslation(vertexA.add(vertexB).divide(2f));
-                ((Cylinder) line.getMesh()).updateGeometry(sample, sample, lineRadius, lineRadius, vertexA.distance(vertexB), false, false);
+                ((Cylinder) line.getMesh()).updateGeometry(5, 3, lineRadius, lineRadius, vertexA.distance(vertexB), false, false);
                 line.lookAt(vertexA, new Vector3f(0, 1, 0));
                 line.getMesh().createCollisionData();
             }

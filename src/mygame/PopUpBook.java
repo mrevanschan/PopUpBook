@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.StatsAppState;
 import com.jme3.bullet.joints.HingeJoint;
 import com.jme3.font.BitmapText;
 import com.jme3.input.ChaseCamera;
@@ -15,6 +16,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,18 +47,23 @@ public class PopUpBook extends SimpleApplication{
     
     public static void main(String[] args) {
         PopUpBook app = new PopUpBook();
+        AppSettings newSettings = new AppSettings(true);
+        newSettings.setFrameRate(60);
+        app.setSettings(newSettings);
         app.start();
         
     }
     public PopUpBook(){
-        super(new ExplorationState(true),new D1CreationState(false),new D1SCreationState(false),new D2CreationState(false));
+        super(new ExplorationState(true),new D1CreationState(false),new D1SCreationState(false),new D2CreationState(false),new StatsAppState());
     }
     @Override
     public void simpleInitApp() {
         inputManager.deleteMapping("SIMPLEAPP_Exit");
-        setDisplayFps(false);
-        setDisplayStatView(false);
-        viewPort.setBackgroundColor(ColorRGBA.White);
+//        setDisplayFps(true);
+//        setDisplayStatView(true);
+        setShowSettings(true);
+        
+        //viewPort.setBackgroundColor(ColorRGBA.White);
         text = new BitmapText(guiFont, false);
         text.setSize(guiFont.getCharSet().getRenderedSize());      // font size
         text.setColor(ColorRGBA.Blue);                             // font color

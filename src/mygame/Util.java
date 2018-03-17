@@ -12,15 +12,13 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  *
  * @author Evans
  */
 public final class Util {
-    public static final float FLT_EPSILON = 0.000001f;
+    public static final float FLT_EPSILON = 0.0001f;
     public static Vector3f[] toArray(ArrayList<Vector3f> arrayList){
         Vector3f[] array = new Vector3f[arrayList.size()];
         for(int i = 0; i < arrayList.size();i++){
@@ -109,7 +107,7 @@ public final class Util {
     }
     
     public static boolean inLine(Vector3f point1, Vector3f point2, Vector3f point3){
-        return point1.subtract(point2).normalize().cross(point2.subtract(point3).normalize()).distance(Vector3f.ZERO) < FLT_EPSILON;
+        return point1.subtract(point2).normalize().cross(point2.subtract(point3).normalize()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON;
     }
     
     public static Vector3f lineToPointTranslation(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint){
@@ -133,11 +131,13 @@ public final class Util {
                 return true;
             }
             if(lineIntersection(target, target.add(dir), boundary[i], boundary[(i+1)%boundary.length]) != null){
+                System.out.println(lineIntersection(target, target.add(dir), boundary[i], boundary[(i+1)%boundary.length]));
                 intersectCount++;
             }
             
         }
         System.out.println("Intersect Count = " + intersectCount);
+        
         return (intersectCount & 1) != 0;
     }
     
@@ -163,11 +163,6 @@ public final class Util {
         Vector3f v21 = point2.subtract(point1);
         
         if(v43.lengthSquared() < FastMath.FLT_EPSILON || v21.lengthSquared() < FastMath.FLT_EPSILON){
-            if(v43.lengthSquared() < FastMath.FLT_EPSILON){
-                System.out.println("v43 = " + v43.length());
-            }else{
-                System.out.println("v21 = " + v21.lengthSquared());
-            }
             return null;
         }
         float d1343 = v13.x * v43.x + v13.y * v43.y + v13.z * v43.z;
@@ -179,7 +174,7 @@ public final class Util {
         
         float denom = d2121 * d4343 - d4321 * d4321;
         if(FastMath.abs(denom) < FastMath.FLT_EPSILON){
-            System.out.println("Denom = " + FastMath.abs(denom));
+            //System.out.println("Denom = " + FastMath.abs(denom));
             return null;
         }
         float numer = d1343 * d4321 - d1321 * d4343;
