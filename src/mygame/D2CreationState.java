@@ -430,6 +430,7 @@ public class D2CreationState extends BaseAppState {
         if (pageA.next.contains(pageB)) {
             pageA = app.popUpBook.geomPageMap.get(app.selected.get(1));
             pageB = app.popUpBook.geomPageMap.get(app.selected.get(0));
+            midPlane = new Plane();
             Vector3f[] boundary = pageA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);
         } else if (pageB.next.contains(pageA)) {
@@ -470,9 +471,6 @@ public class D2CreationState extends BaseAppState {
 
             }
         }
-        float angle = deltaB.subtract(axisPointA).normalize().angleBetween(axisPointB.subtract(axisPointA).normalize());
-        deltaB.addLocal(axisPointA.subtract(axisPointB).normalize().mult(FastMath.cos(angle) * deltaB.distance(axisPointA)));
-        axisTranslationB = deltaB.subtract(axisPointA).mult(0.4f);
         
         plane.setPlanePoints(jointPoint[0], jointPoint[1], jointPoint[1].add(listA[0].subtract(listA[1]).cross(listA[2].subtract(listA[1]))));
         distance = 0f;
@@ -482,9 +480,18 @@ public class D2CreationState extends BaseAppState {
                 distance = FastMath.abs(plane.pseudoDistance(point));
             }
         }
-        angle = deltaA.subtract(axisPointA).normalize().angleBetween(axisPointB.subtract(axisPointA).normalize());
-        deltaA.addLocal(axisPointA.subtract(axisPointB).normalize().mult(FastMath.cos(angle) * deltaA.distance(axisPointA)));
-        axisTranslationA = deltaA.subtract(axisPointA).mult(0.4f);
+        
+        axisTranslationB = Util.lineToPointTranslation(jointPoint[0], deltaAxis, deltaB);
+        axisTranslationA = Util.lineToPointTranslation(jointPoint[0], deltaAxis, deltaA);
+        if(axisTranslationA.length() < axisTranslationB.length()){
+            float length = axisTranslationA.length()*0.5f;
+            axisTranslationA.normalizeLocal().multLocal(length);
+            axisTranslationB.normalizeLocal().multLocal(length);
+        }else{
+            float length = axisTranslationB.length()*0.5f;
+            axisTranslationA.normalizeLocal().multLocal(length);
+            axisTranslationB.normalizeLocal().multLocal(length);
+        }
         verticesA = new ArrayList<>();
         verticesB = new ArrayList<>();
 
@@ -506,6 +513,7 @@ public class D2CreationState extends BaseAppState {
             app.getStateManager().getState(ExplorationState.class).setEnabled(true);
             setEnabled(false);
             
+            
         } else {
             if (!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) || !Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
                 verticesA.get(2).set(boundaryA.get(2).add(boundaryA.get(3).subtract(boundaryA.get(2)).mult(0.1f)));
@@ -514,17 +522,17 @@ public class D2CreationState extends BaseAppState {
                 
             
 
-            float length = verticesA.get(0).distance(verticesA.get(3)) * FastMath.cos(verticesA.get(1).subtract(verticesA.get(0)).normalize().angleBetween(verticesA.get(3).subtract(verticesA.get(0)).normalize()));
-            verticesA.get(0).addLocal(verticesA.get(1).subtract(verticesA.get(0)).normalize().mult(length));
-
-            length = verticesA.get(1).distance(verticesA.get(2)) * FastMath.cos(verticesA.get(0).subtract(verticesA.get(1)).normalize().angleBetween(verticesA.get(2).subtract(verticesA.get(1)).normalize()));
-            verticesA.get(1).addLocal(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(length));
-
-            length = verticesB.get(0).distance(verticesB.get(3)) * FastMath.cos(verticesB.get(1).subtract(verticesB.get(0)).normalize().angleBetween(verticesB.get(3).subtract(verticesB.get(0)).normalize()));
-            verticesB.get(0).addLocal(verticesB.get(1).subtract(verticesB.get(0)).normalize().mult(length));
-
-            length = verticesB.get(1).distance(verticesB.get(2)) * FastMath.cos(verticesB.get(0).subtract(verticesB.get(1)).normalize().angleBetween(verticesB.get(2).subtract(verticesB.get(1)).normalize()));
-            verticesB.get(1).addLocal(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length));
+//            float length = verticesA.get(0).distance(verticesA.get(3)) * FastMath.cos(verticesA.get(1).subtract(verticesA.get(0)).normalize().angleBetween(verticesA.get(3).subtract(verticesA.get(0)).normalize()));
+//            verticesA.get(0).addLocal(verticesA.get(1).subtract(verticesA.get(0)).normalize().mult(length));
+//
+//            length = verticesA.get(1).distance(verticesA.get(2)) * FastMath.cos(verticesA.get(0).subtract(verticesA.get(1)).normalize().angleBetween(verticesA.get(2).subtract(verticesA.get(1)).normalize()));
+//            verticesA.get(1).addLocal(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(length));
+//
+//            length = verticesB.get(0).distance(verticesB.get(3)) * FastMath.cos(verticesB.get(1).subtract(verticesB.get(0)).normalize().angleBetween(verticesB.get(3).subtract(verticesB.get(0)).normalize()));
+//            verticesB.get(0).addLocal(verticesB.get(1).subtract(verticesB.get(0)).normalize().mult(length));
+//
+//            length = verticesB.get(1).distance(verticesB.get(2)) * FastMath.cos(verticesB.get(0).subtract(verticesB.get(1)).normalize().angleBetween(verticesB.get(2).subtract(verticesB.get(1)).normalize()));
+//            verticesB.get(1).addLocal(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length));
 
             addDot(verticesA.get(1));
             addDot(verticesA.get(0));
