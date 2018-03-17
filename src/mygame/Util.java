@@ -13,6 +13,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  *
@@ -108,7 +109,6 @@ public final class Util {
     }
     
     public static boolean inLine(Vector3f point1, Vector3f point2, Vector3f point3){
-        
         return point1.subtract(point2).normalize().cross(point2.subtract(point3).normalize()).distance(Vector3f.ZERO) < FLT_EPSILON;
     }
     
@@ -126,20 +126,78 @@ public final class Util {
     }
     
     public static boolean inBoundary(Vector3f target, Vector3f[] boundary){
-        Vector3f center = new Vector3f();
-        for(Vector3f point:boundary){
-            center.addLocal(point);
-        }
-        center.divideLocal(boundary.length);
-        Vector3f normal = boundary[1].subtract(boundary[0]).cross(boundary[2].subtract(boundary[0]));
-        Plane plane = new Plane();
+        Vector3f dir = boundary[0].add(boundary[1]).divide(2).subtract(target).normalize().mult(100f);
+        int intersectCount = 0;
         for(int i = 0; i < boundary.length;i++){
-            plane.setPlanePoints(boundary[i], boundary[(i+1)%boundary.length], boundary[i].add(normal));
-            if(!plane.whichSide(center).equals(plane.whichSide(target))){
-                System.out.println("Out!!!");
-                return false;
+            if(inLine(boundary[i], target, boundary[(i+1)%boundary.length])){
+                return true;
+            }
+            if(lineIntersection(target, target.add(dir), boundary[i], boundary[(i+1)%boundary.length]) != null){
+                intersectCount++;
+            }
+            
+        }
+        System.out.println("Intersect Count = " + intersectCount);
+        return (intersectCount & 1) != 0;
+    }
+    
+    
+    public static Vector3f castLineOnBoundary(Vector3f rayStart, Vector3f rayDir,Vector3f[] boundary){
+        Vector3f closestCollision = null;
+        Vector3f rayEnd = rayStart.add(rayDir.normalize().mult(100f));
+        for(int i = 0; i < boundary.length;i++){
+            Vector3f intersection = lineIntersection(rayStart, rayEnd, boundary[i], boundary[(i+1)%boundary.length]);
+            if(intersection != null){
+                if(closestCollision == null || intersection.distance(rayStart) < closestCollision.distance(rayStart)){
+                    closestCollision = intersection;
+                }
             }
         }
-        return true;
+        return closestCollision;
+    }
+   
+    
+    public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3,Vector3f point4){
+        Vector3f v13 = point1.subtract(point3);
+        Vector3f v43 = point4.subtract(point3);
+        Vector3f v21 = point2.subtract(point1);
+        
+        if(v43.lengthSquared() < FastMath.FLT_EPSILON || v21.lengthSquared() < FastMath.FLT_EPSILON){
+            if(v43.lengthSquared() < FastMath.FLT_EPSILON){
+                System.out.println("v43 = " + v43.length());
+            }else{
+                System.out.println("v21 = " + v21.lengthSquared());
+            }
+            return null;
+        }
+        float d1343 = v13.x * v43.x + v13.y * v43.y + v13.z * v43.z;
+        float d4321 = v43.x * v21.x + v43.y * v21.y + v43.z * v21.z;
+        float d1321 = v13.x * v21.x + v13.y * v21.y + v13.z * v21.z;
+        float d4343 = v43.x * v43.x + v43.y * v43.y + v43.z * v43.z;
+        float d2121 = v21.x * v21.x + v21.y * v21.y + v21.z * v21.z;
+ 
+        
+        float denom = d2121 * d4343 - d4321 * d4321;
+        if(FastMath.abs(denom) < FastMath.FLT_EPSILON){
+            System.out.println("Denom = " + FastMath.abs(denom));
+            return null;
+        }
+        float numer = d1343 * d4321 - d1321 * d4343;
+        
+        float mua = numer / denom;
+        float mub = (d1343 + d4321 * mua)/ d4343;
+        Vector3f pointA = point1.add(v21.mult(mua));
+        Vector3f pointB = point3.add(v43.mult(mub));
+        if(pointA.distance(pointB) < FLT_EPSILON){
+            if(isBetween(point1, pointA, point2) && isBetween(point3, pointB, point4)){
+                return pointA;
+            }else{
+                return null;
+            }
+            
+        }else{
+            System.out.println("Distance = " + pointA.distance(pointB));
+            return null;
+        }
     }
 }

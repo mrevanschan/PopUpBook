@@ -32,6 +32,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.util.BufferUtils;
+import java.awt.print.Pageable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -43,14 +44,11 @@ public class D2CreationState extends BaseAppState {
 
     private PopUpBook app;
     private InputManager inputManager;
-    private Geometry geometryA;
-    private Geometry geometryB;
-    private Vector3f axisPointA;
-    private Vector3f axisPointB;
+    private PopUpBookTree.PageNode pageA;
+    private PopUpBookTree.PageNode pageB;
+    private Vector3f deltaAxis;
     private Vector3f axisTranslationA;
     private Vector3f axisTranslationB;
-    private Vector3f normalA;
-    private Vector3f normalB;
     private Plane midPlane;
     private Node tempNode;
     private Node frameNode;
@@ -80,7 +78,7 @@ public class D2CreationState extends BaseAppState {
     private final ActionListener d2BasicInput = new D2BasicListener();
     private final D2MoustListener d2MouseListener = new D2MoustListener();
     private final float lineRadius = 0.05f;
-    private final float sphereRadius = 0.15f;
+    private final float sphereRadius = 0.125f;
     private final int sample = 20;
     public static final float PI = 3.1f;
 
@@ -104,7 +102,7 @@ public class D2CreationState extends BaseAppState {
                             Vector3f translation = verticesA.get(3).subtract(refferencePoint).normalize().mult(newPoint.distance(refferencePoint) * FastMath.cos(angle));
                             verticesA.get(2).addLocal(translation);
                             verticesA.get(3).addLocal(translation);
-                            if (Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) && Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
+                            if(Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) && Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))){
                                 for (Vector3f point : verticesA) {
                                     if (!point.equals(verticesA.get(3)) && !point.equals(verticesA.get(2))) {
                                         point.addLocal(translation);
@@ -115,13 +113,13 @@ public class D2CreationState extends BaseAppState {
                                         point.addLocal(translation);
                                     }
                                 }
-                                refferencePoint.addLocal(translation);
+                                
                                 fitInBoundaries();
+                                refferencePoint.addLocal(translation);
                                 updateGraphics();
-                            } else {
-                                translation.negateLocal();
-                                verticesA.get(2).addLocal(translation);
-                                verticesA.get(3).addLocal(translation);
+                            }else{
+                                verticesA.get(2).addLocal(translation.negate());
+                                verticesA.get(1).addLocal(translation.negate());
                             }
 
                             break;
@@ -226,10 +224,10 @@ public class D2CreationState extends BaseAppState {
                         length = verticesA.get(0).distance(verticesB.get(0)) * FastMath.cos(verticesA.get(1).subtract(verticesA.get(0)).normalize().angleBetween(verticesB.get(0).subtract(verticesA.get(0)).normalize()));
                         Vector3f jointPointB = verticesB.get(0).add(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(length));
 
-                        PopUpBookTree.PageNode pageA = app.popUpBook.addPage(geometryA, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
-                        PopUpBookTree.PageNode pageB = app.popUpBook.addPage(geometryB, boundaryB, new Vector3f[]{jointPointB, verticesB.get(1).clone()});
+                        PopUpBookTree.PageNode newPageA = app.popUpBook.addPage(pageA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
+                        PopUpBookTree.PageNode newPageB = app.popUpBook.addPage(pageB.geometry, boundaryB, new Vector3f[]{jointPointB, verticesB.get(1).clone()});
 
-                        app.popUpBook.addJoint(pageA, pageB, new Vector3f[]{jointPointMid, verticesA.get(2)}, "D2Joint");
+                        app.popUpBook.addJoint(newPageA, newPageB, new Vector3f[]{jointPointMid, verticesA.get(2)}, "D2Joint");
 
                         app.getStateManager().getState(ExplorationState.class).setEnabled(true);
                         setEnabled(false);
@@ -422,10 +420,8 @@ public class D2CreationState extends BaseAppState {
 
     private void initialize() {
         
-        PopUpBookTree.PageNode pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
-        PopUpBookTree.PageNode pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
-        normalA = pageB.getNormal();
-        normalB = pageA.getNormal();
+        pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
+        pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
         midPlane = null;
         if (pageA.next.contains(pageB)) {
             pageA = app.popUpBook.geomPageMap.get(app.selected.get(1));
@@ -438,19 +434,14 @@ public class D2CreationState extends BaseAppState {
             Vector3f[] boundary = pageA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);
         }
-        geometryA = pageA.geometry;
-        geometryB = pageB.geometry;
         Vector3f[] listA = pageA.boundary;
         Vector3f[] listB = pageB.boundary;
-        Vector3f[] jointPoint = app.popUpBook.axisBetween(geometryA, geometryB);
+        Vector3f[] jointPoint = app.popUpBook.axisBetween(pageA.geometry, pageB.geometry);
 
-        axisPointA = jointPoint[0];
-        axisPointB = jointPoint[1];
-
-        Vector3f midPoint = axisPointA.add(axisPointB).divide(2);
-        Vector3f pointA = axisPointA.subtract(axisPointA.subtract(midPoint).mult(0.3f));
-        Vector3f pointB = axisPointB.subtract(axisPointB.subtract(midPoint).mult(0.3f));
-        Vector3f deltaAxis = pointB.subtract(pointA);
+        Vector3f midPoint = jointPoint[0].add(jointPoint[1]).divide(2);
+        Vector3f pointA = jointPoint[0].subtract(jointPoint[0].subtract(midPoint).mult(0.3f));
+        Vector3f pointB = jointPoint[1].subtract(jointPoint[1].subtract(midPoint).mult(0.3f));
+        deltaAxis = pointB.subtract(pointA);
         Vector3f deltaA = null;
         Vector3f deltaB = null;
         Plane plane = new Plane();
@@ -494,7 +485,7 @@ public class D2CreationState extends BaseAppState {
         }
         verticesA = new ArrayList<>();
         verticesB = new ArrayList<>();
-
+        
         verticesA.add(pointA.add(axisTranslationA));
         verticesA.add(pointB.add(axisTranslationA));
 
@@ -503,9 +494,10 @@ public class D2CreationState extends BaseAppState {
 
         verticesA.add(verticesA.get(1).add(axisTranslationB));
         verticesA.add(verticesA.get(0).add(axisTranslationB));
+        
         verticesB.add(verticesA.get(2));
         verticesB.add(verticesA.get(3));
-
+        
         updateBoundaries();
         if (boundaryA == null) {
             //dun have enought space
@@ -515,11 +507,9 @@ public class D2CreationState extends BaseAppState {
             
             
         } else {
-            if (!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) || !Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
-                verticesA.get(2).set(boundaryA.get(2).add(boundaryA.get(3).subtract(boundaryA.get(2)).mult(0.1f)));
-                verticesA.get(3).set(boundaryA.get(3).add(boundaryA.get(2).subtract(boundaryA.get(3)).mult(0.1f)));
-            }
-                
+            fitInBoundaries();
+
+            
 
             addDot(verticesA.get(1));
             addDot(verticesA.get(0));
@@ -527,6 +517,7 @@ public class D2CreationState extends BaseAppState {
             addDot(verticesB.get(0));
             addDot(verticesA.get(2));
             addDot(verticesA.get(3));
+            
 
             addLine(verticesA.get(0), verticesA.get(1));
             addLine(verticesA.get(0), verticesA.get(3));
@@ -540,19 +531,40 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void fitInBoundaries() {
-        if (!Util.isBetween(boundaryA.get(0), verticesA.get(0), boundaryA.get(1))) {
-            verticesA.get(0).set(boundaryA.get(0));
+        if(!Util.inBoundary(verticesA.get(0), pageA.boundary)){
+            Vector3f temp = Util.castLineOnBoundary(verticesA.get(0), deltaAxis, pageA.boundary);
+            if(temp == null){
+                verticesA.get(0).set(verticesA.get(1).add(deltaAxis.negate().normalize().mult(0.5f)));
+            }else{
+                verticesA.get(0).set(temp);
+            }            
         }
-        if (!Util.isBetween(boundaryA.get(0), verticesA.get(1), boundaryA.get(1))) {
-            verticesA.get(1).set(boundaryA.get(1));
+        if(!Util.inBoundary(verticesA.get(1), pageA.boundary)){
+            Vector3f temp = Util.castLineOnBoundary(verticesA.get(1), deltaAxis.negate(), pageA.boundary);
+            if(temp == null){
+                verticesA.get(1).set(verticesA.get(0).add(deltaAxis.normalize().mult(0.5f)));
+            }else{
+                verticesA.get(1).set(temp);
+            }            
         }
-
-        if (!Util.isBetween(boundaryB.get(0), verticesB.get(0), boundaryB.get(1))) {
-            verticesB.get(0).set(boundaryB.get(0));
-        }
-        if (!Util.isBetween(boundaryB.get(0), verticesB.get(1), boundaryB.get(1))) {
-            verticesB.get(1).set(boundaryB.get(1));
-        }
+//        if(!Util.inBoundary(verticesB.get(0), pageB.boundary)){
+//            Vector3f temp = Util.castLineOnBoundary(verticesB.get(0), deltaAxis, pageB.boundary);
+//            if(temp != null){
+//                verticesB.get(0).set(Util.castLineOnBoundary(verticesB.get(0), deltaAxis, pageB.boundary));
+//            } else {
+//                verticesB.get(0).set(Util.castLineOnBoundary(verticesB.get(0), deltaAxis.negate(), pageB.boundary));
+//            }
+//            
+//        }
+//        if(!Util.inBoundary(verticesB.get(1), pageB.boundary)){
+//            Vector3f temp = Util.castLineOnBoundary(verticesB.get(1), deltaAxis.negate(), pageB.boundary);
+//            if(temp != null){
+//                verticesB.get(1).set(Util.castLineOnBoundary(verticesB.get(1), deltaAxis.negate(), pageB.boundary));
+//            } else {
+//                verticesB.get(1).set(Util.castLineOnBoundary(verticesB.get(1), deltaAxis, pageB.boundary));
+//            }
+//        }
+        
 
         if (!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
             verticesA.get(2).set(boundaryA.get(2));
@@ -563,7 +575,7 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void updateBoundaries() {
-        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(geometryA, geometryB, verticesA, verticesB, "D2Joint");
+        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry, verticesA, verticesB, "D2Joint");
         if (results != null) {
 
             boundaryA = results.get(0);
@@ -663,6 +675,23 @@ public class D2CreationState extends BaseAppState {
             Vector3f[] points = (Vector3f[]) pair.getValue();
             updateLine((Geometry) pair.getKey(), points[0], points[1]);
         }
+    }
+    private ArrayList<ArrayList<Vector3f>> copyCurrentState(){
+        ArrayList<ArrayList<Vector3f>> returnList = new ArrayList<>();
+        ArrayList<Vector3f> listACopy = new ArrayList<>();
+        ArrayList<Vector3f> listBCopy = new ArrayList<>();
+        listACopy.add(verticesA.get(0).clone());
+        listACopy.add(verticesA.get(1).clone());
+        listACopy.add(verticesA.get(2).clone());
+        listACopy.add(verticesA.get(3).clone());
+        
+        listBCopy.add(verticesB.get(0).clone());
+        listBCopy.add(verticesB.get(1).clone());
+        listBCopy.add(listACopy.get(2));
+        listBCopy.add(listACopy.get(3));
+        returnList.add(listACopy);
+        returnList.add(listBCopy);
+        return returnList;
     }
 
 //    @Override
