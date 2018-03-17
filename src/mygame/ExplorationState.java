@@ -63,7 +63,7 @@ public class ExplorationState extends BaseAppState {
                                 app.text.setText("D1 Creation Mode");
                                 app.text.setColor(ColorRGBA.Blue);
                                 app.popUpBook.fold(0f);
-                                app.getRootNode().detachChild(mark);
+                                //app.getRootNode().detachChild(mark);
                                 setEnabled(false);
                                 app.getStateManager().getState(D1CreationState.class).setEnabled(true);
                             } else {
@@ -172,14 +172,14 @@ public class ExplorationState extends BaseAppState {
                             // The closest collision point is what was truly hit:
                             CollisionResult closest = results.getClosestCollision();
                             // Let's interact - we mark the hit with a red dot.
-                            mark.setLocalTranslation(closest.getContactPoint());
+                            //mark.setLocalTranslation(closest.getContactPoint());
                             if (!(app.selected.contains(closest.getGeometry()))) {
                                 closest.getGeometry().setMaterial(app.markPaper);
                                 app.selected.add(closest.getGeometry());
                                 app.selectedLocation.add(closest.getContactPoint());
                             }
 
-                            app.getRootNode().attachChild(mark);
+                            //app.getRootNode().attachChild(mark);
                         } else {
 
                             for (Geometry i : app.selected) {
@@ -188,7 +188,7 @@ public class ExplorationState extends BaseAppState {
 
                             app.selected.clear();
                             app.selectedLocation.clear();
-                            app.getRootNode().detachChild(mark);
+                            //app.getRootNode().detachChild(mark);
                         }
                     }
                 }
@@ -211,7 +211,7 @@ public class ExplorationState extends BaseAppState {
             inputManager = app.getInputManager();
         }
         System.out.println("created");
-        initMark();
+        //initMark();
         inputManager.addMapping(E_CLICK, new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping(E_FOLD, new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping(E_D1, new KeyTrigger(KeyInput.KEY_1));
@@ -271,7 +271,7 @@ public class ExplorationState extends BaseAppState {
 
         app.selected.clear();
         app.selectedLocation.clear();
-        app.getRootNode().detachChild(mark);
+        //app.getRootNode().detachChild(mark);
 
     }
 
@@ -283,12 +283,12 @@ public class ExplorationState extends BaseAppState {
         //System.out.println(app.getInputManager().de);
     }
 
-    protected void initMark() {
-        Sphere sphere = new Sphere(30, 30, 0.2f);
-        mark = new Geometry("BOOM!", sphere);
-        Material mark_mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        mark_mat.setColor("Color", ColorRGBA.Red);
-        mark.setMaterial(mark_mat);
-    }
+//    protected void initMark() {
+//        Sphere sphere = new Sphere(10, 10, 0.2f);
+//        mark = new Geometry("BOOM!", sphere);
+//        Material mark_mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        mark_mat.setColor("Color", ColorRGBA.Red);
+//        mark.setMaterial(mark_mat);
+//    }
 
 }

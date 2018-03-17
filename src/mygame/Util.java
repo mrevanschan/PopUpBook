@@ -96,6 +96,7 @@ public final class Util {
         for (int i = 0; i < triangle.size(); i++) {
             triangles[i] = triangle.get(i);
         }
+         System.out.println("Num Tri = " + triangle.size()/3);
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
         mesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(triangles));
         mesh.updateBound();

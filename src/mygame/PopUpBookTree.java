@@ -32,8 +32,8 @@ import java.util.Queue;
 public class PopUpBookTree {
 
     private Node rootNode;
-    private PageNode front;
-    private PageNode back;
+    public  PageNode front;
+    public PageNode back;
     private JointNode bookJoint;
     private ArrayList<PageNode> pages;
     public HashMap<Geometry, PageNode> geomPageMap = new HashMap<>();

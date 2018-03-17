@@ -16,6 +16,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import java.util.ArrayList;
@@ -59,8 +60,6 @@ public class PopUpBook extends SimpleApplication{
     @Override
     public void simpleInitApp() {
         inputManager.deleteMapping("SIMPLEAPP_Exit");
-//        setDisplayFps(true);
-//        setDisplayStatView(true);
         setShowSettings(true);
         
         //viewPort.setBackgroundColor(ColorRGBA.White);
@@ -74,7 +73,12 @@ public class PopUpBook extends SimpleApplication{
         selected = new ArrayList<>();
         selectedLocation = new ArrayList<>();
         initMaterial();
-        initBook();   
+        initBook();
+        for(Spatial node :rootNode.getChildren()){
+            System.out.println(node.getName());
+            System.out.println(node.getTriangleCount());
+        }
+        System.out.println(popUpBook.front.geometry.getTriangleCount());
         }
 
 
