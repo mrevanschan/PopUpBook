@@ -448,8 +448,8 @@ public class D2CreationState extends BaseAppState {
         axisPointB = jointPoint[1];
 
         Vector3f midPoint = axisPointA.add(axisPointB).divide(2);
-        Vector3f pointA = axisPointA.subtract(axisPointA.subtract(midPoint).mult(0.2f));
-        Vector3f pointB = axisPointB.subtract(axisPointB.subtract(midPoint).mult(0.2f));
+        Vector3f pointA = axisPointA.subtract(axisPointA.subtract(midPoint).mult(0.3f));
+        Vector3f pointB = axisPointB.subtract(axisPointB.subtract(midPoint).mult(0.3f));
         Vector3f deltaAxis = pointB.subtract(pointA);
         Vector3f deltaA = null;
         Vector3f deltaB = null;
@@ -520,19 +520,6 @@ public class D2CreationState extends BaseAppState {
                 verticesA.get(3).set(boundaryA.get(3).add(boundaryA.get(2).subtract(boundaryA.get(3)).mult(0.1f)));
             }
                 
-            
-
-//            float length = verticesA.get(0).distance(verticesA.get(3)) * FastMath.cos(verticesA.get(1).subtract(verticesA.get(0)).normalize().angleBetween(verticesA.get(3).subtract(verticesA.get(0)).normalize()));
-//            verticesA.get(0).addLocal(verticesA.get(1).subtract(verticesA.get(0)).normalize().mult(length));
-//
-//            length = verticesA.get(1).distance(verticesA.get(2)) * FastMath.cos(verticesA.get(0).subtract(verticesA.get(1)).normalize().angleBetween(verticesA.get(2).subtract(verticesA.get(1)).normalize()));
-//            verticesA.get(1).addLocal(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(length));
-//
-//            length = verticesB.get(0).distance(verticesB.get(3)) * FastMath.cos(verticesB.get(1).subtract(verticesB.get(0)).normalize().angleBetween(verticesB.get(3).subtract(verticesB.get(0)).normalize()));
-//            verticesB.get(0).addLocal(verticesB.get(1).subtract(verticesB.get(0)).normalize().mult(length));
-//
-//            length = verticesB.get(1).distance(verticesB.get(2)) * FastMath.cos(verticesB.get(0).subtract(verticesB.get(1)).normalize().angleBetween(verticesB.get(2).subtract(verticesB.get(1)).normalize()));
-//            verticesB.get(1).addLocal(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length));
 
             addDot(verticesA.get(1));
             addDot(verticesA.get(0));
