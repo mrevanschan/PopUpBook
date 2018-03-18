@@ -87,7 +87,7 @@ public class D1CreationState extends BaseAppState {
         @Override
         public void onAnalog(String name, float value, float tpf) {
             if (dragMode != null) {
-                app.text.setText(dragMode);
+                //app.text.setText(dragMode);
                 CollisionResults results = new CollisionResults();
                 Vector2f click2d = inputManager.getCursorPosition().clone();
                 Vector3f click3d = app.getCamera().getWorldCoordinates(click2d, 0f).clone();
@@ -144,7 +144,7 @@ public class D1CreationState extends BaseAppState {
                             Float angle = angleConstant / 2 + angleConstant * Math.round((newPoint.subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant / 2) / angleConstant);
                             Float current = angleConstant / 2 + angleConstant * Math.round((verticesA.get(0).subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant / 2) / angleConstant);
                             if (current - angle != 0.0f) {
-                                app.text.setText("Yes");
+                                //app.text.setText("Yes");
                                 Vector3f rotationVectorA = verticesA.get(0).subtract(verticesA.get(1)).cross(deltaAxis);
                                 Vector3f rotationVectorB = verticesB.get(0).subtract(verticesB.get(1)).cross(deltaAxis);
                                 verticesA.get(0).set(PopUpBookTree.rotatePoint(verticesA.get(0), verticesA.get(1).add(rotationVectorA), verticesA.get(1), current - angle));
@@ -177,7 +177,7 @@ public class D1CreationState extends BaseAppState {
                                     verticesA.get(0).set(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(verticesB.get(1).distance(verticesB.get(0))).add(verticesA.get(1)));
                                 } else {
                                     Vector3f original = newPoint.subtract(verticesA.get(1));
-                                    app.text.setText("Changing A");
+                                    //app.text.setText("Changing A");
                                     float length = original.length() * FastMath.cos(original.angleBetween(verticesA.get(0).subtract(verticesA.get(1))));
                                     if (length < 0.5f) {
                                         length = 0.5f;
@@ -191,7 +191,7 @@ public class D1CreationState extends BaseAppState {
                                     results.getClosestCollision().getGeometry().getMaterial().setColor("Color", ColorRGBA.Yellow);
                                     verticesA.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(verticesB.get(1).distance(verticesB.get(0))));
                                 } else {
-                                    app.text.setText("Changing B");
+                                    //app.text.setText("Changing B");
                                     Vector3f original = newPoint.subtract(verticesB.get(1));
                                     float length = original.length() * FastMath.cos(original.angleBetween(verticesB.get(0).subtract(verticesB.get(1))));
                                     if (length < 0.5f) {
@@ -207,7 +207,8 @@ public class D1CreationState extends BaseAppState {
                     }
                     case "TopAngle": {
                         collisionNode.collideWith(ray, results);
-                        Vector3f newPoint = results.getClosestCollision().getContactPoint();
+                        if(results.size()> 0){
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
                         //TopAngle
                         if (!angleLock) {
                             Float targetAngle = angleConstant + angleConstant * Math.round((newPoint.subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant) / angleConstant);
@@ -216,7 +217,7 @@ public class D1CreationState extends BaseAppState {
                             } else if (targetAngle == FastMath.PI) {
                                 targetAngle -= angleConstant;
                             }
-                            app.text.setText("Angle: " + targetAngle * 180 / 3.14);
+                            //app.text.setText("Angle: " + targetAngle * 180 / 3.14);
                             Vector3f rotationNormal = deltaAxis.cross(verticesA.get(2).subtract(verticesA.get(1)).normalize());
                             Float currentAngle = angleConstant + angleConstant * Math.round((verticesA.get(2).subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant) / angleConstant);
                             if (FastMath.abs(currentAngle - targetAngle) > FastMath.FLT_EPSILON) {
@@ -241,14 +242,17 @@ public class D1CreationState extends BaseAppState {
                         }
                         fitInBoundaries();
                         updateGraphics();
+                        }
+                        
                         break;
                     }
                     case "shift": {
                         collisionNode.collideWith(ray, results);
-                        Vector3f newPoint = results.getClosestCollision().getContactPoint();
+                        if(results.size()>0){
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
                         newPoint = Util.closestPointOnLine(referencePoint, deltaAxis.normalize(), newPoint);
                         if (newPoint.distance(referencePoint) > FastMath.FLT_EPSILON) {
-                            app.text.setText("shift");
+                            //app.text.setText("shift");
                             Vector3f translation = newPoint.subtract(referencePoint);
                             Vector3f postTranslation = verticesA.get(1).add(translation);
                             if (FastMath.abs(axisPointA.distance(axisPointB) - axisPointA.distance(postTranslation) - axisPointB.distance(postTranslation)) < FastMath.FLT_EPSILON) {
@@ -273,6 +277,8 @@ public class D1CreationState extends BaseAppState {
                             }
 
                         }
+                        }
+                        
                         break;
                     }
                     default:
@@ -439,7 +445,7 @@ public class D1CreationState extends BaseAppState {
 
                                             } else if (selectedVertex.equals(verticesA.get(2)) || selectedVertex.equals(verticesB.get(2))) {
                                                 //top point
-                                                app.text.setText("top");
+                                                //app.text.setText("top");
                                                 dragMode = "TopAngle";
                                                 Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100f));
                                                 Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100f));
@@ -531,6 +537,7 @@ public class D1CreationState extends BaseAppState {
 
         @Override
         protected void onEnable() {
+            app.setText("Mode", "D1 Creation Mode");
             tempNode = new Node("temp");
             frameNode = new Node("frame");
             collisionNode = new Node("collision");
@@ -550,10 +557,6 @@ public class D1CreationState extends BaseAppState {
         }
 
         private void initialize() {
-            Sphere sphere = new Sphere(sample, sample, sphereRadius);
-            dot = new Geometry("Dot", sphere);
-            dot.setMaterial(dotMaterial.clone());
-            app.getRootNode().attachChild(dot);
             geometryA = app.selected.get(0);
             geometryB = app.selected.get(1);
             PopUpBookTree.PageNode pageA = app.popUpBook.geomPageMap.get(geometryA);
@@ -583,14 +586,14 @@ public class D1CreationState extends BaseAppState {
             Float angle = FastMath.tan(angleConstant * 3 / 2) * center.distance(endPoint);
 
             for (Vector3f point : listA) {
-                if (!Util.inLine(center, point, endPoint)) {
+                if (!Util.inLine(jointPoint[0], point, jointPoint[1])) {
                     axisTranslationA = Util.lineToPointTranslation(endPoint, deltaAxis, point).normalize().mult(angle);
-                    //addDot(point);
                     break;
                 }
             }
+            
             for (Vector3f point : listB) {
-                if (!point.equals(jointPoint[0]) && !point.equals(jointPoint[1])) {
+                if (!Util.inLine(jointPoint[0], point, jointPoint[1])) {
                     axisTranslationB = Util.lineToPointTranslation(endPoint, deltaAxis, point).normalize().mult(angle);
                     break;
                 }
@@ -677,11 +680,11 @@ public class D1CreationState extends BaseAppState {
                 for (int i = 3; i < verticesA.size(); i++) {
                     if (FastMath.abs(planeBot.pseudoDistance(verticesA.get(i))) < FastMath.FLT_EPSILON || FastMath.abs(planeTop.pseudoDistance(verticesA.get(i))) < FastMath.FLT_EPSILON) {
                         //remove.add(verticesA.get(i));
-                        app.text.setText("on Base or Top");
+                        //app.text.setText("on Base or Top");
                     } else {
                         if (planeBot.whichSide(verticesA.get(i)).equals(planeBot.whichSide(verticesA.get(2)))
                                 && planeTop.whichSide(verticesA.get(i)).equals(planeTop.whichSide(verticesA.get(0)))) {
-                            app.text.setText("rightPlace");
+                            //app.text.setText("rightPlace");
                             for (int x = 2; x < boundaryA.size(); x++) {
                                 Vector3f point1 = boundaryA.get(x);
                                 Vector3f point2;
@@ -721,7 +724,7 @@ public class D1CreationState extends BaseAppState {
                             }
                         } else {
                             //remove.add(verticesA.get(i));
-                            app.text.setText("not inBetween");
+                            //app.text.setText("not inBetween");
                         }
                     }
                 }
@@ -732,11 +735,11 @@ public class D1CreationState extends BaseAppState {
                 for (int i = 3; i < verticesB.size(); i++) {
                     if (FastMath.abs(planeBot.pseudoDistance(verticesB.get(i))) < FastMath.FLT_EPSILON || FastMath.abs(planeTop.pseudoDistance(verticesB.get(i))) < FastMath.FLT_EPSILON) {
                         //remove.add(verticesA.get(i));
-                        app.text.setText("on Base or Top");
+                        //app.text.setText("on Base or Top");
                     } else {
                         if (planeBot.whichSide(verticesB.get(i)).equals(planeBot.whichSide(verticesB.get(2)))
                                 && planeTop.whichSide(verticesB.get(i)).equals(planeTop.whichSide(verticesB.get(0)))) {
-                            app.text.setText("rightPlace");
+                            //app.text.setText("rightPlace");
                             for (int x = 2; x < boundaryB.size(); x++) {
                                 Vector3f point1 = boundaryB.get(x);
                                 Vector3f point2;
@@ -776,7 +779,6 @@ public class D1CreationState extends BaseAppState {
                             }
                         } else {
                             //remove.add(verticesA.get(i));
-                            app.text.setText("not inBetween");
                         }
                     }
                 }
@@ -861,7 +863,7 @@ public class D1CreationState extends BaseAppState {
 
         private void addDot(Vector3f dotLocation) {
             if (!dotVecticesMap.values().contains(dotLocation)) {
-                Sphere sphere = new Sphere(sample, sample, sphereRadius);
+                Sphere sphere = new Sphere(8, 8, sphereRadius);
                 Geometry dot = new Geometry("Dot", sphere);
                 dot.setMaterial(dotMaterial.clone());
                 dot.setLocalTranslation(dotLocation);

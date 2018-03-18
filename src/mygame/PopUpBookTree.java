@@ -407,25 +407,25 @@ public class PopUpBookTree {
     }
 
     void update() {
-//        for (Spatial line : lines.getChildren()) {
-//            line.removeFromParent();
-//            line = null;
-//        }
-//        Material lineMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-//        lineMaterial.setColor("Color", ColorRGBA.Black);
-//
-//        for (PageNode page : pages) {
-//            page.geometry.getMesh().getBuffer(VertexBuffer.Type.Position).updateData(BufferUtils.createFloatBuffer(page.translatedBuffer));
-//            page.geometry.getMesh().createCollisionData();
-//            for (int i = 0; i < page.translatedBoundary.length; i++) {
-//                Geometry line = new Geometry("Line", new Cylinder());
-//                line.setMaterial(lineMaterial);
-//                line.setLocalTranslation(page.translatedBoundary[i].add(page.translatedBoundary[(i + 1) % page.translatedBoundary.length]).divide(2));
-//                ((Cylinder) line.getMesh()).updateGeometry(5, 3, 0.01f, 0.01f, page.translatedBoundary[i].distance(page.translatedBoundary[(i + 1) % page.translatedBoundary.length]), false, false);
-//                line.lookAt(page.translatedBoundary[i], new Vector3f(0, 1, 0));
-//                lines.attachChild(line);
-//            }
-//        }
+        for (Spatial line : lines.getChildren()) {
+            line.removeFromParent();
+            line = null;
+        }
+        Material lineMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        lineMaterial.setColor("Color", ColorRGBA.Black);
+
+        for (PageNode page : pages) {
+            page.geometry.getMesh().getBuffer(VertexBuffer.Type.Position).updateData(BufferUtils.createFloatBuffer(page.translatedBuffer));
+            page.geometry.getMesh().createCollisionData();
+            for (int i = 0; i < page.translatedBoundary.length; i++) {
+                Geometry line = new Geometry("Line", new Cylinder());
+                line.setMaterial(lineMaterial);
+                line.setLocalTranslation(page.translatedBoundary[i].add(page.translatedBoundary[(i + 1) % page.translatedBoundary.length]).divide(2));
+                ((Cylinder) line.getMesh()).updateGeometry(3, 3, 0.01f, 0.01f, page.translatedBoundary[i].distance(page.translatedBoundary[(i + 1) % page.translatedBoundary.length]), false, false);
+                line.lookAt(page.translatedBoundary[i], new Vector3f(0, 1, 0));
+                lines.attachChild(line);
+            }
+        }
     }
 
     public class PageNode {
@@ -665,7 +665,6 @@ public class PopUpBookTree {
                     break;
                 }
                 case "D2Joint": {
-                    app.text.setText("fixingd2");
                     Vector3f c1 = pageA.translatedAxis[0];
                     Vector3f c2 = pageB.translatedAxis[0];
                     float r1 = axisA[0].distance(c1);
@@ -685,7 +684,6 @@ public class PopUpBookTree {
                         if(d < FastMath.FLT_EPSILON){
                             System.out.println("case3");
                         }
-                        app.text.setText("fail");
                         System.out.println(c1);
                         System.out.println(c2);
                         System.out.println("fail");

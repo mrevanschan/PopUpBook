@@ -79,7 +79,6 @@ public class D2CreationState extends BaseAppState {
     private final D2MoustListener d2MouseListener = new D2MoustListener();
     private final float lineRadius = 0.05f;
     private final float sphereRadius = 0.125f;
-    private final int sample = 20;
     public static final float PI = 3.1f;
 
     private class D2MoustListener implements AnalogListener {
@@ -87,7 +86,6 @@ public class D2CreationState extends BaseAppState {
         @Override
         public void onAnalog(String name, float value, float tpf) {
             if (dragMode != null) {
-                app.text.setText(dragMode);
                 CollisionResults results = new CollisionResults();
                 Vector2f click2d = inputManager.getCursorPosition().clone();
                 Vector3f click3d = app.getCamera().getWorldCoordinates(click2d, 0f).clone();
@@ -311,7 +309,7 @@ public class D2CreationState extends BaseAppState {
                                         Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                         collisionNode.attachChild(collision);
 
-                                        app.text.setText("shift");
+                                        //app.text.setText("shift");
                                     } else {
                                         if (verticesA.contains(points[0]) && verticesA.contains(points[1])) {
                                             dragMode = "shiftA";
@@ -327,7 +325,7 @@ public class D2CreationState extends BaseAppState {
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
 
-                                            app.text.setText("shiftA");
+                                            //app.text.setText("shiftA");
                                         } else {
                                             dragMode = "shiftB";
                                             lineMaterialB.setColor("Color", ColorRGBA.Yellow);
@@ -346,7 +344,7 @@ public class D2CreationState extends BaseAppState {
                                             Vector3f[] temp = {point1, point2, point3, point4};
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
-                                            app.text.setText("shiftB");
+                                            //app.text.setText("shiftB");
                                         }
                                     }
                                     break;
@@ -370,7 +368,7 @@ public class D2CreationState extends BaseAppState {
                                     Vector3f point4 = point1.add(dirrection1);
                                     Geometry collision = new Geometry("Collision", Util.makeMesh(new Vector3f[]{point1, point2, point3, point4}));
                                     collisionNode.attachChild(collision);
-                                    app.text.setText("shiftDot");
+                                    //app.text.setText("shiftDot");
 
                                 }
                                 default:
@@ -429,6 +427,7 @@ public class D2CreationState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        app.setText("Mode", "D2 Creation Mode");
         tempNode = new Node("temp");
         frameNode = new Node("frame");
         collisionNode = new Node("collision");
@@ -529,7 +528,7 @@ public class D2CreationState extends BaseAppState {
         updateBoundaries();
         if (boundaryA == null) {
             //dun have enought space
-            app.text.setText("Dun have enought space to build this joint");
+            app.setText("Error", "Dun have enought space to build this joint");
             app.getStateManager().getState(ExplorationState.class).setEnabled(true);
             setEnabled(false);
 
@@ -663,14 +662,14 @@ public class D2CreationState extends BaseAppState {
     private void updateLine(Geometry line, Vector3f vertexA, Vector3f vertexB) {
         if (line.getName().equals("Line")) {
             line.setLocalTranslation(vertexA.add(vertexB).divide(2f));
-            ((Cylinder) line.getMesh()).updateGeometry(sample, sample, lineRadius, lineRadius, vertexA.distance(vertexB), false, false);
+            ((Cylinder) line.getMesh()).updateGeometry(5, 3, lineRadius, lineRadius, vertexA.distance(vertexB), false, false);
             line.lookAt(vertexA, new Vector3f(0, 1, 0));
         }
     }
 
     private void addDot(Vector3f dotLocation) {
         if (!dotVecticesMap.values().contains(dotLocation)) {
-            Sphere sphere = new Sphere(sample, sample, sphereRadius);
+            Sphere sphere = new Sphere(8, 8, sphereRadius);
             Geometry dot = new Geometry("Dot", sphere);
             dot.setMaterial(dotMaterial.clone());
             dot.setLocalTranslation(dotLocation);

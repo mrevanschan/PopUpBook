@@ -577,7 +577,7 @@ public class D1SCreationState extends BaseAppState {
 
         } else {
 
-            app.text.setText("D1S Mode Fail");
+            app.setText("Error", "A D1 Joint cannot be built on these planes");
             setEnabled(false);
             app.enableState(ExplorationState.class, true);
         }

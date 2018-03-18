@@ -60,23 +60,16 @@ public class ExplorationState extends BaseAppState {
                             geomB.setMaterial(app.paper);
 
                             if (app.popUpBook.isNeighbor(geomA, geomB)) {
-                                app.text.setText("D1 Creation Mode");
-                                app.text.setColor(ColorRGBA.Blue);
                                 app.popUpBook.fold(0f);
-                                //app.getRootNode().detachChild(mark);
                                 setEnabled(false);
                                 app.getStateManager().getState(D1CreationState.class).setEnabled(true);
                             } else {
                                 setEnabled(false);
                                 app.popUpBook.fold(0f);
-                                app.getRootNode().detachChild(mark);
                                 app.getStateManager().getState(D1SCreationState.class).setEnabled(true);
-                                //app.text.setText("Not neigbour");
-                                app.text.setColor(ColorRGBA.Red);
                             }
                         } else {
-                            app.text.setText("Please Select two planes");
-                            app.text.setColor(ColorRGBA.Red);
+                            app.setText("Error", "Please Select two planes");
                         }
                     }
                     break;
@@ -87,24 +80,19 @@ public class ExplorationState extends BaseAppState {
                             Vector3f normal1 = app.popUpBook.geomPageMap.get(app.selected.get(0)).getNormal();
                             Vector3f normal2 = app.popUpBook.geomPageMap.get(app.selected.get(1)).getNormal();
                             if (normal1.cross(normal2).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-                                app.text.setText("D2 Creation Mode");
-                                app.text.setColor(ColorRGBA.Blue);
                                 app.popUpBook.fold(0f);
-                                app.getRootNode().detachChild(mark);
                                 setEnabled(false);
                                 app.getStateManager().getState(D2CreationState.class).setEnabled(true);
 
                             } else {
-                                app.text.setText("The two planes Must not be parallel");
+                                app.setText("Error","The two planes Must not be parallel");
                             }
 
                         } else {
-                            app.text.setText("Not neigbour");
-                            app.text.setColor(ColorRGBA.Red);
+                            app.setText("Error","Not neigbour");
                         }
                     } else {
-                        app.text.setText("Please Select two planes");
-                        app.text.setColor(ColorRGBA.Red);
+                        app.setText("Error", "Please Select two planes");
                     }
                     break;
                 }
@@ -134,9 +122,9 @@ public class ExplorationState extends BaseAppState {
                         percentage += 0.1;
                         if (percentage > 0.98f) {
                             percentage = 0.99f;
-                            app.text.setText("100%");
+                            app.setText("Hint", "100%");
                         } else {
-                            app.text.setText((int) (percentage * 100) + "%");
+                            app.setText("Hint", (int) (percentage * 100) + "%");
                         }
 
                         app.popUpBook.fold(percentage);
@@ -149,9 +137,11 @@ public class ExplorationState extends BaseAppState {
                         percentage -= 0.1;
                         if (percentage < 0.02f) {
                             percentage = 0f;
-                            app.text.setText("0%");
+                            app.setText("Hint", "0%");
+                        
                         } else {
-                            app.text.setText((int) (percentage * 100) + "%");
+                            app.setText("Hint", (int) (percentage * 100) + "%");
+                        
                         }
                         app.popUpBook.fold(percentage);
                     }
@@ -171,15 +161,12 @@ public class ExplorationState extends BaseAppState {
 
                             // The closest collision point is what was truly hit:
                             CollisionResult closest = results.getClosestCollision();
-                            // Let's interact - we mark the hit with a red dot.
-                            //mark.setLocalTranslation(closest.getContactPoint());
                             if (!(app.selected.contains(closest.getGeometry()))) {
                                 closest.getGeometry().setMaterial(app.markPaper);
                                 app.selected.add(closest.getGeometry());
                                 app.selectedLocation.add(closest.getContactPoint());
                             }
 
-                            //app.getRootNode().attachChild(mark);
                         } else {
 
                             for (Geometry i : app.selected) {
@@ -188,7 +175,6 @@ public class ExplorationState extends BaseAppState {
 
                             app.selected.clear();
                             app.selectedLocation.clear();
-                            //app.getRootNode().detachChild(mark);
                         }
                     }
                 }
@@ -200,18 +186,15 @@ public class ExplorationState extends BaseAppState {
 
     ExplorationState(boolean b) {
         setEnabled(b);
-        System.out.println("created");
     }
 
     @Override
     protected void initialize(Application app) {
-        System.out.println("instantiated");
         this.app = (PopUpBook) app;
         if (inputManager == null) {
             inputManager = app.getInputManager();
         }
         System.out.println("created");
-        //initMark();
         inputManager.addMapping(E_CLICK, new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping(E_FOLD, new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping(E_D1, new KeyTrigger(KeyInput.KEY_1));
@@ -226,23 +209,23 @@ public class ExplorationState extends BaseAppState {
         if (fold == 1) {
             if (percentage < 0.98f) {
                 percentage += tpf * frame;
-                app.text.setText((int) (percentage * 100) + "%");
+                app.setText("Hint", (int) (percentage * 100) + "%");  
 
             } else {
                 fold = 0;
                 percentage = 0.99f;
-                app.text.setText("100%");
+                app.setText("Hint", "100%");
             }
             app.popUpBook.fold(percentage);
         } else if (fold == -1) {
             if (percentage < 0.02) {
                 fold = 0;
                 percentage = 0f;
-                app.text.setText("0%");
+                app.setText("Hint", "0%");
 
             } else {
                 percentage -= tpf * frame;
-                app.text.setText((int) (percentage * 100) + "%");
+                app.setText("Hint", (int) (percentage * 100) + "%");
 
             }
             app.popUpBook.fold(percentage);
@@ -257,8 +240,9 @@ public class ExplorationState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        System.out.println("Explore enabled");
+        app.setText("Mode", "Exploration Mode");
         app.popUpBook.fold(0f);
+        
         inputManager.addListener(buildListener, E_D1);
         inputManager.addListener(buildListener, E_D2);
         inputManager.addListener(exploreListener, E_FOLD);
@@ -283,12 +267,5 @@ public class ExplorationState extends BaseAppState {
         //System.out.println(app.getInputManager().de);
     }
 
-//    protected void initMark() {
-//        Sphere sphere = new Sphere(10, 10, 0.2f);
-//        mark = new Geometry("BOOM!", sphere);
-//        Material mark_mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-//        mark_mat.setColor("Color", ColorRGBA.Red);
-//        mark.setMaterial(mark_mat);
-//    }
 
 }
