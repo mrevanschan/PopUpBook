@@ -162,22 +162,35 @@ public class D2CreationState extends BaseAppState {
                                     if (Util.lineTouchesBoundary(verticesA.get(0), deltaAxis, pageA.boundary)) {
                                         //Still OK tall
                                         fitInBoundaries();
+                                        referencePoint.addLocal(translation);
                                     } else {
                                         //Too tall
                                         Vector3f tallestPoint = Util.closestPointToDirrection(axisTranslationA, pageA.boundary);
-                                        Vector3f adjustTranslation = tallestPoint.subtract(Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationA.mult(100f)), verticesA.get(0).add(deltaAxis.mult(100f)), verticesA.get(1).add(deltaAxis.negate().mult(100f))));
-                                        for (Vector3f point : verticesA) {
-                                            point.addLocal(adjustTranslation);
+                                        Vector3f adjustTranslation = Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationA.mult(100f)), verticesA.get(0).add(deltaAxis.mult(100f)), verticesA.get(1).add(deltaAxis.negate().mult(100f)));
+                                        if (adjustTranslation != null) {
+                                            adjustTranslation.set(tallestPoint.subtract(adjustTranslation));
+                                            for (Vector3f point : verticesA) {
+                                                point.addLocal(adjustTranslation);
+                                            }
+                                            if (!Util.lineTouchesBoundary(verticesA.get(0), deltaAxis, pageA.boundary)) {
+                                                for (int i = 0; i < verticesA.size(); i++) {
+                                                    verticesA.get(i).set(preTransState.get(0).get(i));
+                                                }
+                                            } else {
+                                                Vector3f[] returnPair = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
+                                                addDot(returnPair[0]);
+                                                addDot(returnPair[1]);
+                                                referencePoint.addLocal(adjustTranslation);
+                                                referencePoint.addLocal(translation);
+                                            }
+                                        } else {
+                                            for (int i = 0; i < verticesA.size(); i++) {
+                                                verticesA.get(i).set(preTransState.get(0).get(i));
+                                            }
                                         }
-                                         Vector3f[] returnVector = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
-                                         System.out.println("Results1" + returnVector[0]);
-                                         System.out.println("Results2" + returnVector[1]);
-                                            addDot(returnVector[0]);
-                                            addDot(returnVector[1]);
-                                        //fitInBoundaries();
-                                        referencePoint.addLocal(adjustTranslation);
+
                                     }
-                                    referencePoint.addLocal(translation);
+
                                 }
                                 updateBoundaries();
                                 updateGraphics();
@@ -200,12 +213,12 @@ public class D2CreationState extends BaseAppState {
                             Plane plane = new Plane();
                             plane.setOriginNormal(pageA.boundary[0], axisTranslationB.normalize());
                             if (plane.pseudoDistance(verticesB.get(0)) < 0.25f) {
-                                for (int i = 0; i < verticesB.size(); i++) {
+                                for (int i = 0; i < verticesA.size(); i++) {
                                     verticesB.get(i).set(preTransState.get(1).get(i));
                                 }
                             } else {
                                 updateBoundaries();
-                                if (boundaryB == null || boundaryB.get(3).distance(boundaryB.get(2)) < 0.5f) {
+                                if (boundaryA == null || boundaryB.get(3).distance(boundaryB.get(2)) < 0.5f) {
                                     System.out.println("bad boundary");
                                     for (int i = 0; i < verticesB.size(); i++) {
                                         verticesB.get(i).set(preTransState.get(1).get(i));
@@ -215,21 +228,38 @@ public class D2CreationState extends BaseAppState {
                                     if (Util.lineTouchesBoundary(verticesB.get(0), deltaAxis, pageB.boundary)) {
                                         //Still OK tall
                                         fitInBoundaries();
+                                        referencePoint.addLocal(translation);
                                     } else {
                                         //Too tall
                                         Vector3f tallestPoint = Util.closestPointToDirrection(axisTranslationB, pageB.boundary);
-                                        Vector3f adjustTranslation = tallestPoint.subtract(Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationB.mult(100)), verticesB.get(0).add(deltaAxis.mult(100f)), verticesB.get(1).add(deltaAxis.negate().mult(100f))));
-                                        for (Vector3f point : verticesB) {
-                                            point.addLocal(adjustTranslation);
+                                        Vector3f adjustTranslation = Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationB.mult(100f)), verticesB.get(0).add(deltaAxis.mult(100f)), verticesB.get(1).add(deltaAxis.negate().mult(100f)));
+                                        if (adjustTranslation != null) {
+                                            adjustTranslation.set(tallestPoint.subtract(adjustTranslation));
+                                            for (Vector3f point : verticesB) {
+                                                point.addLocal(adjustTranslation);
+                                            }
+                                            
+                                            if (!Util.lineTouchesBoundary(verticesB.get(0), deltaAxis, pageB.boundary)) {
+                                                for (int i = 0; i < verticesA.size(); i++) {
+                                                    verticesB.get(i).set(preTransState.get(0).get(i));
+                                                }
+                                            } else {
+                                                referencePoint.addLocal(adjustTranslation);
+                                                referencePoint.addLocal(translation);
+                                            }
+                                        } else {
+                                            for (int i = 0; i < verticesB.size(); i++) {
+                                                verticesB.get(i).set(preTransState.get(0).get(i));
+                                            }
                                         }
-                                        //fitInBoundaries();
-                                        referencePoint.addLocal(adjustTranslation);
+
                                     }
-                                    referencePoint.addLocal(translation);
+
                                 }
                                 updateBoundaries();
                                 updateGraphics();
                             }
+
                         }
                         break;
                     }
@@ -268,12 +298,13 @@ public class D2CreationState extends BaseAppState {
                                 }
                             }
                             Vector3f translation = Util.closestPointOnLine(referencePoint, deltaAxis, newPoint).subtract(referencePoint);
-                            app.setText("Error", "In: " + Util.inBoundary(referencePoint.add(translation), pageA.boundary));
                             if (pairPoint.distance(referencePoint.add(translation)) > 0.5f && pairPoint.distance(referencePoint.add(translation)) <= pairPoint.distance(boundaryPoint)) {
                                 referencePoint.addLocal(translation);
                                 fitInBoundaries();
                                 updateGraphics();
                             }
+
+                            app.setText("Error", "In: " + Util.inBoundary(referencePoint.add(translation), pageA.boundary));
                         }
                         break;
 

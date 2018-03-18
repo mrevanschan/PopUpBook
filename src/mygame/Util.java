@@ -19,7 +19,7 @@ import java.util.ArrayList;
  */
 public final class Util {
 
-    public static final float FLT_EPSILON = 0.0001f;
+    public static final float FLT_EPSILON = 0.00001f;
 
     public static Vector3f[] toArray(ArrayList<Vector3f> arrayList) {
         Vector3f[] array = new Vector3f[arrayList.size()];
@@ -156,7 +156,6 @@ public final class Util {
             if (lineIntersection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
                 intersectCount++;
             }
-
         }
 
         return (intersectCount & 1) != 0;
@@ -190,11 +189,13 @@ public final class Util {
     }
     public static Vector3f[] lineBoundaryIntersections(Vector3f point, Vector3f dir, Vector3f[] boundary){
         ArrayList<Vector3f> intersections = new ArrayList<>();
+        
         for (int i = 0; i < boundary.length; i++) {
             // ADD SOMETHING HERE TO MAKE IT WORK FOR CORNERS
-            if (inLine(boundary[i], point, boundary[(i + 1)%boundary.length]) && boundary[i].subtract(boundary[(i + 1)%boundary.length]).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON ) {
+            System.out.println("Checking Point[" + i + "]");
+            System.out.println("Cross = " + point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO));
+            if (point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
                 intersections.add(boundary[i].clone());
-                intersections.add(boundary[(i + 1)%boundary.length].clone());
             } else {
                 Vector3f intersection = lineIntersection(point, point.add(dir.normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
@@ -206,12 +207,13 @@ public final class Util {
                 }
             }
         }
+        System.out.println("Intersection Count = " +intersections.size());
         Vector3f[] returnPair = new Vector3f[2];
         returnPair[0] = new Vector3f();
         returnPair[1] = new Vector3f();
         for(int i = 0; i < intersections.size()-1;i++){
             for(int n = i+1; n < intersections.size();n++){
-                if(intersections.get(i).distance(intersections.get(n)) > returnPair[0].distance(returnPair[1])){
+                if(intersections.get(i).distance(intersections.get(n)) >= returnPair[0].distance(returnPair[1])){
                     returnPair[0].set(intersections.get(i));
                     returnPair[1].set(intersections.get(n));
                 }
