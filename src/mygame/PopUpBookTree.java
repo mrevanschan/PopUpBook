@@ -93,7 +93,7 @@ public class PopUpBookTree {
 
         back = addPage(null, backBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
         front = addPage(null, frontBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
-        JointNode bookJoint = new JointNode(back, front, new Vector3f[] {new Vector3f(0f, 0f, -height / 2f), new Vector3f(0f, 0f, height / 2f)},  "D1Joint");
+        bookJoint = new JointNode(back, front, new Vector3f[] {new Vector3f(0f, 0f, -height / 2f), new Vector3f(0f, 0f, height / 2f)},  "D1Joint");
         back.relatedJoint.add(bookJoint);
         front.relatedJoint.add(bookJoint);
         joints.add(bookJoint);
