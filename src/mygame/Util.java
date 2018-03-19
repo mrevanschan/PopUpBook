@@ -264,4 +264,14 @@ public final class Util {
             return null;
         }
     }
+    public static Vector3f linePlaneIntersection(Vector3f linePoint, Vector3f lineDir,Vector3f planePoint, Vector3f planeNormal){
+        if(FastMath.abs(lineDir.dot(planeNormal)) > FastMath.FLT_EPSILON){
+            float d = (planePoint.subtract(linePoint).dot(planeNormal))/(lineDir.dot(planeNormal));
+            return linePoint.add(lineDir.mult(d));
+        }else{
+            System.out.println("lineDir.dot(planeNormal) = " + lineDir.dot(planeNormal));
+        }
+       
+        return null;
+    }
 }

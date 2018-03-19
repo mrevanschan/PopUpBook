@@ -490,14 +490,18 @@ public class PopUpBookTree {
             }
             return false;
         }
-
+        public float distanceFromPoint(Vector3f point){
+            Plane plane = new Plane();
+            plane.setOriginNormal(boundary[0], getNormal());
+            return FastMath.abs(plane.pseudoDistance(point));
+        }
         public Vector3f getNormal() {
             Vector3f vector1 = boundary[0].subtract(boundary[1]);
             Vector3f vector2;
             for (int i = 2; i < boundary.length; i++) {
                 vector2 = boundary[i].subtract(boundary[1]);
                 if (vector2.distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-                    return vector1.cross(vector2);
+                    return vector1.cross(vector2).normalize();
                 }
             }
             return null;

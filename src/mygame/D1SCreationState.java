@@ -488,6 +488,14 @@ public class D1SCreationState extends BaseAppState {
             }
         }
         if (found) {
+            if(pageA.distanceFromPoint(basePageA.boundary[0]) < pageB.distanceFromPoint(basePageB.boundary[0])){
+                PopUpBookTree.PageNode temp = pageA;
+                pageA = pageB;
+                pageB = temp;
+                temp = basePageA;
+                basePageA = basePageB;
+                basePageB = temp;
+            }
             app.setText("Mode", "D1S Creation Mode");
             for (Vector3f point : basePageA.boundary) {
                 if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
@@ -511,6 +519,13 @@ public class D1SCreationState extends BaseAppState {
             for (PopUpBookTree.JointNode joint : pageA.relatedJoint) {
                 if (joint.type.equals("D2Joint")) {
                     sideNormal = joint.theOther(pageA).getNormal();
+                    Vector3f[] axis = pageA.axis;
+                    if(FastMath.abs(axis[0].distance(axisPoints[1])) < FastMath.abs(axis[1].distance(axisPoints[1]))){
+                        axisTranslationA = axis[1].subtract(axis[0]);
+                    }else{
+                        axisTranslationA = axis[1].subtract(axis[0]);
+                    }
+                    axisTranslationB = midPlane.reflect(axisPoints[1].add(axisTranslationA), null).subtract(axisPoints[1]);
                     break;
                 }
             }
@@ -518,12 +533,46 @@ public class D1SCreationState extends BaseAppState {
                 for (PopUpBookTree.JointNode joint : pageB.relatedJoint) {
                     if (joint.type.equals("D2Joint")) {
                         sideNormal = joint.theOther(pageB).getNormal();
+                        Vector3f[] axis = pageB.axis;
+                    if(FastMath.abs(axis[0].distance(axisPoints[1])) < FastMath.abs(axis[1].distance(axisPoints[1]))){
+                        axisTranslationB = axis[1].subtract(axis[0]);
+                    }else{
+                        axisTranslationB = axis[1].subtract(axis[0]);
+                    }
+                    axisTranslationA = midPlane.reflect(axisPoints[1].add(axisTranslationB), null).subtract(axisPoints[1]);
                         break;
                     }
                 }
             }
             if(sideNormal != null){
-                Vector3f up = sideNormal.normalize().cross(midPlane.getNormal());
+                verticesA = new ArrayList<>();
+                verticesB = new ArrayList<>();
+                
+                verticesB.add(new Vector3f());
+                
+                Vector3f up = sideNormal.normalize().cross(midPlane.getNormal()).normalize();
+                if(axisPoints[1].add(up.negate()).distance(pageA.boundary[0]) < axisPoints[1].add(up).distance(pageA.boundary[0])){
+                    up.negateLocal();
+                }
+                Vector3f center = new Vector3f();
+                for(Vector3f point:pageA.boundary){
+                    center.addLocal(point);
+                }
+                center.divideLocal(pageA.boundary.length);
+                addDot(center);
+                verticesA.add(center);
+                verticesA.add(Util.linePlaneIntersection(center, axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal()));
+                Vector3f[] limitA = new Vector3f[]{Util.linePlaneIntersection(pageA.boundary[0], axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal()),
+                                                   Util.linePlaneIntersection(pageA.boundary[2], axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal())};
+                System.out.println(limitA[0]);
+                System.out.println(limitA[1]);
+                System.out.println(Util.linePlaneIntersection(limitA[0], up.negate(), pageB.boundary[0], pageB.getNormal()));
+                //limitA[0].set();
+                //limitA[1].set(Util.linePlaneIntersection(limitA[1], up.negate(), pageB.boundary[0], pageB.getNormal()));
+                verticesB.add(Util.linePlaneIntersection(verticesA.get(1), up.negate(), pageB.boundary[0], pageB.getNormal()));
+                addDot(verticesB.get(1));
+                addDot(limitA[0]);
+                addDot(limitA[1]);
             }else{
                 //fail
             }
