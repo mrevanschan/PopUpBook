@@ -177,9 +177,6 @@ public class D2CreationState extends BaseAppState {
                                                     verticesA.get(i).set(preTransState.get(0).get(i));
                                                 }
                                             } else {
-                                                Vector3f[] returnPair = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
-                                                addDot(returnPair[0]);
-                                                addDot(returnPair[1]);
                                                 referencePoint.addLocal(adjustTranslation);
                                                 referencePoint.addLocal(translation);
                                             }
@@ -399,11 +396,11 @@ public class D2CreationState extends BaseAppState {
                                             lineMaterialMid.setColor("Color", ColorRGBA.Yellow);
 
                                             referencePoint = Util.closestPointOnLine(points[0], points[1].subtract(points[0]), referencePoint);
-                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, axisTranslationA, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(10f);
-                                            Vector3f point1 = referencePoint.add(deltaAxis.normalize().mult(10f)).add(deltaSide);
-                                            Vector3f point2 = referencePoint.subtract(deltaAxis.normalize().mult(10f)).add(deltaSide);
-                                            Vector3f point3 = referencePoint.subtract(deltaAxis.normalize().mult(10f)).add(deltaSide.negate());
-                                            Vector3f point4 = referencePoint.add(deltaAxis.normalize().mult(10f)).add(deltaSide.negate());
+                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, axisTranslationA, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(100f);
+                                            Vector3f point1 = referencePoint.add(deltaAxis.normalize().mult(100f)).add(deltaSide);
+                                            Vector3f point2 = referencePoint.subtract(deltaAxis.normalize().mult(100f)).add(deltaSide);
+                                            Vector3f point3 = referencePoint.subtract(deltaAxis.normalize().mult(100f)).add(deltaSide.negate());
+                                            Vector3f point4 = referencePoint.add(deltaAxis.normalize().mult(100f)).add(deltaSide.negate());
                                             Vector3f[] temp = {point1, point2, point3, point4};
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
@@ -415,11 +412,11 @@ public class D2CreationState extends BaseAppState {
                                             lineMaterialMid.setColor("Color", ColorRGBA.Yellow);
 
                                             referencePoint = Util.closestPointOnLine(points[0], points[1].subtract(points[0]), referencePoint);
-                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, axisTranslationB, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(1f);
-                                            Vector3f point1 = referencePoint.add(deltaAxis.normalize().mult(1f)).add(deltaSide);
-                                            Vector3f point2 = referencePoint.subtract(deltaAxis.normalize().mult(1f)).add(deltaSide);
-                                            Vector3f point3 = referencePoint.subtract(deltaAxis.normalize().mult(1f)).add(deltaSide.negate());
-                                            Vector3f point4 = referencePoint.add(deltaAxis.normalize().mult(1f)).add(deltaSide.negate());
+                                            Vector3f deltaSide = Util.lineToPointTranslation(referencePoint, axisTranslationB, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(100f);
+                                            Vector3f point1 = referencePoint.add(deltaAxis.normalize().mult(100f)).add(deltaSide);
+                                            Vector3f point2 = referencePoint.subtract(deltaAxis.normalize().mult(100f)).add(deltaSide);
+                                            Vector3f point3 = referencePoint.subtract(deltaAxis.normalize().mult(100f)).add(deltaSide.negate());
+                                            Vector3f point4 = referencePoint.add(deltaAxis.normalize().mult(100f)).add(deltaSide.negate());
                                             Vector3f[] temp = {point1, point2, point3, point4};
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
@@ -633,6 +630,26 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void fitInBoundaries() {
+        Vector3f[] boundary = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
+        addDot(boundary[0]);
+        addDot(boundary[1]);
+
+        System.out.println(Util.closestPointToDirrection(deltaAxis.normalize(), boundary));
+        if(!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])){
+            verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+            verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                app.setText("Hint", "Both Out");
+        }
+        if(Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])){
+            verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+            if(verticesA.get(1).distance(verticesA.get(0)) < 0.25f){
+                
+                
+            }
+                app.setText("Hint", "Both Out");
+        }
+
+
 //        Vector3f[] returnVector = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
 //        addDot(returnVector[0]);
 //        addDot(returnVector[1]);
@@ -680,6 +697,7 @@ public class D2CreationState extends BaseAppState {
         if (!Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
             verticesA.get(3).set(boundaryA.get(3));
         }
+        
     }
 
     private void updateBoundaries() {

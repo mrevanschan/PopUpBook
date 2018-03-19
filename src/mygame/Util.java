@@ -107,6 +107,9 @@ public final class Util {
     }
 
     public static boolean isBetween(Vector3f left, Vector3f mid, Vector3f right) {
+        if(mid.equals(left) || mid.equals(right)){
+            return true;
+        }
         return mid.subtract(left).dot(right.subtract(mid)) > 0;
     }
 
@@ -129,13 +132,15 @@ public final class Util {
     }
     
     public static Vector3f closestPointToDirrection(Vector3f dirrection, Vector3f[] boundary){
-        Vector3f target = dirrection.mult(1000f);
+        
         Vector3f center = new Vector3f();
-        Vector3f closest = new Vector3f();
+        
         for(Vector3f point: boundary){
             center.addLocal(point);
         }
-        center.divide(center);
+        center.divideLocal(boundary.length);
+        Vector3f target = dirrection.mult(1000f).add(center);
+        Vector3f closest = new Vector3f(center);
         for(Vector3f point: boundary){
             if(point.distance(target) < closest.distance(target)){
                 closest.set(point);
@@ -150,7 +155,7 @@ public final class Util {
         Vector3f dir = boundary[0].add(boundary[1]).divide(2).subtract(target).normalize().mult(100f);
         int intersectCount = 0;
         for (int i = 0; i < boundary.length; i++) {
-            if (inLine(boundary[i], target, boundary[(i + 1) % boundary.length]) && isBetween(boundary[i], target, boundary[(i + 1) % boundary.length])) {
+            if (target.equals(boundary[i]) || (inLine(boundary[i], target, boundary[(i + 1) % boundary.length])) && isBetween(boundary[i], target, boundary[(i + 1) % boundary.length])) {
                 return true;
             }
             if (lineIntersection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
