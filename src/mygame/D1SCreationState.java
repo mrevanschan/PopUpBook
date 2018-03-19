@@ -44,6 +44,8 @@ public class D1SCreationState extends BaseAppState {
     private InputManager inputManager;
     private PopUpBookTree.PageNode pageA;
     private PopUpBookTree.PageNode pageB;
+    private PopUpBookTree.PageNode basePageA;
+    private PopUpBookTree.PageNode basePageB;
     private Vector3f centerAxis;
     private Vector3f[] axisPoints;
     private Vector3f axisTranslationA;
@@ -453,34 +455,34 @@ public class D1SCreationState extends BaseAppState {
         PopUpBookTree.PageNode pageBase = null;
 
         boolean found = false;
-        PopUpBookTree.PageNode parent = pageA.parent;
         ArrayList<PopUpBookTree.PageNode> aParents = new ArrayList<>();
         ArrayList<PopUpBookTree.PageNode> bParents = new ArrayList<>();
         aParents.add(pageA);
         bParents.add(pageB);
-        while()
-        while (parent != null) {
-            if (app.popUpBook.isNeighbor(parent.geometry, pageB.geometry) && parent.getNormal().normalize().distance(pageB.getNormal().normalize()) < FastMath.FLT_EPSILON) {
-                pageBase = app.popUpBook.geomPageMap.get(parent.geometry);
-                axisPoints = app.popUpBook.axisBetween(parent.geometry, pageB.geometry);
-                found = true;
-                break;
-            } else {
-                parent = parent.parent;
+        
+        PopUpBookTree.PageNode parent = pageA.parent;
+        while(parent!= null){
+            if(parent.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON){
+               aParents.add(parent); 
             }
+            parent = parent.parent;
         }
-        if (!found) {
-            parent = pageB.parent;
-            while (parent != null) {
-                if (app.popUpBook.isNeighbor(parent.geometry, pageA.geometry) && parent.getNormal().normalize().distance(pageA.getNormal().normalize()) < FastMath.FLT_EPSILON) {
-                    pageBase = app.popUpBook.geomPageMap.get(parent.geometry);
-                    axisPoints = app.popUpBook.axisBetween(parent.geometry, pageA.geometry);
-                    pageA = app.popUpBook.geomPageMap.get(app.selected.get(1));
-                    pageB = app.popUpBook.geomPageMap.get(app.selected.get(0));
+        parent = pageB.parent;
+        while(parent!= null){
+            if(parent.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON){
+               bParents.add(parent); 
+            }
+            parent = parent.parent;
+        }
+        outerLoop:
+        for(PopUpBookTree.PageNode aPage : aParents){
+            for(PopUpBookTree.PageNode bPage: bParents){
+                if(app.popUpBook.isNeighbor(aPage.geometry, bPage.geometry)){
                     found = true;
-                    break;
-                } else {
-                    parent = parent.parent;
+                    basePageA = aPage;
+                    basePageB = bPage;
+                    axisPoints = app.popUpBook.axisBetween(aPage.geometry,bPage.geometry);
+                    break outerLoop;
                 }
             }
         }
