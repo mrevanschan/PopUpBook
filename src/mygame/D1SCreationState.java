@@ -305,12 +305,11 @@ public class D1SCreationState extends BaseAppState {
                                         }
                                         break;
                                     }
-                                    case "Dot":{
+                                    case "Dot": {
                                         Vector3f selectedVertex = dotVecticesMap.get(selected);
                                         if (selectedVertex.equals(verticesA.get(1))) {
                                             //center point
 
-                                            
                                         } else if (selectedVertex.equals(verticesA.get(0)) || selectedVertex.equals(verticesB.get(0))) {
                                             //side point
                                             dragMode = "SideAngle";
@@ -329,7 +328,7 @@ public class D1SCreationState extends BaseAppState {
                                                 sideTop = centerTop.add(axisTranslationB.normalize().mult(100));
                                                 sideBot = centerBot.add(axisTranslationB.normalize().mult(100));
                                             }
-                                            
+
                                             Vector3f[] temp = {centerTop, centerBot, sideBot, sideTop};
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collision.setMaterial(dotMaterial);
@@ -452,132 +451,173 @@ public class D1SCreationState extends BaseAppState {
     private void initialize() {
         pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
         pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
-        PopUpBookTree.PageNode pageBase = null;
 
         boolean found = false;
         ArrayList<PopUpBookTree.PageNode> aParents = new ArrayList<>();
         ArrayList<PopUpBookTree.PageNode> bParents = new ArrayList<>();
         aParents.add(pageA);
         bParents.add(pageB);
-        
+
         PopUpBookTree.PageNode parent = pageA.parent;
-        while(parent!= null){
-            if(parent.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON){
-               aParents.add(parent); 
+        while (parent != null) {
+            if (parent.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
+                aParents.add(parent);
             }
             parent = parent.parent;
         }
         parent = pageB.parent;
-        while(parent!= null){
-            if(parent.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON){
-               bParents.add(parent); 
+        while (parent != null) {
+            if (parent.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
+                bParents.add(parent);
             }
             parent = parent.parent;
         }
+        System.out.println("parentA count" + aParents.size());
+        System.out.println("parentB count" + bParents.size());
         outerLoop:
-        for(PopUpBookTree.PageNode aPage : aParents){
-            for(PopUpBookTree.PageNode bPage: bParents){
-                if(app.popUpBook.isNeighbor(aPage.geometry, bPage.geometry)){
+        for (PopUpBookTree.PageNode aPage : aParents) {
+            for (PopUpBookTree.PageNode bPage : bParents) {
+                if (app.popUpBook.isNeighbor(aPage.geometry, bPage.geometry)) {
                     found = true;
                     basePageA = aPage;
                     basePageB = bPage;
-                    axisPoints = app.popUpBook.axisBetween(aPage.geometry,bPage.geometry);
+                    axisPoints = app.popUpBook.axisBetween(aPage.geometry, bPage.geometry);
+                    centerAxis = axisPoints[0].subtract(axisPoints[1]);
                     break outerLoop;
                 }
             }
         }
         if (found) {
-            Vector3f center = axisPoints[0].add(axisPoints[1]).divide(2);
-            app.setText("Mode","D1Special Creation Mode");
-            if (center.distance(pageA.axis[0]) < center.distance(pageA.axis[1])) {
-                axisTranslationA = pageA.axis[1].subtract(pageA.axis[0]);
-                addDot(pageA.axis[0]);
-            } else {
-                axisTranslationA = pageA.axis[0].subtract(pageA.axis[1]);
-                addDot(pageA.axis[1]);
+            app.setText("Mode", "D1S Creation Mode");
+            for (Vector3f point : basePageA.boundary) {
+                if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
+                    axisTranslationA = Util.lineToPointTranslation(axisPoints[0], centerAxis, point).normalize();
+                    break;
+                }
             }
 
-            Vector3f normalA = null;
+            for (Vector3f point : basePageB.boundary) {
+                if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
+                    axisTranslationB = Util.lineToPointTranslation(axisPoints[0], centerAxis, point).normalize();
+                    break;
+                }
+            }
+            System.out.println("aAxis + " + axisTranslationA);
+            System.out.println("bAxis + " + axisTranslationB);
+            Plane midPlane = new Plane();
+            midPlane.setOriginNormal(axisPoints[1], axisTranslationA.subtract(axisTranslationB).normalize());
+            System.out.println("Normal + " + midPlane.getNormal());
+            Vector3f sideNormal = null;
             for (PopUpBookTree.JointNode joint : pageA.relatedJoint) {
                 if (joint.type.equals("D2Joint")) {
-                    normalA = joint.theOther(pageA).getNormal();
+                    sideNormal = joint.theOther(pageA).getNormal();
                     break;
                 }
             }
-            
-            
-            for (Vector3f point : pageB.boundary) {
-                if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
-                    float angle = axisPoints[0].subtract(axisPoints[1]).normalize().angleBetween(point.subtract(axisPoints[1]).normalize());
-                    axisTranslationB = point.add(axisPoints[1].subtract(axisPoints[0]).normalize().mult(FastMath.cos(angle) * point.distance(axisPoints[1]))).subtract(axisPoints[1]);
-                    break;
+            if (sideNormal == null) {
+                for (PopUpBookTree.JointNode joint : pageB.relatedJoint) {
+                    if (joint.type.equals("D2Joint")) {
+                        sideNormal = joint.theOther(pageB).getNormal();
+                        break;
+                    }
                 }
             }
-
-            verticesA = new ArrayList<>();
-            verticesB = new ArrayList<>();
-            verticesA.add(center.add(axisTranslationA));
-            addDot(center);
-            addDot(center.add(axisTranslationA));
-
-            float angle = axisPoints[0].subtract(axisPoints[1]).normalize().angleBetween(verticesA.get(0).subtract(axisPoints[1]).normalize());
-            verticesB.add(axisPoints[1].add(axisPoints[0].subtract(axisPoints[1]).normalize().mult(FastMath.cos(angle) * verticesA.get(0).distance(axisPoints[1]))));
-            verticesB.get(0).addLocal(axisTranslationB.normalize().mult(verticesB.get(0).distance(verticesA.get(0))));
-
-            verticesA.add(center.add(Vector3f.ZERO));
-            verticesB.add(center.add(Vector3f.ZERO));
-            axisTranslationB = verticesB.get(0).subtract(verticesB.get(1));
-
-            Plane plane = new Plane();
-            plane.setPlanePoints(center, verticesB.get(0).add(verticesA.get(0)).divide(2f), verticesA.get(0).subtract(center).cross(verticesB.get(0).subtract(center)).add(center));
-            Vector3f normalB = plane.reflect(center.add(normalA), null).subtract(center);
-            Vector3f up = normalA.cross(normalB);
-            if (center.add(up).distance(pageA.axis[0]) > center.add(up.negate()).distance(pageA.axis[0])) {
-                up.negateLocal();
+            if(sideNormal != null){
+                Vector3f up = sideNormal.normalize().cross(midPlane.getNormal());
+            }else{
+                //fail
             }
-            plane.setOriginNormal(pageBase.boundary[0], pageBase.getNormal().normalize());
-            float length = FastMath.abs(plane.pseudoDistance(pageA.boundary[0]));
-            angle = up.normalize().angleBetween(verticesA.get(0).add(verticesB.get(0)).divide(2f).subtract(center).normalize());
-            up.normalizeLocal().multLocal(length / FastMath.sin(angle));
-            System.out.println("height = " + length);
-
-            System.out.println("length = " + length / FastMath.sin(angle));
-//            Vector3f translation = center.add(up);
-            center.set(Vector3f.ZERO);
-            for (Vector3f point : pageA.boundary) {
-                center.addLocal(point);
-            }
-            center.divideLocal(pageA.boundary.length).subtractLocal(up);
-            angle = axisPoints[0].subtract(axisPoints[1]).normalize().angleBetween(center.subtract(axisPoints[1]).normalize());
-            Vector3f translation = axisPoints[0].subtract(axisPoints[1]).normalize().mult(FastMath.cos(angle) * center.distance(axisPoints[1])).add(axisPoints[1]);
-            axisTranslationA.negateLocal();
-            angle = translation.subtract(center).normalize().angleBetween(axisTranslationA.normalize());
-            translation = center.add(axisTranslationA.normalize().mult(center.distance(translation) / FastMath.cos(angle)));
-            length = center.distance(translation);
-            translation = translation.subtract(verticesA.get(1));
-            axisTranslationA.negateLocal();
-            verticesB.get(1).addLocal(translation);
-            verticesA.get(1).addLocal(translation);
-            verticesB.get(0).set(verticesB.get(1).add(axisTranslationB.normalize().mult(length)));
-            verticesA.get(0).set(verticesA.get(1).add(axisTranslationA.normalize().mult(length)));
-            verticesA.get(1).addLocal(up);
-            verticesA.get(0).addLocal(up);
-            verticesA.add(verticesA.get(1).add(up.mult(1.5f)));
-            verticesB.add(verticesA.get(2));
-            centerAxis = verticesA.get(0).subtract(verticesA.get(1)).normalize().add(verticesB.get(0).subtract(verticesB.get(1)).normalize());
-//            addDot(verticesA.get(0));
-//            addDot(verticesB.get(0));
-//            addDot(verticesA.get(1));
-//            addDot(verticesB.get(1));
-//            addDot(verticesA.get(2));
-
-            addLine(verticesA.get(0), verticesA.get(1));
-            addLine(verticesA.get(0), verticesA.get(2));
-            addLine(verticesB.get(1), verticesB.get(2));
-            addLine(verticesB.get(2), verticesB.get(0));
-            addLine(verticesB.get(1), verticesB.get(0));
-            updateBoundaries();
-
+//            Vector3f center = axisPoints[0].add(axisPoints[1]).divide(2);
+//            
+//            app.setText("Mode","D1Special Creation Mode");
+//            if (center.distance(pageA.axis[0]) < center.distance(pageA.axis[1])) {
+//                axisTranslationA = pageA.axis[1].subtract(pageA.axis[0]);
+//                addDot(pageA.axis[0]);
+//            } else {
+//                axisTranslationA = pageA.axis[0].subtract(pageA.axis[1]);
+//                addDot(pageA.axis[1]);
+//            }
+//
+//            Vector3f normalA = null;
+//            for (PopUpBookTree.JointNode joint : pageA.relatedJoint) {
+//                if (joint.type.equals("D2Joint")) {
+//                    normalA = joint.theOther(pageA).getNormal();
+//                    break;
+//                }
+//            }
+//            
+//            
+//            for (Vector3f point : pageB.boundary) {
+//                if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
+//                    float angle = axisPoints[0].subtract(axisPoints[1]).normalize().angleBetween(point.subtract(axisPoints[1]).normalize());
+//                    axisTranslationB = point.add(axisPoints[1].subtract(axisPoints[0]).normalize().mult(FastMath.cos(angle) * point.distance(axisPoints[1]))).subtract(axisPoints[1]);
+//                    break;
+//                }
+//            }
+//
+//            verticesA = new ArrayList<>();
+//            verticesB = new ArrayList<>();
+//            verticesA.add(center.add(axisTranslationA));
+//            addDot(center);
+//            addDot(center.add(axisTranslationA));
+//
+//            float angle = axisPoints[0].subtract(axisPoints[1]).normalize().angleBetween(verticesA.get(0).subtract(axisPoints[1]).normalize());
+//            verticesB.add(axisPoints[1].add(axisPoints[0].subtract(axisPoints[1]).normalize().mult(FastMath.cos(angle) * verticesA.get(0).distance(axisPoints[1]))));
+//            verticesB.get(0).addLocal(axisTranslationB.normalize().mult(verticesB.get(0).distance(verticesA.get(0))));
+//
+//            verticesA.add(center.add(Vector3f.ZERO));
+//            verticesB.add(center.add(Vector3f.ZERO));
+//            axisTranslationB = verticesB.get(0).subtract(verticesB.get(1));
+//
+//            Plane plane = new Plane();
+//            plane.setPlanePoints(center, verticesB.get(0).add(verticesA.get(0)).divide(2f), verticesA.get(0).subtract(center).cross(verticesB.get(0).subtract(center)).add(center));
+//            Vector3f normalB = plane.reflect(center.add(normalA), null).subtract(center);
+//            Vector3f up = normalA.cross(normalB);
+//            if (center.add(up).distance(pageA.axis[0]) > center.add(up.negate()).distance(pageA.axis[0])) {
+//                up.negateLocal();
+//            }
+//            plane.setOriginNormal(pageBase.boundary[0], pageBase.getNormal().normalize());
+//            float length = FastMath.abs(plane.pseudoDistance(pageA.boundary[0]));
+//            angle = up.normalize().angleBetween(verticesA.get(0).add(verticesB.get(0)).divide(2f).subtract(center).normalize());
+//            up.normalizeLocal().multLocal(length / FastMath.sin(angle));
+//            System.out.println("height = " + length);
+//
+//            System.out.println("length = " + length / FastMath.sin(angle));
+////            Vector3f translation = center.add(up);
+//            center.set(Vector3f.ZERO);
+//            for (Vector3f point : pageA.boundary) {
+//                center.addLocal(point);
+//            }
+//            center.divideLocal(pageA.boundary.length).subtractLocal(up);
+//            angle = axisPoints[0].subtract(axisPoints[1]).normalize().angleBetween(center.subtract(axisPoints[1]).normalize());
+//            Vector3f translation = axisPoints[0].subtract(axisPoints[1]).normalize().mult(FastMath.cos(angle) * center.distance(axisPoints[1])).add(axisPoints[1]);
+//            axisTranslationA.negateLocal();
+//            angle = translation.subtract(center).normalize().angleBetween(axisTranslationA.normalize());
+//            translation = center.add(axisTranslationA.normalize().mult(center.distance(translation) / FastMath.cos(angle)));
+//            length = center.distance(translation);
+//            translation = translation.subtract(verticesA.get(1));
+//            axisTranslationA.negateLocal();
+//            verticesB.get(1).addLocal(translation);
+//            verticesA.get(1).addLocal(translation);
+//            verticesB.get(0).set(verticesB.get(1).add(axisTranslationB.normalize().mult(length)));
+//            verticesA.get(0).set(verticesA.get(1).add(axisTranslationA.normalize().mult(length)));
+//            verticesA.get(1).addLocal(up);
+//            verticesA.get(0).addLocal(up);
+//            verticesA.add(verticesA.get(1).add(up.mult(1.5f)));
+//            verticesB.add(verticesA.get(2));
+//            centerAxis = verticesA.get(0).subtract(verticesA.get(1)).normalize().add(verticesB.get(0).subtract(verticesB.get(1)).normalize());
+////            addDot(verticesA.get(0));
+////            addDot(verticesB.get(0));
+////            addDot(verticesA.get(1));
+////            addDot(verticesB.get(1));
+////            addDot(verticesA.get(2));
+//
+//            addLine(verticesA.get(0), verticesA.get(1));
+//            addLine(verticesA.get(0), verticesA.get(2));
+//            addLine(verticesB.get(1), verticesB.get(2));
+//            addLine(verticesB.get(2), verticesB.get(0));
+//            addLine(verticesB.get(1), verticesB.get(0));
+//            updateBoundaries();
         } else {
 
             app.setText("Error", "A D1 Joint cannot be built on these planes");
