@@ -269,7 +269,7 @@ public class D1CreationState extends BaseAppState {
                                 }
                                 verticesA.get(1).addLocal(translation);
                                 verticesA.get(2).addLocal(translation);
-
+                                
                                 updateBoundaries();
                                 fitInBoundaries();
                                 fitCenterPoint();
