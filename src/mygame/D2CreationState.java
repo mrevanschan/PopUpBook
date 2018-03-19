@@ -631,8 +631,6 @@ public class D2CreationState extends BaseAppState {
 
     private void fitInBoundaries() {
         Vector3f[] boundary = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
-        addDot(boundary[0]);
-        addDot(boundary[1]);
 
         System.out.println(Util.closestPointToDirrection(deltaAxis.normalize(), boundary));
         if(!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])){
@@ -643,53 +641,56 @@ public class D2CreationState extends BaseAppState {
         if(Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])){
             verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
             if(verticesA.get(1).distance(verticesA.get(0)) < 0.25f){
-                
-                
+                Vector3f temp = verticesA.get(1).add(deltaAxis.normalize().negate().mult(0.25f));
+                if(Util.isBetween(boundary[0], temp, boundary[1])){
+                    verticesA.get(0).set(temp);
+                }else{
+                    verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+                }
             }
-                app.setText("Hint", "Both Out");
+        }
+        if(!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && Util.isBetween(boundary[0], verticesA.get(1), boundary[1])){
+            verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+            if(verticesA.get(0).distance(verticesA.get(1)) < 0.25f){
+                Vector3f temp = verticesA.get(0).add(deltaAxis.normalize().mult(0.25f));
+                if(Util.isBetween(boundary[0], temp, boundary[1])){
+                    verticesA.get(1).set(temp);
+                }else{
+                    verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                }
+            }
         }
 
 
-//        Vector3f[] returnVector = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
-//        addDot(returnVector[0]);
-//        addDot(returnVector[1]);
-//        if (!Util.inBoundary(verticesA.get(0), pageA.boundary)) {
-//            Vector3f temp = Util.castLineOnBoundary(verticesA.get(0), deltaAxis, pageA.boundary);
-//            if (temp != null) {
-//                verticesA.get(0).set(temp);
-//                if (verticesA.get(1).distance(verticesA.get(0)) < 0.5f) {
-//                    verticesA.get(1).set(verticesA.get(0).add(deltaAxis.normalize().mult(0.5f)));
-//                }
-//            }
-//
-//        }
-//        if (!Util.inBoundary(verticesA.get(1), pageA.boundary)) {
-//            Vector3f temp = Util.castLineOnBoundary(verticesA.get(1), deltaAxis.negate(), pageA.boundary);
-//            if (temp != null) {
-//                verticesA.get(1).set(temp);
-//                if (verticesA.get(1).distance(verticesA.get(0)) < 0.5f) {
-//                    verticesA.get(0).set(verticesA.get(1).add(deltaAxis.negate().normalize().mult(0.5f)));
-//                }
-//            }
-//        }
-//        if (!Util.inBoundary(verticesB.get(0), pageB.boundary)) {
-//            Vector3f temp = Util.castLineOnBoundary(verticesB.get(0), deltaAxis, pageB.boundary);
-//            if (temp != null) {
-//                verticesB.get(0).set(temp);
-//                if (verticesB.get(1).distance(verticesB.get(0)) < 0.5f) {
-//                    verticesB.get(1).set(verticesB.get(0).add(deltaAxis.normalize().mult(0.5f)));
-//                }
-//            }
-//        }
-//        if (!Util.inBoundary(verticesB.get(1), pageB.boundary)) {
-//            Vector3f temp = Util.castLineOnBoundary(verticesB.get(1), deltaAxis.negate(), pageB.boundary);
-//            if (temp != null) {
-//                verticesB.get(1).set(temp);
-//                if (verticesB.get(1).distance(verticesB.get(0)) < 0.5f) {
-//                    verticesB.get(0).set(verticesB.get(1).add(deltaAxis.negate().normalize().mult(0.5f)));
-//                }
-//            }
-//        }
+        boundary = Util.lineBoundaryIntersections(verticesB.get(0), deltaAxis, pageB.boundary);
+
+        System.out.println(Util.closestPointToDirrection(deltaAxis.normalize(), boundary));
+        if(!Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesB.get(1), boundary[1])){
+            verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+            verticesB.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+        }
+        if(Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesB.get(1), boundary[1])){
+            verticesB.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+            if(verticesB.get(1).distance(verticesB.get(0)) < 0.25f){
+                Vector3f temp = verticesB.get(1).add(deltaAxis.normalize().negate().mult(0.25f));
+                if(Util.isBetween(boundary[0], temp, boundary[1])){
+                    verticesB.get(0).set(temp);
+                }else{
+                    verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+                }
+            }
+        }
+        if(!Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && Util.isBetween(boundary[0], verticesB.get(1), boundary[1])){
+            verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+            if(verticesB.get(0).distance(verticesB.get(1)) < 0.25f){
+                Vector3f temp = verticesB.get(0).add(deltaAxis.normalize().mult(0.25f));
+                if(Util.isBetween(boundary[0], temp, boundary[1])){
+                    verticesB.get(1).set(temp);
+                }else{
+                    verticesB.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                }
+            }
+        }   
 
         if (!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
             verticesA.get(2).set(boundaryA.get(2));
@@ -771,7 +772,12 @@ public class D2CreationState extends BaseAppState {
     private void updateLine(Geometry line, Vector3f vertexA, Vector3f vertexB) {
         if (line.getName().equals("Line")) {
             line.setLocalTranslation(vertexA.add(vertexB).divide(2f));
-            ((Cylinder) line.getMesh()).updateGeometry(5, 3, lineRadius, lineRadius, vertexA.distance(vertexB), false, false);
+            if(vertexA.distance(vertexB) > FastMath.FLT_EPSILON){
+                ((Cylinder) line.getMesh()).updateGeometry(5, 3, lineRadius, lineRadius, vertexA.distance(vertexB), false, false);
+                line.lookAt(vertexA, new Vector3f(0, 1, 0));
+            }else{
+                ((Cylinder) line.getMesh()).updateGeometry(5, 3, lineRadius, lineRadius, 0.001f, false, false);
+            }
             line.lookAt(vertexA, new Vector3f(0, 1, 0));
         }
     }
