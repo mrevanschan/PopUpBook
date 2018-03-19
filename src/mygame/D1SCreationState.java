@@ -82,7 +82,6 @@ public class D1SCreationState extends BaseAppState {
         @Override
         public void onAnalog(String name, float value, float tpf) {
             if (dragMode != null) {
-                app.text.setText(dragMode);
                 CollisionResults results = new CollisionResults();
                 Vector2f click2d = inputManager.getCursorPosition().clone();
                 Vector3f click3d = app.getCamera().getWorldCoordinates(click2d, 0f).clone();
@@ -109,7 +108,6 @@ public class D1SCreationState extends BaseAppState {
                         case "SideAngle": {
                             if (verticesA.get(0).equals(dotVecticesMap.get(selected))) {
                                 Vector3f original = newPoint.subtract(verticesA.get(1));
-                                app.text.setText("Changing A");
                                 float length = original.length() * FastMath.cos(original.angleBetween(verticesA.get(0).subtract(verticesA.get(1))));
                                 if (length < 0.5f) {
                                     length = 0.5f;
@@ -118,7 +116,6 @@ public class D1SCreationState extends BaseAppState {
 
                             } else {
 
-                                app.text.setText("Changing B");
                                 Vector3f original = newPoint.subtract(verticesB.get(1));
                                 float length = original.length() * FastMath.cos(original.angleBetween(verticesB.get(0).subtract(verticesB.get(1))));
                                 if (length < 0.5f) {
@@ -311,7 +308,7 @@ public class D1SCreationState extends BaseAppState {
                                         if (selectedVertex.equals(verticesA.get(1))) {
                                             //center point
 
-                                            app.text.setText("center");
+                                            
                                         } else if (selectedVertex.equals(verticesA.get(0)) || selectedVertex.equals(verticesB.get(0))) {
                                             //side point
                                             dragMode = "SideAngle";
@@ -338,7 +335,6 @@ public class D1SCreationState extends BaseAppState {
 
                                         } else if (selectedVertex.equals(verticesA.get(2)) || selectedVertex.equals(verticesB.get(2))) {
                                             //top point
-                                            app.text.setText("top");
                                             dragMode = "TopAngle";
                                             Vector3f botA = verticesA.get(1).add(centerAxis.normalize().mult(100f));
                                             Vector3f botB = verticesA.get(1).subtract(centerAxis.normalize().mult(100f));
@@ -458,6 +454,11 @@ public class D1SCreationState extends BaseAppState {
 
         boolean found = false;
         PopUpBookTree.PageNode parent = pageA.parent;
+        ArrayList<PopUpBookTree.PageNode> aParents = new ArrayList<>();
+        ArrayList<PopUpBookTree.PageNode> bParents = new ArrayList<>();
+        aParents.add(pageA);
+        bParents.add(pageB);
+        while()
         while (parent != null) {
             if (app.popUpBook.isNeighbor(parent.geometry, pageB.geometry) && parent.getNormal().normalize().distance(pageB.getNormal().normalize()) < FastMath.FLT_EPSILON) {
                 pageBase = app.popUpBook.geomPageMap.get(parent.geometry);
@@ -485,7 +486,7 @@ public class D1SCreationState extends BaseAppState {
         }
         if (found) {
             Vector3f center = axisPoints[0].add(axisPoints[1]).divide(2);
-            app.text.setText("D1S Mode");
+            app.setText("Mode","D1Special Creation Mode");
             if (center.distance(pageA.axis[0]) < center.distance(pageA.axis[1])) {
                 axisTranslationA = pageA.axis[1].subtract(pageA.axis[0]);
                 addDot(pageA.axis[0]);
@@ -632,11 +633,9 @@ public class D1SCreationState extends BaseAppState {
             for (int i = 3; i < verticesA.size(); i++) {
                 if (FastMath.abs(planeBot.pseudoDistance(verticesA.get(i))) < FastMath.FLT_EPSILON || FastMath.abs(planeTop.pseudoDistance(verticesA.get(i))) < FastMath.FLT_EPSILON) {
                     //remove.add(verticesA.get(i));
-                    app.text.setText("on Base or Top");
                 } else {
                     if (planeBot.whichSide(verticesA.get(i)).equals(planeBot.whichSide(verticesA.get(2)))
                             && planeTop.whichSide(verticesA.get(i)).equals(planeTop.whichSide(verticesA.get(0)))) {
-                        app.text.setText("rightPlace");
                         for (int x = 2; x < boundaryA.size(); x++) {
                             Vector3f point1 = boundaryA.get(x);
                             Vector3f point2;
@@ -676,7 +675,6 @@ public class D1SCreationState extends BaseAppState {
                         }
                     } else {
                         //remove.add(verticesA.get(i));
-                        app.text.setText("not inBetween");
                     }
                 }
             }
@@ -687,11 +685,9 @@ public class D1SCreationState extends BaseAppState {
             for (int i = 3; i < verticesB.size(); i++) {
                 if (FastMath.abs(planeBot.pseudoDistance(verticesB.get(i))) < FastMath.FLT_EPSILON || FastMath.abs(planeTop.pseudoDistance(verticesB.get(i))) < FastMath.FLT_EPSILON) {
                     //remove.add(verticesA.get(i));
-                    app.text.setText("on Base or Top");
                 } else {
                     if (planeBot.whichSide(verticesB.get(i)).equals(planeBot.whichSide(verticesB.get(2)))
                             && planeTop.whichSide(verticesB.get(i)).equals(planeTop.whichSide(verticesB.get(0)))) {
-                        app.text.setText("rightPlace");
                         for (int x = 2; x < boundaryB.size(); x++) {
                             Vector3f point1 = boundaryB.get(x);
                             Vector3f point2;
@@ -731,7 +727,6 @@ public class D1SCreationState extends BaseAppState {
                         }
                     } else {
                         //remove.add(verticesA.get(i));
-                        app.text.setText("not inBetween");
                     }
                 }
             }
