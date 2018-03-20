@@ -816,7 +816,10 @@ public class D1CreationState extends BaseAppState {
         }
 
         private void updateBoundaries() {
-            ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(geometryA, geometryB, verticesA, verticesB, "D1Joint");
+            ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(geometryA, geometryB,
+                                                                                verticesA.get(0), verticesA.get(1),verticesB.get(0), verticesB.get(1),
+                                                                                verticesA.get(2), verticesA.get(1),verticesB.get(2), verticesB.get(1),
+                                                                                "D1Joint");
 
             if (results != null) {
                 boundaryA = results.get(0);

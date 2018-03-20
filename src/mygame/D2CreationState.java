@@ -140,31 +140,31 @@ public class D2CreationState extends BaseAppState {
                         collisionNode.collideWith(ray, results);
                         if (results.size() > 0) {
                             ArrayList<ArrayList<Vector3f>> preTransState = copyCurrentState();
-                            for(Geometry geom:app.popUpBook.geomPageMap.keySet()){
+                            for (Geometry geom : app.popUpBook.geomPageMap.keySet()) {
                                 geom.setMaterial(app.paper);
                             }
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
-                            if(autolock){
+                            if (autolock) {
                                 tempNode.attachChild(mark);
                                 results.clear();
                                 app.planes.collideWith(ray, results);
-                                if(results.size() > 0){
+                                if (results.size() > 0) {
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
                                     PopUpBookTree.PageNode collidePage = app.popUpBook.geomPageMap.get(results.getClosestCollision().getGeometry());
-                                    if(collidePage.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON){
+                                    if (collidePage.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePage.equals(pageB)) {
                                         collidePage.geometry.setMaterial(app.markPaper);
                                         Vector3f closest = collidePage.boundary[0];
-                                        for(int i = 1; i < collidePage.boundary.length;i++){
-                                            if(collidePage.boundary[i].distance(contactPoint) < closest.distance(contactPoint)){
+                                        for (int i = 1; i < collidePage.boundary.length; i++) {
+                                            if (collidePage.boundary[i].distance(contactPoint) < closest.distance(contactPoint)) {
                                                 closest = collidePage.boundary[i];
                                             }
                                         }
                                         mark.setLocalTranslation(closest);
                                         newPoint = closest;
                                     }
-                                    
+
                                 }
-                            }else{
+                            } else {
                                 mark.removeFromParent();
                             }
                             Vector3f translation = Util.closestPointOnLine(referencePoint, axisTranslationA, newPoint).subtract(referencePoint);
@@ -228,29 +228,32 @@ public class D2CreationState extends BaseAppState {
                         collisionNode.collideWith(ray, results);
                         if (results.size() > 0) {
                             ArrayList<ArrayList<Vector3f>> preTransState = copyCurrentState();
-                            for(Geometry geom:app.popUpBook.geomPageMap.keySet()){
+                            for (Geometry geom : app.popUpBook.geomPageMap.keySet()) {
                                 geom.setMaterial(app.paper);
                             }
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
-                            if(autolock){
+                            if (autolock) {
                                 results.clear();
                                 app.planes.collideWith(ray, results);
-                                if(results.size() > 0){
+                                if (results.size() > 0) {
+                                    
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
                                     PopUpBookTree.PageNode collidePage = app.popUpBook.geomPageMap.get(results.getClosestCollision().getGeometry());
-                                    if(!collidePage.equals(pageA) || !collidePage.equals(pageA)){
+                                    if (collidePage.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePage.equals(pageA)) {
                                         collidePage.geometry.setMaterial(app.markPaper);
                                         Vector3f closest = collidePage.boundary[0];
-                                        for(int i = 1; i < collidePage.boundary.length;i++){
-                                            if(collidePage.boundary[i].distance(contactPoint) < closest.distance(contactPoint)){
+                                        for (int i = 1; i < collidePage.boundary.length; i++) {
+                                            if (collidePage.boundary[i].distance(contactPoint) < closest.distance(contactPoint)) {
                                                 closest = collidePage.boundary[i];
                                             }
                                         }
+                                        tempNode.attachChild(mark);
+                                        mark.setLocalTranslation(closest);
                                         newPoint = closest;
                                     }
-                                    
+
                                 }
-                                
+
                             }
                             Vector3f translation = Util.closestPointOnLine(referencePoint, axisTranslationB, newPoint).subtract(referencePoint);
 
@@ -318,10 +321,8 @@ public class D2CreationState extends BaseAppState {
                             Vector3f boundaryPoint;
                             if (verticesA.contains(referencePoint)) {
                                 pairPoint = verticesA.get(pairNum(verticesA.indexOf(referencePoint)));
-                                boundaryPoint = boundaryA.get(verticesA.indexOf(referencePoint));
                             } else {
                                 pairPoint = verticesB.get(pairNum(verticesB.indexOf(referencePoint)));
-                                boundaryPoint = boundaryB.get(verticesB.indexOf(referencePoint));
                             }
                             results.clear();
                             frameNode.collideWith(ray, results);
@@ -403,6 +404,12 @@ public class D2CreationState extends BaseAppState {
                 }
                 case D2_LOCK: {
                     autolock = isPressed;
+                    if (!autolock) {
+                        for (Geometry geom : app.popUpBook.geomPageMap.keySet()) {
+                            geom.setMaterial(app.paper);
+                        }
+                        mark.removeFromParent();
+                    }
                     System.out.println("Autolock =  " + autolock);
                     break;
                 }
@@ -691,7 +698,7 @@ public class D2CreationState extends BaseAppState {
 
     private void fitInBoundaries() {
         Vector3f[] boundary = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
-        
+
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])) {
                 verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
@@ -752,17 +759,20 @@ public class D2CreationState extends BaseAppState {
             }
         }
 
-        if (!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
+        if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
             verticesA.get(2).set(boundaryA.get(2));
         }
-        if (!Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
+        if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
             verticesA.get(3).set(boundaryA.get(3));
         }
 
     }
 
     private void updateBoundaries() {
-        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry, verticesA, verticesB, "D2Joint");
+        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry,
+                                                                            verticesA.get(0),verticesA.get(0).add(deltaAxis) ,verticesB.get(0), verticesB.get(0).add(deltaAxis),
+                                                                            verticesA.get(2), verticesA.get(3),verticesB.get(2), verticesB.get(3),
+                                                                            "D2Joint");
         if (results != null) {
 
             boundaryA = results.get(0);

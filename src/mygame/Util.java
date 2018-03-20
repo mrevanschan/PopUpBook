@@ -158,7 +158,7 @@ public final class Util {
             if (target.equals(boundary[i]) || (inLine(boundary[i], target, boundary[(i + 1) % boundary.length])) && isBetween(boundary[i], target, boundary[(i + 1) % boundary.length])) {
                 return true;
             }
-            if (lineIntersection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
+            if (segmentIntesection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
                 intersectCount++;
             }
         }
@@ -181,7 +181,7 @@ public final class Util {
                     }
                 }
             } else {
-                Vector3f intersection = lineIntersection(rayStart, rayEnd, boundary[i], boundary[(i + 1) % boundary.length]);
+                Vector3f intersection = segmentIntesection(rayStart, rayEnd, boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
                     if (closestCollision == null || intersection.distance(rayStart) < closestCollision.distance(rayStart)) {
                         closestCollision = intersection;
@@ -197,16 +197,14 @@ public final class Util {
         
         for (int i = 0; i < boundary.length; i++) {
             // ADD SOMETHING HERE TO MAKE IT WORK FOR CORNERS
-            System.out.println("Checking Point[" + i + "]");
-            System.out.println("Cross = " + point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO));
             if (point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
                 intersections.add(boundary[i].clone());
             } else {
-                Vector3f intersection = lineIntersection(point, point.add(dir.normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
+                Vector3f intersection = segmentIntesection(point, point.add(dir.normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
                     intersections.add(intersection);
                 }
-                intersection = lineIntersection(point, point.add(dir.negate().normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
+                intersection = segmentIntesection(point, point.add(dir.negate().normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
                     intersections.add(intersection);
                 }
@@ -226,8 +224,13 @@ public final class Util {
         }
         return returnPair;
     }
-
-    public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4) {
+    public static Vector3f segmentIntesection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4){
+        return lineSegmentIntersectHelper( point1,  point2, point3, point4, false);
+    }
+    public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4){
+        return lineSegmentIntersectHelper( point1,  point2, point3, point4, true);
+    }
+    private static Vector3f lineSegmentIntersectHelper(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4, boolean infiniteLine) {
         Vector3f v13 = point1.subtract(point3);
         Vector3f v43 = point4.subtract(point3);
         Vector3f v21 = point2.subtract(point1);
@@ -253,14 +256,15 @@ public final class Util {
         Vector3f pointA = point1.add(v21.mult(mua));
         Vector3f pointB = point3.add(v43.mult(mub));
         if (pointA.distance(pointB) < FLT_EPSILON) {
-            if (isBetween(point1, pointA, point2) && isBetween(point3, pointB, point4)) {
+            if (infiniteLine || (isBetween(point1, pointA, point2) && isBetween(point3, pointB, point4))) {
                 return pointA;
             } else {
+                System.out.println("NotBetween " + infiniteLine);
                 return null;
             }
 
         } else {
-            //System.out.println("Distance = " + pointA.distance(pointB));
+            System.out.println("Distance = " + pointA.distance(pointB));
             return null;
         }
     }
@@ -273,5 +277,11 @@ public final class Util {
         }
        
         return null;
+    }
+    
+    public static ArrayList<Vector3f> boundboundIntersect(Vector3f[] boundaryA, Vector3f[] boundaryB){
+        ArrayList<Vector3f> returnList = new ArrayList();
+        //for(Vector3f point: )
+        return  returnList;
     }
 }

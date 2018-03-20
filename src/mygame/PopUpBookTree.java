@@ -196,15 +196,26 @@ public class PopUpBookTree {
         return point;
     }
 
-    public ArrayList<ArrayList<Vector3f>> getBoundarys(Geometry parentA, Geometry parentB, ArrayList<Vector3f> pointsA, ArrayList<Vector3f> pointsB, String type) {
+    public ArrayList<ArrayList<Vector3f>> getBoundarys(Geometry parentA, Geometry parentB, 
+                                                       Vector3f axisA1,  Vector3f axisA2  ,  Vector3f axisB1,Vector3f axisB2,
+                                                       Vector3f jointA1, Vector3f jointA2 ,  Vector3f jointB1, Vector3f jointB2, String type) {
         reset();
         ArrayList<ArrayList<Vector3f>> returnArray = new ArrayList();
         
         switch (type) {
             case "D1Joint": {
-                PageNode pageA = new PageNode(parentA, new Vector3f[]{pointsA.get(0), pointsA.get(1)}, Util.toArray(pointsA));
-                PageNode pageB = new PageNode(parentB, new Vector3f[]{pointsB.get(0), pointsB.get(1)}, Util.toArray(pointsB));
-                JointNode joint = new JointNode(pageA, pageB, new Vector3f[]{pointsA.get(2), pointsA.get(1)}, "D1Joint");
+                ArrayList<Vector3f> pointsA = new ArrayList<>();
+                ArrayList<Vector3f> pointsB = new ArrayList<>();
+                pointsA.add(axisA1.clone());
+                pointsA.add(axisA2.clone());
+                pointsA.add(jointA1.clone());
+                pointsB.add(axisB1.clone());
+                pointsB.add(axisB2.clone());
+                pointsB.add(jointB1.clone());
+                
+                PageNode pageA = new PageNode(parentA, new Vector3f[] {axisA1.clone(),axisA2.clone()}, Util.toArray(pointsA));
+                PageNode pageB = new PageNode(parentB, new Vector3f[] {axisB1.clone(),axisB2.clone()}, Util.toArray(pointsB));
+                JointNode joint = new JointNode(pageA, pageB, new Vector3f[]{jointA1,jointA2},"D1Joint");
                 pageA.relatedJoint.add(joint);
                 pageB.relatedJoint.add(joint);
                 joints.add(joint);
@@ -312,6 +323,16 @@ public class PopUpBookTree {
                 break;
             }
             case "D2Joint": {
+                ArrayList<Vector3f> pointsA = new ArrayList<>();
+                pointsA.add(axisA1);
+                pointsA.add(axisA2);
+                pointsA.add(jointA1);
+                pointsA.add(jointA2);
+                ArrayList<Vector3f> pointsB = new ArrayList<>();
+                pointsB.add(axisB1);
+                pointsB.add(axisB2);
+                pointsB.add(jointB1);
+                pointsB.add(jointB2);
                 float length = pointsA.get(0).distance(pointsA.get(3))* FastMath.cos(pointsA.get(1).subtract(pointsA.get(0)).normalize().angleBetween(pointsA.get(3).subtract(pointsA.get(0)).normalize()));
                 Vector3f jointPoint = pointsA.get(3).add(pointsA.get(0).subtract(pointsA.get(1)).normalize().mult(length));
                 length = pointsA.get(0).distance(pointsB.get(0))* FastMath.cos(pointsA.get(1).subtract(pointsA.get(0)).normalize().angleBetween(pointsB.get(0).subtract(pointsA.get(0)).normalize()));

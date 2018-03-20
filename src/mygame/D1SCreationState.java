@@ -549,25 +549,20 @@ public class D1SCreationState extends BaseAppState {
                 verticesB = new ArrayList<>();
 
                 verticesB.add(new Vector3f());
-
-                Vector3f up = sideNormal.normalize().cross(midPlane.getNormal()).normalize();
-                if (axisPoints[1].add(up.negate()).distance(pageA.boundary[0]) < axisPoints[1].add(up).distance(pageA.boundary[0])) {
-                    up.negateLocal();
-                }
+                System.out.println("sideNormal = " + sideNormal);
+                System.out.println("midNormal = " + midPlane.getNormal().normalize());
+                Vector3f up = sideNormal.normalize().cross(midPlane.getNormal().normalize()).normalize();
                 Vector3f center = new Vector3f();
                 for (Vector3f point : pageA.boundary) {
                     center.addLocal(point);
                 }
                 center.divideLocal(pageA.boundary.length);
-                addDot(center);
                 verticesA.add(center);
                 verticesA.add(Util.linePlaneIntersection(center, axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal()));
                 Vector3f[] limitA = new Vector3f[]{Util.linePlaneIntersection(pageA.boundary[0], axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal()),
                     Util.linePlaneIntersection(pageA.boundary[2], axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal())};
 
-                System.out.println(limitA[0]);
-                System.out.println(limitA[1]);
-                System.out.println(Util.linePlaneIntersection(limitA[0], up.negate(), pageB.boundary[0], pageB.getNormal()));
+                
                 verticesB.add(Util.linePlaneIntersection(verticesA.get(1), up.negate(), pageB.boundary[0], pageB.getNormal()));
                 limitA[0].set(Util.linePlaneIntersection(limitA[0], up.negate(), pageB.boundary[0], pageB.getNormal()));
                 limitA[1].set(Util.linePlaneIntersection(limitA[1], up.negate(), pageB.boundary[0], pageB.getNormal()));
@@ -617,7 +612,7 @@ public class D1SCreationState extends BaseAppState {
                     if (height < FastMath.FLT_EPSILON) {
                         height = verticesA.get(1).distance(verticesB.get(1)) / 1.618f;
                     }
-                    verticesA.add(up.mult(up.mult(height)).add(verticesA.get(1)));
+                    verticesA.add(up.mult(height).add(verticesA.get(1)));
                     verticesB.add(verticesA.get(2));
                     addDot(verticesA.get(0));
                     addDot(verticesA.get(1));
@@ -632,20 +627,20 @@ public class D1SCreationState extends BaseAppState {
 
                 } else {
                     //fail
-                    app.setText("Error", "A D1 Joint cannot be built on these planes");
+                    app.setText("Error", "A D1 Joint cannot be built on these planes ERROR1");
                     setEnabled(false);
                     app.enableState(ExplorationState.class, true);
                 }
 
             } else {
                 //fail
-                app.setText("Error", "A D1 Joint cannot be built on these planes");
+                app.setText("Error", "A D1 Joint cannot be built on these planes ERROR2");
                 setEnabled(false);
                 app.enableState(ExplorationState.class, true);
             }
         } else {
             //fail
-            app.setText("Error", "A D1 Joint cannot be built on these planes");
+            app.setText("Error", "A D1 Joint cannot be built on these planes Error3");
             setEnabled(false);
             app.enableState(ExplorationState.class, true);
         }
@@ -797,7 +792,10 @@ public class D1SCreationState extends BaseAppState {
     }
 
     private void updateBoundaries() {
-        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry, verticesA, verticesB, "D1Joint");
+        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry,
+                                                                                verticesA.get(0), verticesA.get(1),verticesB.get(0), verticesB.get(1),
+                                                                                verticesA.get(2), verticesA.get(1),verticesA.get(2), verticesA.get(1),
+                                                                                "D1Joint");
 
         if (results != null) {
             boundaryA = results.get(0);
