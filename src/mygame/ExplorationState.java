@@ -121,7 +121,7 @@ public class ExplorationState extends BaseAppState {
                         fold = 0;
                         percentage += 0.1;
                         if (percentage > 0.98f) {
-                            percentage = 0.99f;
+                            percentage = 1f-0.0001f;
                             app.setText("Hint", "100%");
                         } else {
                             app.setText("Hint", (int) (percentage * 100) + "%");

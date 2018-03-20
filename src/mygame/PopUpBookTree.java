@@ -208,7 +208,7 @@ public class PopUpBookTree {
                 pageA.relatedJoint.add(joint);
                 pageB.relatedJoint.add(joint);
                 joints.add(joint);
-                fold(0.999f, false);
+                fold(1f-0.0001f, false);
 
                 ArrayList<Vector3f> boundaryA = new ArrayList();
                 ArrayList<Vector3f> boundaryB = new ArrayList();
