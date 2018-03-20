@@ -32,12 +32,11 @@ import java.util.Queue;
 public class PopUpBookTree {
 
     private Node rootNode;
-    public  PageNode front;
+    public PageNode front;
     public PageNode back;
     private JointNode bookJoint;
     private ArrayList<PageNode> pages;
     public HashMap<Geometry, PageNode> geomPageMap = new HashMap<>();
-    private HashMap<Geometry, Vector3f[]> geomBoundary = new HashMap<>();
     private ArrayList<JointNode> joints;
     public float height;
     public float width;
@@ -76,7 +75,6 @@ public class PopUpBookTree {
 //        mark_mat.setColor("Color", ColorRGBA.Black);
 //        mark4.setMaterial(mark_mat.clone());
 //        planes.attachChild(mark4);
-
         Vector3f[] backBoundary = new Vector3f[4];
         backBoundary[0] = new Vector3f(0f, 0f, -height / 2f);
         backBoundary[1] = new Vector3f(width, 0f, -height / 2f);
@@ -93,7 +91,7 @@ public class PopUpBookTree {
 
         back = addPage(null, backBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
         front = addPage(null, frontBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
-        bookJoint = new JointNode(back, front, new Vector3f[] {new Vector3f(0f, 0f, -height / 2f), new Vector3f(0f, 0f, height / 2f)},  "D1Joint");
+        bookJoint = new JointNode(back, front, new Vector3f[]{new Vector3f(0f, 0f, -height / 2f), new Vector3f(0f, 0f, height / 2f)}, "D1Joint");
         back.relatedJoint.add(bookJoint);
         front.relatedJoint.add(bookJoint);
         joints.add(bookJoint);
@@ -104,6 +102,29 @@ public class PopUpBookTree {
         return front.geometry;
     }
 
+    public void delete(PageNode page) {
+        if (!page.equals(front) && !page.equals(back)) {
+            System.out.println(pages.indexOf(page));
+            pages.remove(page);
+            page.geometry.removeFromParent();
+            geomPageMap.remove(page.geometry);
+            System.out.println(page);
+            //page.geometry = null;
+            for (JointNode joint : page.relatedJoint) {
+                PageNode otherPage = joint.theOther(page);
+                otherPage.relatedJoint.remove(joint);
+                joints.remove(joint);
+                delete(otherPage);
+            }
+            page.parent.next.remove(page);
+            while(!page.next.isEmpty()) {
+                System.out.println("Next" + pages.indexOf(page.next.get(0)));
+                delete(page.next.get(0));
+            }
+            //page = null;
+        }
+
+    }
 
     public PageNode addPage(Geometry prev, Vector3f[] boundary, Vector3f[] axis) {
 
@@ -180,7 +201,7 @@ public class PopUpBookTree {
     }
 
     public boolean isNeighbor(Geometry geomA, Geometry geomB) {
-        if(geomA == null || geomB == null){
+        if (geomA == null || geomB == null) {
             return false;
         }
         return geomPageMap.get(geomB).isNeighbor(geomPageMap.get(geomA));
@@ -196,12 +217,12 @@ public class PopUpBookTree {
         return point;
     }
 
-    public ArrayList<ArrayList<Vector3f>> getBoundarys(Geometry parentA, Geometry parentB, 
-                                                       Vector3f axisA1,  Vector3f axisA2  ,  Vector3f axisB1,Vector3f axisB2,
-                                                       Vector3f jointA1, Vector3f jointA2 ,  Vector3f jointB1, Vector3f jointB2, String type) {
+    public ArrayList<ArrayList<Vector3f>> getBoundarys(Geometry parentA, Geometry parentB,
+            Vector3f axisA1, Vector3f axisA2, Vector3f axisB1, Vector3f axisB2,
+            Vector3f jointA1, Vector3f jointA2, Vector3f jointB1, Vector3f jointB2, String type) {
         reset();
         ArrayList<ArrayList<Vector3f>> returnArray = new ArrayList();
-        
+
         switch (type) {
             case "D1Joint": {
                 ArrayList<Vector3f> pointsA = new ArrayList<>();
@@ -212,14 +233,14 @@ public class PopUpBookTree {
                 pointsB.add(axisB1.clone());
                 pointsB.add(axisB2.clone());
                 pointsB.add(jointB1.clone());
-                
-                PageNode pageA = new PageNode(parentA, new Vector3f[] {axisA1.clone(),axisA2.clone()}, Util.toArray(pointsA));
-                PageNode pageB = new PageNode(parentB, new Vector3f[] {axisB1.clone(),axisB2.clone()}, Util.toArray(pointsB));
-                JointNode joint = new JointNode(pageA, pageB, new Vector3f[]{jointA1,jointA2},"D1Joint");
+
+                PageNode pageA = new PageNode(parentA, new Vector3f[]{axisA1.clone(), axisA2.clone()}, Util.toArray(pointsA));
+                PageNode pageB = new PageNode(parentB, new Vector3f[]{axisB1.clone(), axisB2.clone()}, Util.toArray(pointsB));
+                JointNode joint = new JointNode(pageA, pageB, new Vector3f[]{jointA1, jointA2}, "D1Joint");
                 pageA.relatedJoint.add(joint);
                 pageB.relatedJoint.add(joint);
                 joints.add(joint);
-                fold(1f-0.0001f, false);
+                fold(1f - 0.0008f, false);
 
                 ArrayList<Vector3f> boundaryA = new ArrayList();
                 ArrayList<Vector3f> boundaryB = new ArrayList();
@@ -254,7 +275,7 @@ public class PopUpBookTree {
                 } catch (Exception e) {
                     pages.remove(pageA);
                     pages.remove(pageB);
-                    joints.remove(joints.size()-1);
+                    joints.remove(joints.size() - 1);
                     return null;
                 }
 
@@ -319,6 +340,9 @@ public class PopUpBookTree {
                 }
                 pages.remove(pageA);
                 pages.remove(pageB);
+                geomPageMap.get(parentA).next.remove(pageA);
+                geomPageMap.get(parentB).next.remove(pageB);
+                
                 joints.remove(joint);
                 break;
             }
@@ -333,11 +357,11 @@ public class PopUpBookTree {
                 pointsB.add(axisB2);
                 pointsB.add(jointB1);
                 pointsB.add(jointB2);
-                float length = pointsA.get(0).distance(pointsA.get(3))* FastMath.cos(pointsA.get(1).subtract(pointsA.get(0)).normalize().angleBetween(pointsA.get(3).subtract(pointsA.get(0)).normalize()));
+                float length = pointsA.get(0).distance(pointsA.get(3)) * FastMath.cos(pointsA.get(1).subtract(pointsA.get(0)).normalize().angleBetween(pointsA.get(3).subtract(pointsA.get(0)).normalize()));
                 Vector3f jointPoint = pointsA.get(3).add(pointsA.get(0).subtract(pointsA.get(1)).normalize().mult(length));
-                length = pointsA.get(0).distance(pointsB.get(0))* FastMath.cos(pointsA.get(1).subtract(pointsA.get(0)).normalize().angleBetween(pointsB.get(0).subtract(pointsA.get(0)).normalize()));
+                length = pointsA.get(0).distance(pointsB.get(0)) * FastMath.cos(pointsA.get(1).subtract(pointsA.get(0)).normalize().angleBetween(pointsB.get(0).subtract(pointsA.get(0)).normalize()));
                 Vector3f jointPointB = pointsB.get(0).add(pointsA.get(0).subtract(pointsA.get(1)).normalize().mult(length));
-                
+
                 PageNode pageA = new PageNode(parentA, new Vector3f[]{pointsA.get(0), pointsA.get(1)}, Util.toArray(pointsA));
                 PageNode pageB = new PageNode(parentB, new Vector3f[]{jointPointB, pointsB.get(1)}, Util.toArray(pointsB));
                 JointNode joint = new JointNode(pageA, pageB, new Vector3f[]{jointPoint, pointsA.get(2).clone()}, "D2Joint");
@@ -366,18 +390,17 @@ public class PopUpBookTree {
                     pageA.translatedBuffer[1].set(results.getFarthestCollision().getContactPoint());
                     boundaryA.add(boundaryA.get(0).add(pointsA.get(1).subtract(boundaryA.get(0)).normalize().mult(pageA.translatedBuffer[0].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
-                    
+
                     temp.collideWith(new Ray(pageA.translatedBuffer[3], pageA.translatedBuffer[2].subtract(pageA.translatedBuffer[3])), results);
                     pageA.translatedBuffer[2].set(results.getFarthestCollision().getContactPoint());
                     boundaryA.add(pointsA.get(3).add(pointsA.get(2).subtract(pointsA.get(3)).normalize().mult(pageA.translatedBuffer[3].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
-                    
+
                     temp.collideWith(new Ray(pageA.translatedBuffer[2], pageA.translatedBuffer[3].subtract(pageA.translatedBuffer[2])), results);
                     pageA.translatedBuffer[3].set(results.getFarthestCollision().getContactPoint());
                     boundaryA.add(boundaryA.get(2).add(pointsA.get(3).subtract(boundaryA.get(2)).normalize().mult(pageA.translatedBuffer[2].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
-                    
-                    
+
                     temp.collideWith(new Ray(pageB.translatedBuffer[1], pageB.translatedBuffer[0].subtract(pageB.translatedBuffer[1])), results);
                     pageB.translatedBuffer[0].set(results.getFarthestCollision().getContactPoint());
                     boundaryB.add(pointsB.get(1).add(pointsB.get(0).subtract(pointsB.get(1)).normalize().mult(pageB.translatedBuffer[1].distance(results.getFarthestCollision().getContactPoint()))));
@@ -387,17 +410,16 @@ public class PopUpBookTree {
                     pageB.translatedBuffer[1].set(results.getFarthestCollision().getContactPoint());
                     boundaryB.add(boundaryB.get(0).add(pointsB.get(1).subtract(boundaryB.get(0)).normalize().mult(pageB.translatedBuffer[0].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
-                    
+
                     temp.collideWith(new Ray(pageB.translatedBuffer[3], pageB.translatedBuffer[2].subtract(pageB.translatedBuffer[3])), results);
                     pageB.translatedBuffer[2].set(results.getFarthestCollision().getContactPoint());
                     boundaryB.add(pointsB.get(3).add(pointsB.get(2).subtract(pointsB.get(3)).normalize().mult(pageB.translatedBuffer[3].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
-                    
+
                     temp.collideWith(new Ray(pageB.translatedBuffer[2], pageB.translatedBuffer[3].subtract(pageB.translatedBuffer[2])), results);
                     pageB.translatedBuffer[3].set(results.getFarthestCollision().getContactPoint());
                     boundaryB.add(boundaryB.get(2).add(pointsB.get(3).subtract(boundaryB.get(2)).normalize().mult(pageB.translatedBuffer[2].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
-                    
 
                 } catch (Exception e) {
                     pages.remove(pageA);
@@ -405,6 +427,9 @@ public class PopUpBookTree {
                     joints.remove(joint);
                     return null;
                 }
+                
+                geomPageMap.get(parentA).next.remove(pageA);
+                geomPageMap.get(parentB).next.remove(pageB);
                 pages.remove(pageA);
                 pages.remove(pageB);
                 joints.remove(joint);
@@ -414,7 +439,6 @@ public class PopUpBookTree {
                 break;
         }
 
-        
         return returnArray;
     }
 
@@ -466,7 +490,7 @@ public class PopUpBookTree {
 
         private PageNode(Geometry prev, Geometry geometry, Vector3f[] axis, Vector3f[] boundary) {
             this.next = new ArrayList<>();
-            
+
             this.relatedJoint = new ArrayList<>();
             this.geometry = geometry;
             this.axis = axis;
@@ -498,7 +522,7 @@ public class PopUpBookTree {
         }
 
         private boolean isNeighbor(PageNode page) {
-            if(this == page){
+            if (this == page) {
                 return false;
             }
             if (next.contains(page) || page.next.contains(this)) {
@@ -511,11 +535,13 @@ public class PopUpBookTree {
             }
             return false;
         }
-        public float distanceFromPoint(Vector3f point){
+
+        public float distanceFromPoint(Vector3f point) {
             Plane plane = new Plane();
             plane.setOriginNormal(boundary[0], getNormal());
             return FastMath.abs(plane.pseudoDistance(point));
         }
+
         public Vector3f getNormal() {
             Vector3f vector1 = boundary[0].subtract(boundary[1]);
             Vector3f vector2;
@@ -622,15 +648,15 @@ public class PopUpBookTree {
             translatedJointAxis.put(pageA, axisA);
             translatedJointAxis.put(pageB, axisB);
         }
-        
-        public PageNode theOther(PageNode thisPage){
-            if(pageA.equals(thisPage)){
+
+        public PageNode theOther(PageNode thisPage) {
+            if (pageA.equals(thisPage)) {
                 return pageB;
-            }else{
+            } else {
                 return pageA;
             }
         }
-        
+
         private void rotate(PageNode page, Vector3f[] axis, float radian) {
             if (page.equals(pageA)) {
                 axisA[0].set(rotatePoint(axisA[0], axis[0], axis[1], radian));
@@ -667,17 +693,16 @@ public class PopUpBookTree {
                             midPoint.negateLocal();
                         }
 
-
                         Vector3f baseA = Util.closestPointOnLine(pageA.translatedAxis[0], pageA.translatedAxis[0].subtract(pageA.translatedAxis[1]), axisA[0]);
-                        Vector3f midVector = pageA.translatedAxis[0].subtract(pageA.translatedAxis[1]).normalize().add(pageB.translatedAxis[0].subtract(pageB.translatedAxis[1]).normalize()).normalize();                        
+                        Vector3f midVector = pageA.translatedAxis[0].subtract(pageA.translatedAxis[1]).normalize().add(pageB.translatedAxis[0].subtract(pageB.translatedAxis[1]).normalize()).normalize();
                         Vector3f aVector;
-                        if(baseA.distance(pageA.translatedAxis[0]) < 0.00001){
+                        if (baseA.distance(pageA.translatedAxis[0]) < 0.00001) {
                             aVector = pageA.translatedAxis[0].subtract(axisA[1]).normalize();
-                        }else{
+                        } else {
                             aVector = baseA.subtract(axisA[1]).normalize();
                         }
                         Vector3f c1 = midVector.normalize().mult(baseA.distance(axisA[1]) / FastMath.cos(midVector.angleBetween(aVector))).add(axisA[1]);
-                        
+
                         float angle = axisA[1].subtract(c1).angleBetween(midPoint);
                         float baseLength = axisA[1].distance(c1);
                         float b = -2 * FastMath.cos(angle) * baseLength;
@@ -696,17 +721,17 @@ public class PopUpBookTree {
                     float r2 = axisB[0].distance(c2);
                     float d = c1.distance(c2);
                     if (d > (r1 + r2) + 0.00001 || d < FastMath.abs(r1 - r2) - 0.00001 || d < FastMath.FLT_EPSILON) {
-                        if(d > (r1 + r2)){
+                        if (d > (r1 + r2)) {
                             System.out.println("case1");
                         }
-                        if(d < FastMath.abs(r1 - r2)-0.00001){
+                        if (d < FastMath.abs(r1 - r2) - 0.00001) {
                             System.out.println("case2");
                             System.out.println("d = " + d);
                             System.out.println("r1 = " + r1);
                             System.out.println("r2 = " + r2);
-                            System.out.println("r1-r2 = " + (r1-r2));
+                            System.out.println("r1-r2 = " + (r1 - r2));
                         }
-                        if(d < FastMath.FLT_EPSILON){
+                        if (d < FastMath.FLT_EPSILON) {
                             System.out.println("case3");
                         }
                         System.out.println(c1);

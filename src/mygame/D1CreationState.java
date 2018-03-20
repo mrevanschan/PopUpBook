@@ -113,7 +113,7 @@ public class D1CreationState extends BaseAppState {
                             if(x!=i && x!= 1 && x!=0){
                                Vector3f newPointVector  = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
                                Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
-                               if(newPointVector.distance(thisPointVector) < 0.5f){
+                               if(newPointVector.distance(thisPointVector) < 0.25f){
                                    pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
                                    matched = true;
                                }
@@ -121,7 +121,7 @@ public class D1CreationState extends BaseAppState {
                             if(x != i && x!=2 && x!=1){
                                Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
                                Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
-                               if(newPointVector.distance(thisPointVector) < 0.5f){
+                               if(newPointVector.distance(thisPointVector) < 0.25f){
                                    pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
                                    matched = true;
                                }

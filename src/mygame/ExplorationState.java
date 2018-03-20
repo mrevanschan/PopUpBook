@@ -36,6 +36,7 @@ public class ExplorationState extends BaseAppState {
     private int fold;
     public static final String E_CLICK = "Click";
     public static final String E_FOLD = "Fold";
+    public static final String E_DELETE = "DELETE";
     public static final String E_D1 = "D1";
     public static final String E_D2 = "D2";
     public static final String E_FOLD_INCREMENT = "E_FOLD_INCREMENT";
@@ -121,7 +122,7 @@ public class ExplorationState extends BaseAppState {
                         fold = 0;
                         percentage += 0.1;
                         if (percentage > 0.98f) {
-                            percentage = 1f-0.0001f;
+                            percentage = 1f-0.0005f;
                             app.setText("Hint", "100%");
                         } else {
                             app.setText("Hint", (int) (percentage * 100) + "%");
@@ -177,6 +178,22 @@ public class ExplorationState extends BaseAppState {
                             app.selectedLocation.clear();
                         }
                     }
+                    break;
+                }
+                case E_DELETE: {
+                    if (keyPressed) {
+                        if(app.selected.size() == 0){
+                            app.setText("Hint", "To Delete, You Must Select A Plane");
+                        }else if(app.selected.size() == 2) {
+                            app.setText("Hint", "To Delete, You Must Select Only One Plane");
+                        }else{
+                            app.popUpBook.delete(app.popUpBook.geomPageMap.get(app.selected.get(0)));
+                            app.selected.clear();
+                            app.popUpBook.update();
+                        }
+                        
+                    }
+                    break;
                 }
                 default:
                     break;
@@ -199,6 +216,7 @@ public class ExplorationState extends BaseAppState {
         inputManager.addMapping(E_FOLD, new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping(E_D1, new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping(E_D2, new KeyTrigger(KeyInput.KEY_2));
+        inputManager.addMapping(E_DELETE, new KeyTrigger(KeyInput.KEY_DELETE),new KeyTrigger(KeyInput.KEY_BACK));
         inputManager.addMapping(E_FOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addMapping(E_UNFOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_LEFT));
 
@@ -247,6 +265,7 @@ public class ExplorationState extends BaseAppState {
         inputManager.addListener(buildListener, E_D2);
         inputManager.addListener(exploreListener, E_FOLD);
         inputManager.addListener(exploreListener, E_CLICK);
+        inputManager.addListener(exploreListener, E_DELETE);
         inputManager.addListener(exploreListener, E_FOLD_INCREMENT);
         inputManager.addListener(exploreListener, E_UNFOLD_INCREMENT);
         for (Geometry i : app.selected) {

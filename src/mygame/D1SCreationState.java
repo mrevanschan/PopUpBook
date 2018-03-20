@@ -90,24 +90,52 @@ public class D1SCreationState extends BaseAppState {
                 Vector3f dir = app.getCamera().getWorldCoordinates(click2d, 1f).subtractLocal(click3d).normalizeLocal();
                 Ray ray = new Ray(click3d, dir);
                 collisionNode.collideWith(ray, results);
-                if (results.size() > 0) {
-                    Vector3f newPoint = results.getClosestCollision().getContactPoint();
-                    switch (dragMode) {
-                        case "freeMove":
-                            selected.setLocalTranslation(newPoint);
-                            Vector3f vertex = dotVecticesMap.get(selected);
-                            vertex.set(newPoint);
-                            fitInBoundaries();
-                            selected.setLocalTranslation(vertex);
-                            for (HashMap.Entry pair : lineVecticesMap.entrySet()) {
-                                Vector3f[] points = (Vector3f[]) pair.getValue();
-                                if (points[0] == vertex || points[1] == vertex) {
-                                    Geometry line = (Geometry) pair.getKey();
-                                    updateLine(line, points[0], points[1]);
+
+                switch (dragMode) {
+                    case "freeMove":
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
+                            ArrayList<Vector3f> pointSet;
+                            if (verticesA.contains(dotVecticesMap.get(selected))) {
+                                pointSet = verticesA;
+                            } else {
+                                pointSet = verticesB;
+                            }
+                            int i = pointSet.indexOf(dotVecticesMap.get(selected));
+                            pointSet.get(i).set(newPoint);
+                            for (int x = 0; x < pointSet.size(); x++) {
+                                boolean matched = false;
+                                if (x != i && x != 1 && x != 0) {
+                                    Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
+                                    Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
+                                    if (newPointVector.distance(thisPointVector) < 0.5f) {
+                                        pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
+                                        matched = true;
+                                    }
+                                }
+                                if (x != i && x != 2 && x != 1) {
+                                    Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
+                                    Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
+                                    if (newPointVector.distance(thisPointVector) < 0.5f) {
+                                        pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
+                                        matched = true;
+                                    }
+                                }
+                                if (matched || x == i) {
+                                    getDot(pointSet.get(x)).getMaterial().setColor("Color", ColorRGBA.Yellow);
+                                } else {
+                                    getDot(pointSet.get(x)).getMaterial().setColor("Color", ColorRGBA.Red);
                                 }
                             }
-                            break;
-                        case "SideAngle": {
+                            fitInBoundaries();
+                            updateGraphics();
+                        }
+                        break;
+                    case "SideAngle": {
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
                             if (verticesA.get(0).equals(dotVecticesMap.get(selected))) {
                                 Vector3f original = newPoint.subtract(verticesA.get(1));
                                 float length = original.length() * FastMath.cos(original.angleBetween(verticesA.get(0).subtract(verticesA.get(1))));
@@ -125,13 +153,17 @@ public class D1SCreationState extends BaseAppState {
                                 }
                                 verticesB.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length).add(verticesB.get(1)));
                             }
-                            updateBoundaries();
+                            
                             fitInBoundaries();
                             updateGraphics();
-                            break;
                         }
-                        case "TopAngle": {
-                            //TopAngle
+                        break;
+                    }
+                    case "TopAngle": {
+                        //TopAngle
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
                             Vector3f original = newPoint.subtract(verticesA.get(1));
                             float newLength = original.length() * FastMath.cos(original.angleBetween(verticesA.get(2).subtract(verticesA.get(1))));
                             verticesA.get(2).set(verticesA.get(1).add(verticesA.get(2).subtract(verticesA.get(1)).normalize().mult(newLength)));
@@ -150,9 +182,13 @@ public class D1SCreationState extends BaseAppState {
                                 }
                             }
                             updateGraphics();
-                            break;
                         }
-                        case "shift": {
+                        break;
+                    }
+                    case "shift": {
+                        collisionNode.collideWith(ray, results);
+                        if (results.size() > 0) {
+                            Vector3f newPoint = results.getClosestCollision().getContactPoint();
                             Vector3f centerAxis = verticesA.get(0).subtract(verticesA.get(1)).normalize().add(verticesB.get(0).subtract(verticesB.get(1)).normalize());
                             Vector3f midA = verticesA.get(1).add(centerAxis);
                             Vector3f midB = verticesA.get(1).subtract(centerAxis);
@@ -172,15 +208,16 @@ public class D1SCreationState extends BaseAppState {
                                 }
                                 verticesA.get(2).addLocal(translation);
                                 referencePoint.addLocal(translation);
+                                updateBoundaries();
                                 updateGraphics();
                             }
-
-                            break;
                         }
-                        default:
-                            break;
+                        break;
                     }
+                    default:
+                        break;
                 }
+
             }
 
         }
@@ -562,7 +599,6 @@ public class D1SCreationState extends BaseAppState {
                 Vector3f[] limitA = new Vector3f[]{Util.linePlaneIntersection(pageA.boundary[0], axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal()),
                     Util.linePlaneIntersection(pageA.boundary[2], axisTranslationA.negate().normalize(), axisPoints[1], midPlane.getNormal())};
 
-                
                 verticesB.add(Util.linePlaneIntersection(verticesA.get(1), up.negate(), pageB.boundary[0], pageB.getNormal()));
                 limitA[0].set(Util.linePlaneIntersection(limitA[0], up.negate(), pageB.boundary[0], pageB.getNormal()));
                 limitA[1].set(Util.linePlaneIntersection(limitA[1], up.negate(), pageB.boundary[0], pageB.getNormal()));
@@ -578,6 +614,7 @@ public class D1SCreationState extends BaseAppState {
                         }
                     }
                 }
+                
                 Vector3f translation;
                 if (Util.isBetween(limitB[0], limitA[0], limitB[1]) || Util.isBetween(limitB[0], limitA[1], limitB[1])) {
                     if (Util.isBetween(limitB[0], limitA[0], limitB[1]) && Util.isBetween(limitB[0], limitA[1], limitB[1])) {
@@ -624,6 +661,8 @@ public class D1SCreationState extends BaseAppState {
                     addLine(verticesB.get(1), verticesB.get(2));
                     addLine(verticesB.get(2), verticesB.get(0));
                     addLine(verticesB.get(1), verticesB.get(0));
+                    updateBoundaries();
+                    fitInBoundaries();
 
                 } else {
                     //fail
@@ -793,9 +832,9 @@ public class D1SCreationState extends BaseAppState {
 
     private void updateBoundaries() {
         ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry,
-                                                                                verticesA.get(0), verticesA.get(1),verticesB.get(0), verticesB.get(1),
-                                                                                verticesA.get(2), verticesA.get(1),verticesA.get(2), verticesA.get(1),
-                                                                                "D1Joint");
+                verticesA.get(0), verticesA.get(1), verticesB.get(0), verticesB.get(1),
+                verticesA.get(2), verticesA.get(1), verticesA.get(2), verticesA.get(1),
+                "D1Joint");
 
         if (results != null) {
             boundaryA = results.get(0);
@@ -864,6 +903,15 @@ public class D1SCreationState extends BaseAppState {
             Vector3f[] points = (Vector3f[]) pair.getValue();
             updateLine((Geometry) pair.getKey(), points[0], points[1]);
         }
+    }
+
+    private Geometry getDot(Vector3f point) {
+        for (HashMap.Entry<Geometry, Vector3f> pair : dotVecticesMap.entrySet()) {
+            if (pair.getValue().equals(point)) {
+                return pair.getKey();
+            }
+        }
+        return null;
     }
 
     @Override
