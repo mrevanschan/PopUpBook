@@ -147,8 +147,8 @@ public class D1CreationState extends BaseAppState {
                                 //app.text.setText("Yes");
                                 Vector3f rotationVectorA = verticesA.get(0).subtract(verticesA.get(1)).cross(deltaAxis);
                                 Vector3f rotationVectorB = verticesB.get(0).subtract(verticesB.get(1)).cross(deltaAxis);
-                                verticesA.get(0).set(PopUpBookTree.rotatePoint(verticesA.get(0), verticesA.get(1).add(rotationVectorA), verticesA.get(1), current - angle));
-                                verticesB.get(0).set(PopUpBookTree.rotatePoint(verticesB.get(0), verticesB.get(1).add(rotationVectorB), verticesB.get(1), current - angle));
+                                verticesA.get(0).set(Util.rotatePoint(verticesA.get(0), verticesA.get(1).add(rotationVectorA), verticesA.get(1), current - angle));
+                                verticesB.get(0).set(Util.rotatePoint(verticesB.get(0), verticesB.get(1).add(rotationVectorB), verticesB.get(1), current - angle));
                                 Plane plane = new Plane();
                                 plane.setPlanePoints(verticesA.get(0), verticesA.get(1), verticesA.get(2));
                                 String change = "nope";
@@ -221,7 +221,7 @@ public class D1CreationState extends BaseAppState {
                             Vector3f rotationNormal = deltaAxis.cross(verticesA.get(2).subtract(verticesA.get(1)).normalize());
                             Float currentAngle = angleConstant + angleConstant * Math.round((verticesA.get(2).subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant) / angleConstant);
                             if (FastMath.abs(currentAngle - targetAngle) > FastMath.FLT_EPSILON) {
-                                verticesA.get(2).set(PopUpBookTree.rotatePoint(verticesA.get(2), verticesA.get(1), verticesA.get(1).add(rotationNormal), currentAngle - targetAngle));
+                                verticesA.get(2).set(Util.rotatePoint(verticesA.get(2), verticesA.get(1), verticesA.get(1).add(rotationNormal), currentAngle - targetAngle));
                                 updateBoundaries();
                             }
                         }
@@ -301,8 +301,8 @@ public class D1CreationState extends BaseAppState {
                             Vector3f[] boundaryA = verticesA.toArray(new Vector3f[verticesA.size()]);
                             Vector3f[] boundaryB = verticesB.toArray(new Vector3f[verticesB.size()]);
 
-                            PopUpBookTree.PageNode pageA = app.popUpBook.addPage(geometryA, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
-                            PopUpBookTree.PageNode pageB = app.popUpBook.addPage(geometryB, boundaryB, new Vector3f[]{verticesB.get(0).clone(), verticesB.get(1).clone()});
+                            PopUpBookTree.PatchNode pageA = app.popUpBook.addPatch(geometryA, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
+                            PopUpBookTree.PatchNode pageB = app.popUpBook.addPatch(geometryB, boundaryB, new Vector3f[]{verticesB.get(0).clone(), verticesB.get(1).clone()});
                             app.popUpBook.addJoint(pageA, pageB, new Vector3f[]{verticesA.get(2), verticesA.get(1)}, "D1Joint");
 
                             app.getStateManager().getState(ExplorationState.class).setEnabled(true);
@@ -559,14 +559,14 @@ public class D1CreationState extends BaseAppState {
         private void initialize() {
             geometryA = app.selected.get(0);
             geometryB = app.selected.get(1);
-            PopUpBookTree.PageNode pageA = app.popUpBook.geomPageMap.get(geometryA);
-            PopUpBookTree.PageNode pageB = app.popUpBook.geomPageMap.get(geometryB);
+            PopUpBookTree.PatchNode pageA = app.popUpBook.geomPatchMap.get(geometryA);
+            PopUpBookTree.PatchNode pageB = app.popUpBook.geomPatchMap.get(geometryB);
             boolean tShape = false;
             if (pageA.next.contains(pageB)) {
                 geometryA = app.selected.get(1);
                 geometryB = app.selected.get(0);
-                pageA = app.popUpBook.geomPageMap.get(geometryA);
-                pageB = app.popUpBook.geomPageMap.get(geometryB);
+                pageA = app.popUpBook.geomPatchMap.get(geometryA);
+                pageB = app.popUpBook.geomPatchMap.get(geometryB);
                 tShape = true;
                 System.out.println("TShape");
             } else if (pageB.next.contains(pageA)) {

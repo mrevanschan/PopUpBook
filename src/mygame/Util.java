@@ -105,16 +105,31 @@ public final class Util {
         return mesh;
 
     }
+    public static Vector3f rotatePoint(Vector3f point, Vector3f axis1, Vector3f axis2, float radian) {
+        Vector3f center = closestPointOnLine(axis1, axis2, point);
+        Vector3f up = point.subtract(center);
+        Vector3f side = axis1.subtract(axis2).cross(point.subtract(axis2)).normalize().mult(up.length());
+        return center.add(up.mult(FastMath.cos(radian))).add(side.mult(FastMath.sin(radian)));
+    }
+
 
     public static boolean isBetween(Vector3f left, Vector3f mid, Vector3f right) {
+        if(!inLine(left, mid, right)){
+            return false;
+        }
         if(mid.equals(left) || mid.equals(right)){
             return true;
         }
         return mid.subtract(left).dot(right.subtract(mid)) > 0;
     }
 
-    public static boolean inLine(Vector3f point1, Vector3f point2, Vector3f point3) {
-        return point1.subtract(point2).normalize().cross(point2.subtract(point3).normalize()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON;
+    public static boolean inLine(Vector3f left, Vector3f mid, Vector3f right) {
+        Vector3f vector1 = left.subtract(mid);
+        Vector3f vector2 = mid.subtract(right);
+        if(vector1.length() < FastMath.FLT_EPSILON || vector2.length() < FastMath.FLT_EPSILON){
+            return true;
+        }
+        return vector1.cross(vector2).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON;
     }
 
     public static Vector3f lineToPointTranslation(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint) {

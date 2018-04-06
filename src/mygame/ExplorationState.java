@@ -78,8 +78,8 @@ public class ExplorationState extends BaseAppState {
                 case E_D2: {
                     if (app.selected.size() == 2) {
                         if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
-                            Vector3f normal1 = app.popUpBook.geomPageMap.get(app.selected.get(0)).getNormal();
-                            Vector3f normal2 = app.popUpBook.geomPageMap.get(app.selected.get(1)).getNormal();
+                            Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
+                            Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
                             if (normal1.cross(normal2).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
                                 app.popUpBook.fold(0f);
                                 setEnabled(false);
@@ -187,7 +187,7 @@ public class ExplorationState extends BaseAppState {
                         }else if(app.selected.size() == 2) {
                             app.setText("Hint", "To Delete, You Must Select Only One Plane");
                         }else{
-                            app.popUpBook.delete(app.popUpBook.geomPageMap.get(app.selected.get(0)));
+                            app.popUpBook.delete(app.popUpBook.geomPatchMap.get(app.selected.get(0)));
                             app.selected.clear();
                             app.popUpBook.update();
                         }

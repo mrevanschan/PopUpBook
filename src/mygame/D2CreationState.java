@@ -28,11 +28,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.util.BufferUtils;
-import java.awt.print.Pageable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -44,8 +41,8 @@ public class D2CreationState extends BaseAppState {
 
     private PopUpBook app;
     private InputManager inputManager;
-    private PopUpBookTree.PageNode pageA;
-    private PopUpBookTree.PageNode pageB;
+    private PopUpBookTree.PatchNode pageA;
+    private PopUpBookTree.PatchNode pageB;
     private Vector3f deltaAxis;
     private Vector3f axisTranslationA;
     private Vector3f axisTranslationB;
@@ -140,7 +137,7 @@ public class D2CreationState extends BaseAppState {
                         collisionNode.collideWith(ray, results);
                         if (results.size() > 0) {
                             ArrayList<ArrayList<Vector3f>> preTransState = copyCurrentState();
-                            for (Geometry geom : app.popUpBook.geomPageMap.keySet()) {
+                            for (Geometry geom : app.popUpBook.geomPatchMap.keySet()) {
                                 geom.setMaterial(app.paper);
                             }
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
@@ -150,13 +147,13 @@ public class D2CreationState extends BaseAppState {
                                 app.planes.collideWith(ray, results);
                                 if (results.size() > 0) {
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
-                                    PopUpBookTree.PageNode collidePage = app.popUpBook.geomPageMap.get(results.getClosestCollision().getGeometry());
-                                    if (collidePage.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePage.equals(pageB)) {
-                                        collidePage.geometry.setMaterial(app.markPaper);
-                                        Vector3f closest = collidePage.boundary[0];
-                                        for (int i = 1; i < collidePage.boundary.length; i++) {
-                                            if (collidePage.boundary[i].distance(contactPoint) < closest.distance(contactPoint)) {
-                                                closest = collidePage.boundary[i];
+                                    PopUpBookTree.PatchNode collidePatch = app.popUpBook.geomPatchMap.get(results.getClosestCollision().getGeometry());
+                                    if (collidePatch.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePatch.equals(pageB)) {
+                                        collidePatch.geometry.setMaterial(app.markPaper);
+                                        Vector3f closest = collidePatch.boundary[0];
+                                        for (int i = 1; i < collidePatch.boundary.length; i++) {
+                                            if (collidePatch.boundary[i].distance(contactPoint) < closest.distance(contactPoint)) {
+                                                closest = collidePatch.boundary[i];
                                             }
                                         }
                                         mark.setLocalTranslation(closest);
@@ -228,7 +225,7 @@ public class D2CreationState extends BaseAppState {
                         collisionNode.collideWith(ray, results);
                         if (results.size() > 0) {
                             ArrayList<ArrayList<Vector3f>> preTransState = copyCurrentState();
-                            for (Geometry geom : app.popUpBook.geomPageMap.keySet()) {
+                            for (Geometry geom : app.popUpBook.geomPatchMap.keySet()) {
                                 geom.setMaterial(app.paper);
                             }
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
@@ -238,13 +235,13 @@ public class D2CreationState extends BaseAppState {
                                 if (results.size() > 0) {
                                     
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
-                                    PopUpBookTree.PageNode collidePage = app.popUpBook.geomPageMap.get(results.getClosestCollision().getGeometry());
-                                    if (collidePage.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePage.equals(pageA)) {
-                                        collidePage.geometry.setMaterial(app.markPaper);
-                                        Vector3f closest = collidePage.boundary[0];
-                                        for (int i = 1; i < collidePage.boundary.length; i++) {
-                                            if (collidePage.boundary[i].distance(contactPoint) < closest.distance(contactPoint)) {
-                                                closest = collidePage.boundary[i];
+                                    PopUpBookTree.PatchNode collidePatch = app.popUpBook.geomPatchMap.get(results.getClosestCollision().getGeometry());
+                                    if (collidePatch.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePatch.equals(pageA)) {
+                                        collidePatch.geometry.setMaterial(app.markPaper);
+                                        Vector3f closest = collidePatch.boundary[0];
+                                        for (int i = 1; i < collidePatch.boundary.length; i++) {
+                                            if (collidePatch.boundary[i].distance(contactPoint) < closest.distance(contactPoint)) {
+                                                closest = collidePatch.boundary[i];
                                             }
                                         }
                                         tempNode.attachChild(mark);
@@ -392,10 +389,10 @@ public class D2CreationState extends BaseAppState {
                         length = verticesA.get(0).distance(verticesB.get(0)) * FastMath.cos(verticesA.get(1).subtract(verticesA.get(0)).normalize().angleBetween(verticesB.get(0).subtract(verticesA.get(0)).normalize()));
                         Vector3f jointPointB = verticesB.get(0).add(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(length));
 
-                        PopUpBookTree.PageNode newPageA = app.popUpBook.addPage(pageA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
-                        PopUpBookTree.PageNode newPageB = app.popUpBook.addPage(pageB.geometry, boundaryB, new Vector3f[]{jointPointB, verticesB.get(1).clone()});
+                        PopUpBookTree.PatchNode newPatchA = app.popUpBook.addPatch(pageA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
+                        PopUpBookTree.PatchNode newPatchB = app.popUpBook.addPatch(pageB.geometry, boundaryB, new Vector3f[]{jointPointB, verticesB.get(1).clone()});
 
-                        app.popUpBook.addJoint(newPageA, newPageB, new Vector3f[]{jointPointMid, verticesA.get(2)}, "D2Joint");
+                        app.popUpBook.addJoint(newPatchA, newPatchB, new Vector3f[]{jointPointMid, verticesA.get(2)}, "D2Joint");
 
                         app.getStateManager().getState(ExplorationState.class).setEnabled(true);
                         setEnabled(false);
@@ -405,7 +402,7 @@ public class D2CreationState extends BaseAppState {
                 case D2_LOCK: {
                     autolock = isPressed;
                     if (!autolock) {
-                        for (Geometry geom : app.popUpBook.geomPageMap.keySet()) {
+                        for (Geometry geom : app.popUpBook.geomPatchMap.keySet()) {
                             geom.setMaterial(app.paper);
                         }
                         mark.removeFromParent();
@@ -590,12 +587,12 @@ public class D2CreationState extends BaseAppState {
 
     private void initialize() {
 
-        pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
-        pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
+        pageA = app.popUpBook.geomPatchMap.get(app.selected.get(0));
+        pageB = app.popUpBook.geomPatchMap.get(app.selected.get(1));
         midPlane = null;
         if (pageA.next.contains(pageB)) {
-            pageA = app.popUpBook.geomPageMap.get(app.selected.get(1));
-            pageB = app.popUpBook.geomPageMap.get(app.selected.get(0));
+            pageA = app.popUpBook.geomPatchMap.get(app.selected.get(1));
+            pageB = app.popUpBook.geomPatchMap.get(app.selected.get(0));
             midPlane = new Plane();
             Vector3f[] boundary = pageA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);

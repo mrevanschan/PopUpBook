@@ -42,10 +42,10 @@ public class D1SCreationState extends BaseAppState {
 
     private PopUpBook app;
     private InputManager inputManager;
-    private PopUpBookTree.PageNode pageA;
-    private PopUpBookTree.PageNode pageB;
-    private PopUpBookTree.PageNode basePageA;
-    private PopUpBookTree.PageNode basePageB;
+    private PopUpBookTree.PatchNode pageA;
+    private PopUpBookTree.PatchNode pageB;
+    private PopUpBookTree.PatchNode basePatchA;
+    private PopUpBookTree.PatchNode basePatchB;
     private Vector3f centerAxis;
     private Vector3f[] axisPoints;
     private Vector3f axisTranslationA;
@@ -234,9 +234,9 @@ public class D1SCreationState extends BaseAppState {
                         Vector3f[] boundaryA = verticesA.toArray(new Vector3f[verticesA.size()]);
                         Vector3f[] boundaryB = verticesB.toArray(new Vector3f[verticesB.size()]);
 
-                        PopUpBookTree.PageNode newPageA = app.popUpBook.addPage(pageA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
-                        PopUpBookTree.PageNode newPageB = app.popUpBook.addPage(pageB.geometry, boundaryB, new Vector3f[]{verticesB.get(0).clone(), verticesB.get(1).clone()});
-                        app.popUpBook.addJoint(newPageA, newPageB, new Vector3f[]{verticesA.get(2), verticesA.get(1)}, "D1Joint");
+                        PopUpBookTree.PatchNode newPatchA = app.popUpBook.addPatch(pageA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
+                        PopUpBookTree.PatchNode newPatchB = app.popUpBook.addPatch(pageB.geometry, boundaryB, new Vector3f[]{verticesB.get(0).clone(), verticesB.get(1).clone()});
+                        app.popUpBook.addJoint(newPatchA, newPatchB, new Vector3f[]{verticesA.get(2), verticesA.get(1)}, "D1Joint");
 
                         app.getStateManager().getState(ExplorationState.class).setEnabled(true);
                         setEnabled(false);
@@ -486,16 +486,16 @@ public class D1SCreationState extends BaseAppState {
     }
 
     private void initialize() {
-        pageA = app.popUpBook.geomPageMap.get(app.selected.get(0));
-        pageB = app.popUpBook.geomPageMap.get(app.selected.get(1));
+        pageA = app.popUpBook.geomPatchMap.get(app.selected.get(0));
+        pageB = app.popUpBook.geomPatchMap.get(app.selected.get(1));
 
         boolean found = false;
-        ArrayList<PopUpBookTree.PageNode> aParents = new ArrayList<>();
-        ArrayList<PopUpBookTree.PageNode> bParents = new ArrayList<>();
+        ArrayList<PopUpBookTree.PatchNode> aParents = new ArrayList<>();
+        ArrayList<PopUpBookTree.PatchNode> bParents = new ArrayList<>();
         aParents.add(pageA);
         bParents.add(pageB);
 
-        PopUpBookTree.PageNode parent = pageA.parent;
+        PopUpBookTree.PatchNode parent = pageA.parent;
         while (parent != null) {
             if (parent.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
                 aParents.add(parent);
@@ -512,36 +512,36 @@ public class D1SCreationState extends BaseAppState {
         System.out.println("parentA count" + aParents.size());
         System.out.println("parentB count" + bParents.size());
         outerLoop:
-        for (PopUpBookTree.PageNode aPage : aParents) {
-            for (PopUpBookTree.PageNode bPage : bParents) {
-                if (app.popUpBook.isNeighbor(aPage.geometry, bPage.geometry)) {
+        for (PopUpBookTree.PatchNode aPatch : aParents) {
+            for (PopUpBookTree.PatchNode bPatch : bParents) {
+                if (app.popUpBook.isNeighbor(aPatch.geometry, bPatch.geometry)) {
                     found = true;
-                    basePageA = aPage;
-                    basePageB = bPage;
-                    axisPoints = app.popUpBook.axisBetween(aPage.geometry, bPage.geometry);
+                    basePatchA = aPatch;
+                    basePatchB = bPatch;
+                    axisPoints = app.popUpBook.axisBetween(aPatch.geometry, bPatch.geometry);
                     centerAxis = axisPoints[0].subtract(axisPoints[1]);
                     break outerLoop;
                 }
             }
         }
         if (found) {
-            if (pageA.distanceFromPoint(basePageA.boundary[0]) < pageB.distanceFromPoint(basePageB.boundary[0])) {
-                PopUpBookTree.PageNode temp = pageA;
+            if (pageA.distanceFromPoint(basePatchA.boundary[0]) < pageB.distanceFromPoint(basePatchB.boundary[0])) {
+                PopUpBookTree.PatchNode temp = pageA;
                 pageA = pageB;
                 pageB = temp;
-                temp = basePageA;
-                basePageA = basePageB;
-                basePageB = temp;
+                temp = basePatchA;
+                basePatchA = basePatchB;
+                basePatchB = temp;
             }
             app.setText("Mode", "D1S Creation Mode");
-            for (Vector3f point : basePageA.boundary) {
+            for (Vector3f point : basePatchA.boundary) {
                 if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
                     axisTranslationA = Util.lineToPointTranslation(axisPoints[0], centerAxis, point).normalize();
                     break;
                 }
             }
 
-            for (Vector3f point : basePageB.boundary) {
+            for (Vector3f point : basePatchB.boundary) {
                 if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
                     axisTranslationB = Util.lineToPointTranslation(axisPoints[0], centerAxis, point).normalize();
                     break;
