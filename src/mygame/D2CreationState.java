@@ -349,7 +349,8 @@ public class D2CreationState extends BaseAppState {
                                 updateGraphics();
                             }
 
-                            app.setText("Error", "In: " + Util.inBoundary(referencePoint.add(translation), pageA.boundary));
+                            app.setText("Error", "In: " + Util.inBoundary(referencePoint.add(translation), pageA.boundary) +Util.inBoundary(referencePoint.add(translation), pageB.boundary)+ " Translation" + translation);
+                            
                         }
                         break;
 
@@ -694,7 +695,7 @@ public class D2CreationState extends BaseAppState {
     }
 
     private void fitInBoundaries() {
-        Vector3f[] boundary = Util.lineBoundaryIntersections(verticesA.get(0), deltaAxis, pageA.boundary);
+        Vector3f[] boundary = Util.lineBoundaryIntersectionPair(verticesA.get(0), deltaAxis, pageA.boundary);
 
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])) {
@@ -726,7 +727,7 @@ public class D2CreationState extends BaseAppState {
             }
         }
 
-        boundary = Util.lineBoundaryIntersections(verticesB.get(0), deltaAxis, pageB.boundary);
+        boundary = Util.lineBoundaryIntersectionPair(verticesB.get(0), deltaAxis, pageB.boundary);
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesB.get(1), boundary[1])) {
                 verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
@@ -757,9 +758,16 @@ public class D2CreationState extends BaseAppState {
         }
 
         if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
+            if(!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))){
+                System.out.println("Error ::" + boundaryA.get(2) + " " + verticesA.get(2) + " " +boundaryA.get(3));
+            }
             verticesA.get(2).set(boundaryA.get(2));
         }
         if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
+            
+            if(!Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))){
+                System.out.println("Error ::" + boundaryA.get(2) + " " + verticesA.get(3) + " " +boundaryA.get(3));
+            }
             verticesA.get(3).set(boundaryA.get(3));
         }
 

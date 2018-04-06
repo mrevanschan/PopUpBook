@@ -641,9 +641,9 @@ public class D1SCreationState extends BaseAppState {
                     translation.subtractLocal(verticesB.get(1));
                     verticesA.get(1).add(translation);
                     verticesB.get(1).add(translation);
-                    Vector3f[] boundaryIntersections = Util.lineBoundaryIntersections(verticesA.get(1), axisTranslationA, pageA.boundary);
+                    Vector3f[] boundaryIntersections = Util.lineBoundaryIntersectionPair(verticesA.get(1), axisTranslationA, pageA.boundary);
                     verticesA.get(0).set(boundaryIntersections[0].add(boundaryIntersections[1]).divide(2));
-                    boundaryIntersections = Util.lineBoundaryIntersections(verticesB.get(1), axisTranslationB, pageB.boundary);
+                    boundaryIntersections = Util.lineBoundaryIntersectionPair(verticesB.get(1), axisTranslationB, pageB.boundary);
                     verticesB.get(0).set(boundaryIntersections[0].add(boundaryIntersections[1]).divide(2));
                     float height = verticesA.get(1).distance(verticesA.get(0)) * 1.618f / 2f;
                     if (height < FastMath.FLT_EPSILON) {

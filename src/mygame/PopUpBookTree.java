@@ -18,6 +18,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.util.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class PopUpBookTree {
     private PopUpBook app;
 
     PopUpBookTree(float width, float height, PopUpBook app) {
-
+        
         this.app = app;
         this.width = width;
         this.height = height;
@@ -76,6 +77,11 @@ public class PopUpBookTree {
         back.relatedJoint.add(bookJoint);
         front.relatedJoint.add(bookJoint);
         joints.add(bookJoint);
+        mark1 = new Geometry("name", new Sphere(5, 5, 0.05f));
+        Material dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        dotMaterial.setColor("Color", ColorRGBA.Red);
+        mark1.setMaterial(dotMaterial);
+        app.getRootNode().attachChild(mark1);
 
     }
     public boolean collisionFree(){
@@ -575,7 +581,14 @@ public class PopUpBookTree {
                     patch.rotate(axis, radian);
                 }
                 for (Vector3f point : translatedBoundary) {
-                    point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
+                    if(!(this.equals(front)|| this.equals(back))){
+                            System.out.println("Before " + point);
+                            System.out.println("Radian " + radian);
+                        }
+                        point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
+                        if(!(this.equals(front)|| this.equals(back))){
+                            System.out.println("After " + point);
+                        }
                 }
             }
             for (Vector3f point : translatedBuffer) {
@@ -703,6 +716,7 @@ public class PopUpBookTree {
                         float c = FastMath.sqr(baseLength) - FastMath.sqr(jointLength);
                         float midLength = (-b + FastMath.sqrt((b * b) - (4 * c))) / 2;
                         midPoint = c1.add(midPoint.normalize().mult(midLength));
+                        mark1.setLocalTranslation(midPoint);
                         patchA.rotateFromTo(axisA[0], midPoint);
                         patchB.rotateFromTo(axisB[0], midPoint);
                     }

@@ -106,7 +106,7 @@ public final class Util {
 
     }
     public static Vector3f rotatePoint(Vector3f point, Vector3f axis1, Vector3f axis2, float radian) {
-        Vector3f center = closestPointOnLine(axis1, axis2, point);
+        Vector3f center = closestPointOnLine(axis1, axis2.subtract(axis1), point);
         Vector3f up = point.subtract(center);
         Vector3f side = axis1.subtract(axis2).cross(point.subtract(axis2)).normalize().mult(up.length());
         return center.add(up.mult(FastMath.cos(radian))).add(side.mult(FastMath.sin(radian)));
@@ -115,6 +115,7 @@ public final class Util {
 
     public static boolean isBetween(Vector3f left, Vector3f mid, Vector3f right) {
         if(!inLine(left, mid, right)){
+            System.out.println("Not In Line");
             return false;
         }
         if(mid.equals(left) || mid.equals(right)){
@@ -129,7 +130,8 @@ public final class Util {
         if(vector1.length() < FastMath.FLT_EPSILON || vector2.length() < FastMath.FLT_EPSILON){
             return true;
         }
-        return vector1.cross(vector2).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON;
+        System.out.println("OOLD: "+ vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO));
+        return vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO) < FLT_EPSILON;
     }
 
     public static Vector3f lineToPointTranslation(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint) {
@@ -166,6 +168,7 @@ public final class Util {
     public static boolean lineTouchesBoundary(Vector3f rayPoint, Vector3f rayDir,Vector3f[] boundary){
         return !(castLineOnBoundary(rayPoint,rayDir, boundary) == null && castLineOnBoundary(rayPoint,rayDir.negate(), boundary) == null); 
     }
+    
     public static boolean inBoundary(Vector3f target, Vector3f[] boundary) {
         Vector3f dir = boundary[0].add(boundary[1]).divide(2).subtract(target).normalize().mult(100f);
         int intersectCount = 0;
@@ -207,7 +210,7 @@ public final class Util {
         }
         return closestCollision;
     }
-    public static Vector3f[] lineBoundaryIntersections(Vector3f point, Vector3f dir, Vector3f[] boundary){
+    public static Vector3f[] lineBoundaryIntersectionPair(Vector3f point, Vector3f dir, Vector3f[] boundary){
         ArrayList<Vector3f> intersections = new ArrayList<>();
         
         for (int i = 0; i < boundary.length; i++) {
@@ -274,7 +277,7 @@ public final class Util {
             if (infiniteLine || (isBetween(point1, pointA, point2) && isBetween(point3, pointB, point4))) {
                 return pointA;
             } else {
-                System.out.println("NotBetween " + infiniteLine);
+                //System.out.println("NotBetween " + infiniteLine);
                 return null;
             }
 

@@ -53,29 +53,29 @@ public class UtilTest {
     @Test
     public void testRotatePoint() {
         System.out.println("rotatePoint");
-        Vector3f point = new Vector3f(0,1,0);
+        Vector3f point = new Vector3f(0,2,0);
         Vector3f axis1 = new Vector3f(5,0,0);
         Vector3f axis2 = new Vector3f(-5,0,0);
         float pi = FastMath.PI;
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -0.25f),new Vector3f(0,FastMath.cos(pi*0.25f),FastMath.sin(pi * -0.25f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -0.50f),new Vector3f(0,FastMath.cos(pi*0.50f),FastMath.sin(pi * -0.50f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -0.75f),new Vector3f(0,FastMath.cos(pi*0.75f),FastMath.sin(pi * -0.75f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.00f),new Vector3f(0,FastMath.cos(pi*1.00f),FastMath.sin(pi * -1.00f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.25f),new Vector3f(0,FastMath.cos(pi*1.25f),FastMath.sin(pi * -1.25f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.50f),new Vector3f(0,FastMath.cos(pi*1.50f),FastMath.sin(pi * -1.50f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.75f),new Vector3f(0,FastMath.cos(pi*1.75f),FastMath.sin(pi * -1.75f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -2.00f),new Vector3f(0,FastMath.cos(pi*2.00f),FastMath.sin(pi * -2.00f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -0.25f),new Vector3f(0,2*FastMath.cos(pi*0.25f),2*FastMath.sin(pi * -0.25f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -0.50f),new Vector3f(0,2*FastMath.cos(pi*0.50f),2*FastMath.sin(pi * -0.50f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -0.75f),new Vector3f(0,2*FastMath.cos(pi*0.75f),2*FastMath.sin(pi * -0.75f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.00f),new Vector3f(0,2*FastMath.cos(pi*1.00f),2*FastMath.sin(pi * -1.00f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.25f),new Vector3f(0,2*FastMath.cos(pi*1.25f),2*FastMath.sin(pi * -1.25f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.50f),new Vector3f(0,2*FastMath.cos(pi*1.50f),2*FastMath.sin(pi * -1.50f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -1.75f),new Vector3f(0,2*FastMath.cos(pi*1.75f),2*FastMath.sin(pi * -1.75f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* -2.00f),new Vector3f(0,2*FastMath.cos(pi*2.00f),2*FastMath.sin(pi * -2.00f)));
         
         assertVector3f(Util.rotatePoint(point, axis1, axis2, pi*0f),point);
         
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 0.25f),new Vector3f(0,FastMath.cos(pi*0.25f),FastMath.sin(pi * 0.25f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 0.50f),new Vector3f(0,FastMath.cos(pi*0.50f),FastMath.sin(pi * 0.50f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 0.75f),new Vector3f(0,FastMath.cos(pi*0.75f),FastMath.sin(pi * 0.75f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.00f),new Vector3f(0,FastMath.cos(pi*1.00f),FastMath.sin(pi * 1.00f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.25f),new Vector3f(0,FastMath.cos(pi*1.25f),FastMath.sin(pi * 1.25f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.50f),new Vector3f(0,FastMath.cos(pi*1.50f),FastMath.sin(pi * 1.50f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.75f),new Vector3f(0,FastMath.cos(pi*1.75f),FastMath.sin(pi * 1.75f)));
-        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 2.00f),new Vector3f(0,FastMath.cos(pi*2.00f),FastMath.sin(pi * 2.00f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 0.25f),new Vector3f(0,2*FastMath.cos(pi*0.25f),2*FastMath.sin(pi * 0.25f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 0.50f),new Vector3f(0,2*FastMath.cos(pi*0.50f),2*FastMath.sin(pi * 0.50f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 0.75f),new Vector3f(0,2*FastMath.cos(pi*0.75f),2*FastMath.sin(pi * 0.75f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.00f),new Vector3f(0,2*FastMath.cos(pi*1.00f),2*FastMath.sin(pi * 1.00f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.25f),new Vector3f(0,2*FastMath.cos(pi*1.25f),2*FastMath.sin(pi * 1.25f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.50f),new Vector3f(0,2*FastMath.cos(pi*1.50f),2*FastMath.sin(pi * 1.50f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 1.75f),new Vector3f(0,2*FastMath.cos(pi*1.75f),2*FastMath.sin(pi * 1.75f)));
+        assertVector3f(Util.rotatePoint(point, axis1, axis2, pi* 2.00f),new Vector3f(0,2*FastMath.cos(pi*2.00f),2*FastMath.sin(pi * 2.00f)));
         
 
     }
@@ -95,8 +95,7 @@ public class UtilTest {
         assertFalse(Util.isBetween(left, new Vector3f(-6, 0, 0), right));
         assertFalse(Util.isBetween(left, new Vector3f(6, 0, 0) , right));
         assertFalse(Util.isBetween(left, new Vector3f(0, 1, 0) , right));
-        
-        
+
     }
 
     /**
@@ -208,6 +207,8 @@ public class UtilTest {
         
         assertTrue(Util.inBoundary(new Vector3f(0,0,0), boundary));
         assertTrue(Util.inBoundary(new Vector3f(0,1,0), boundary));
+        assertTrue(Util.inBoundary(new Vector3f(0.5f,1,0), boundary));
+        assertTrue(Util.inBoundary(new Vector3f(-0.5f,1,0), boundary));
         assertTrue(Util.inBoundary(new Vector3f(1,1,0), boundary));
         assertFalse(Util.inBoundary(new Vector3f(2,0,0), boundary));
     }
@@ -224,23 +225,42 @@ public class UtilTest {
                                                 new Vector3f( 1,  1, 0),
                                                 new Vector3f( 1, -1, 0),
                                             };
-        assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f(), boundary), Vector3f.ZERO);
+        assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(-1,0,0));
+        assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(-1,1,0));
+        assertVector3f(Util.castLineOnBoundary(new Vector3f(0, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f( 0,1,0));
+        assertVector3f(Util.castLineOnBoundary(new Vector3f(0, 0, 0), new Vector3f( 1, 1, 0), boundary), new Vector3f( 1,1,0));
+        
+        assertNull(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f( 1, 0, 0), boundary));
     }
 
     /**
-     * Test of lineBoundaryIntersections method, of class Util.
+     * Test of lineBoundaryIntersectionPair method, of class Util.
      */
     @Test
-    public void testLineBoundaryIntersections() {
-        System.out.println("lineBoundaryIntersections");
-        Vector3f point = null;
-        Vector3f dir = null;
-        Vector3f[] boundary = null;
-        Vector3f[] expResult = null;
-        Vector3f[] result = Util.lineBoundaryIntersections(point, dir, boundary);
-        assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testLineBoundaryIntersectionPair() {
+        System.out.println("lineBoundaryIntersectionPair");
+        Vector3f[] boundary = new Vector3f[]{
+                                                new Vector3f(-1, -1, 0),
+                                                new Vector3f(-1,  1, 0),
+                                                new Vector3f( 1,  1, 0),
+                                                new Vector3f( 1, -1, 0),
+                                            };
+        Vector3f[] result = Util.lineBoundaryIntersectionPair(Vector3f.ZERO, Vector3f.UNIT_X, boundary);
+        assertTrue(result[0].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON ||
+                   result[1].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON);
+        
+        result = Util.lineBoundaryIntersectionPair(new Vector3f(3, 0, 0), Vector3f.UNIT_X, boundary);
+        assertTrue(result[0].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON ||
+                   result[1].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON);
+        
+        result = Util.lineBoundaryIntersectionPair(new Vector3f(1, 0, 0), Vector3f.UNIT_X, boundary);
+        assertTrue(result[0].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON ||
+                   result[1].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON);
+        
+//        result = Util.lineBoundaryIntersectionPair(new Vector3f(1, 1, 0), Vector3f.UNIT_X, boundary);
+//        assertTrue(result[0].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON ||
+//                   result[1].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON);
+        
     }
 
     /**
@@ -309,32 +329,5 @@ public class UtilTest {
         fail("The test case is a prototype.");
     }
 
-    /**
-     * Test of toArray method, of class Util.
-     */
-    @Test
-    public void testToArray() {
-        System.out.println("toArray");
-        ArrayList<Vector3f> arrayList = null;
-        Vector3f[] expResult = null;
-        Vector3f[] result = Util.toArray(arrayList);
-        assertArrayEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of makeMesh method, of class Util.
-     */
-    @Test
-    public void testMakeMesh() {
-        System.out.println("makeMesh");
-        Vector3f[] vertices = null;
-        Mesh expResult = null;
-        Mesh result = Util.makeMesh(vertices);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
     
 }
