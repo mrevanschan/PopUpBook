@@ -130,7 +130,7 @@ public final class Util {
         if(vector1.length() < FastMath.FLT_EPSILON || vector2.length() < FastMath.FLT_EPSILON){
             return true;
         }
-        System.out.println("OOLD: "+ vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO));
+        //System.out.println("OOLD: "+ vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO));
         return vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO) < FLT_EPSILON;
     }
 
@@ -214,8 +214,17 @@ public final class Util {
         ArrayList<Vector3f> intersections = new ArrayList<>();
         
         for (int i = 0; i < boundary.length; i++) {
-            // ADD SOMETHING HERE TO MAKE IT WORK FOR CORNERS
-            if (point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
+            // ADD SOMETHING HERE TO MAKE IT WORK FOR CORNERS\
+            if(inLine(boundary[i], dir, boundary[(i+1)%boundary.length]) && isBetween(boundary[i], dir, boundary[(i+1)%boundary.length])){
+                if(boundary[(i+1)%boundary.length].subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON){
+                    intersections.add(boundary[i].clone());
+                    intersections.add(boundary[(i+1)%boundary.length].clone());
+                } else if(point.distance(boundary[i])<FastMath.FLT_EPSILON){
+                    intersections.add(boundary[i].clone());
+                    intersections.add(boundary[i].clone());
+                }
+            }
+            if (point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON && inLine(boundary[i], dir, boundary[(i+1)%boundary.length])){
                 intersections.add(boundary[i].clone());
             } else {
                 Vector3f intersection = segmentIntesection(point, point.add(dir.normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
@@ -243,9 +252,23 @@ public final class Util {
         return returnPair;
     }
     public static Vector3f segmentIntesection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4){
+        if(inLine(point1, point3, point2) && (!inLine(point1, point4, point2) || !isBetween(point1, point4, point2)) && isBetween(point1, point3, point2)){
+            return point3;
+        }else{
+            System.out.println("Fail Because" + isBetween(point1, point3, point2));
+        }
+        if(inLine(point1, point4, point2) && (!inLine(point1, point3, point2) || !isBetween(point1, point4, point2)) && isBetween(point1, point4, point2)){
+            return point4;
+        }
         return lineSegmentIntersectHelper( point1,  point2, point3, point4, false);
     }
     public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4){
+        if(inLine(point1, point3, point2) ){
+            return point3;
+        }
+        if(inLine(point1, point4, point2)){
+            return point4;
+        }
         return lineSegmentIntersectHelper( point1,  point2, point3, point4, true);
     }
     private static Vector3f lineSegmentIntersectHelper(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4, boolean infiniteLine) {

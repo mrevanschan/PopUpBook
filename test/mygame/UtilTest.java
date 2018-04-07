@@ -257,9 +257,24 @@ public class UtilTest {
         assertTrue(result[0].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON ||
                    result[1].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON);
         
-//        result = Util.lineBoundaryIntersectionPair(new Vector3f(1, 1, 0), Vector3f.UNIT_X, boundary);
-//        assertTrue(result[0].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON ||
-//                   result[1].distance(new Vector3f(1,0,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,0,0))< FastMath.FLT_EPSILON);
+        result = Util.lineBoundaryIntersectionPair(new Vector3f(1, 1, 0), Vector3f.UNIT_X, boundary);
+        assertTrue(result[0].distance(new Vector3f(1,1,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,1,0))< FastMath.FLT_EPSILON ||
+                   result[1].distance(new Vector3f(1,1,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,1,0))< FastMath.FLT_EPSILON);
+        
+        result = Util.lineBoundaryIntersectionPair(new Vector3f(0, 1, 0), Vector3f.UNIT_X, boundary);
+        assertTrue(result[0].distance(new Vector3f(1,1,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,1,0))< FastMath.FLT_EPSILON ||
+                   result[1].distance(new Vector3f(1,1,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1,1,0))< FastMath.FLT_EPSILON);
+        
+        result = Util.lineBoundaryIntersectionPair(new Vector3f(0, 0, 0), new Vector3f(1,1,0), boundary);
+        assertTrue(result[0].distance(new Vector3f( 1, 1,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1,-1,0))< FastMath.FLT_EPSILON ||
+                   result[1].distance(new Vector3f(-1,-1,0))< FastMath.FLT_EPSILON && result[0].distance(new Vector3f( 1, 1,0))< FastMath.FLT_EPSILON);
+        
+        result = Util.lineBoundaryIntersectionPair(new Vector3f(3, 0, 0), new Vector3f(1,1,0).subtract(new Vector3f(3, 0, 0)).normalize(), boundary);
+        System.out.println("Result1:" + result[0]);
+        assertTrue(result[0].distance(new Vector3f( 1, 1,0))< FastMath.FLT_EPSILON && result[1].distance(new Vector3f(1,1,0))< FastMath.FLT_EPSILON);
+        //fail();
+        
+        
         
     }
 
@@ -269,15 +284,7 @@ public class UtilTest {
     @Test
     public void testSegmentIntesection() {
         System.out.println("segmentIntesection");
-        Vector3f point1 = null;
-        Vector3f point2 = null;
-        Vector3f point3 = null;
-        Vector3f point4 = null;
-        Vector3f expResult = null;
-        Vector3f result = Util.segmentIntesection(point1, point2, point3, point4);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+         assertVector3f(Util.segmentIntesection(new Vector3f(1,0,0), new Vector3f(4,0,0), new Vector3f(4,0,0), new Vector3f(8,0,0)),  new Vector3f(4, 0, 0));
     }
 
     /**
