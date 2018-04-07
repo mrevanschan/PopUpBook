@@ -281,22 +281,68 @@ public class UtilTest {
     @Test
     public void testSegmentIntesection() {
         System.out.println("segmentIntesection");
-
-        //Intersection of Connected segment on the tip
+        //Test Intersection of Segment which starting point touches
+        //
+        //    1              2
+        //    X--------------X 3 
+        //                   |
+        //                   |
+        //                   |
+        //                   |
+        //                   |
+        //                   X 4
+        // 
         assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0)), new Vector3f(4, 0, 0));
+        assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0), new Vector3f(4, 0, 0)), new Vector3f(4, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(1, 0, 0), new Vector3f(8, 4, 0)), new Vector3f(1, 0, 0));
-        //Intersection of Crossing segments
+        assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 4, 0), new Vector3f(1, 0, 0)), new Vector3f(1, 0, 0));
+        
+        
+        //Test Intersection of Crossing segments
+        //
+        //            X 3
+        //            |
+        //    1       |
+        //    X-------+------X 2 
+        //            |
+        //            |
+        //            X 4
+        //               
         assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
-        //Intersection of Segment of "T" Shape
+        
+        
+        //Test Intersection of Segment of "T" Shape
+        //
+        //                 X 3
+        //                 |
+        //    1            |
+        //    X------------X 2 
+        //                 |
+        //                 |
+        //                 X 4
+        //                 
+        assertVector3f(Util.segmentIntesection(new Vector3f(0, 0, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(0, 0, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(0, 0, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(0, 0, 0)), new Vector3f(0, 0, 0));
 
-        //Intersection of Parallel segment overlaping
+        
+        //Test Intersection of Parallel segment overlaping
+        //    
+        //    X------X-----X--------X 
+        //    1      3     2        4
+        //
         assertNull(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(3, 0, 0), new Vector3f(8, 0, 0)));
         assertNull(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(3, 0, 0), new Vector3f(4, 0, 0)));
 
-        //Intersection of non-connected segments
+        
+        //Test Intersection of non-connected segments
+        //           3            4
+        //           X------------X 
+        //  
+        //  X------------X
+        //  1            2
         assertNull(Util.segmentIntesection(new Vector3f(1, 1, 0), new Vector3f(4, 1, 0), new Vector3f(3, 0, 0), new Vector3f(8, 0, 0)));
-
     }
 
     /**
@@ -305,27 +351,68 @@ public class UtilTest {
     @Test
     public void testLineIntersection() {
         System.out.println("lineIntersection");
+        //Test Intersection of Segment which starting point touches
+        //
+        //    1              2
+        //    X--------------X 3 
+        //                   |
+        //                   |
+        //                   |
+        //                   |
+        //                   |
+        //                   X 4
+        // 
         assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0)), new Vector3f(4, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0), new Vector3f(4, 0, 0)), new Vector3f(4, 0, 0));
-
         assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(1, 0, 0), new Vector3f(8, 4, 0)), new Vector3f(1, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 4, 0), new Vector3f(1, 0, 0)), new Vector3f(1, 0, 0));
-        //Intersection of Crossing segments
+        
+        
+        //Test Intersection of Crossing segments
+        //
+        //            X 3
+        //            |
+        //    1       |
+        //    X-------+------X 2 
+        //            |
+        //            |
+        //            X 4
+        //               
         assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
-        //Intersection of Segment of "T" Shape
+        
+        
+        //Test Intersection of Segment of "T" Shape
+        //
+        //                 X 3
+        //                 |
+        //    1            |
+        //    X------------X 2 
+        //                 |
+        //                 |
+        //                 X 4
+        //                 
         assertVector3f(Util.segmentIntesection(new Vector3f(0, 0, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(0, 0, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(0, 0, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
         assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(0, 0, 0)), new Vector3f(0, 0, 0));
 
-        //Intersection of Parallel segment overlaping
-        assertNull(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(3, 0, 0), new Vector3f(8, 0, 0)));
-        assertNull(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(3, 0, 0), new Vector3f(4, 0, 0)));
+        
+        //Test Intersection of Parallel segment overlaping
+        //    
+        //    <------<----->--------> 
+        //    1      3     2        4
+        //
+        assertNull(Util.lineIntersection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(3, 0, 0), new Vector3f(8, 0, 0)));
+        assertNull(Util.lineIntersection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(3, 0, 0), new Vector3f(4, 0, 0)));
 
-        //Intersection of non-connected segments
-        assertNull(Util.segmentIntesection(new Vector3f(1, 1, 0), new Vector3f(4, 1, 0), new Vector3f(3, 0, 0), new Vector3f(8, 0, 0)));
-
-        //Line The is 0 unti long
+        
+        //Test Intersection of non-connected segments
+        //           3            4
+        //           <------------> 
+        //  
+        //  <------------>
+        //  1            2
+        assertNull(Util.lineIntersection(new Vector3f(1, 1, 0), new Vector3f(4, 1, 0), new Vector3f(3, 0, 0), new Vector3f(8, 0, 0)));   
     }
 
     /**
@@ -338,18 +425,22 @@ public class UtilTest {
         Vector3f planePoint = new Vector3f(0, 0, 0);
         Vector3f planeNormal = new Vector3f(0, 1, 0);
 
+        //Test if a line does not start on plane and is dirrection is toward the plane
         Vector3f origin = new Vector3f(0, 5, 0);
         Vector3f target = new Vector3f(0, 0, 0);
         assertVector3f(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal), target);
 
+        //Test if line starts from plane and line dirrection is not parallel to plane
         origin = new Vector3f(0, 0, 0);
         target = new Vector3f(0, 1, 0);
         assertVector3f(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal), origin);
 
+        //Test if line dirrection does not touch plane from line starting point
         origin = new Vector3f(0, 1, 0);
         target = new Vector3f(0, 1, 0);
         assertNull(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
 
+        //Test if line and plane is parallel
         origin = new Vector3f(0, 0, 0);
         target = new Vector3f(1, 0, 0);
         assertNull(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
@@ -363,7 +454,7 @@ public class UtilTest {
     public void testBoundboundIntersect() {
         System.out.println("boundboundIntersect");
 
-        //Crossing boundaries
+        //Test Intersection of Crossing Boundary(Non coplanar)
         //
         //  ________________ __
         //  \               \ /   < ----- A
@@ -384,7 +475,8 @@ public class UtilTest {
         ArrayList<Vector3f> result = Util.boundboundIntersect(boundaryA, boundaryB);
         assertTrue(result.size() == 2 && result.contains(new Vector3f(0, 1, 0)) && result.contains(new Vector3f(0, -1, 0)));
 
-        //Inter Linked boundaries
+        
+        //Test Intersection of Inter Linked boundaries(Non coplanar)
         //
         //               ___________
         //     _________|           |
@@ -395,8 +487,6 @@ public class UtilTest {
         //              |___________|   
         //
         //
-
-        
         boundaryA = new Vector3f[]{
             new Vector3f(-1, -2, 0),
             new Vector3f(-1, 2, 0),
@@ -409,8 +499,109 @@ public class UtilTest {
             new Vector3f(-2, 0, 2)};
         result = Util.boundboundIntersect(boundaryA, boundaryB);
         assertTrue(result.size() == 2 && result.contains(new Vector3f(-1, 0, 0)) && result.contains(new Vector3f(1, 0, 0)));
+        
+        
+        //Test boundaries with only one touching edge (Non coplanar)
+        //
+        //                     ___________
+        //     _____________  |           |
+        //     \            \ |     B     |
+        //      \     A      \|           |
+        //       \            \           | 
+        //        \____________\          | 
+        //                    |___________|   
+        //
+        //
+        boundaryA = new Vector3f[]{
+            new Vector3f(-2, 0,-2),
+            new Vector3f(-2, 0, 2),
+            new Vector3f( 0, 0, 2),
+            new Vector3f( 0, 0,-2)};
+        boundaryB = new Vector3f[]{
+            new Vector3f( 2,-2, 0),
+            new Vector3f( 2, 2, 0),
+            new Vector3f( 0, 2, 0),
+            new Vector3f( 0,-2, 0)};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertTrue(result.size() == 1 && result.contains(new Vector3f(0, 0, 0)));
+        
+        
+        //Test boundaries with only one touching vertices (Non coplanar)
+        //     _____________       
+        //     \            \
+        //      \     A      \
+        //       \            \
+        //        \____________\___________
+        //                     |           |
+        //                     |     B     |
+        //                     |           |
+        //                     |___________|
+ 
+        boundaryA = new Vector3f[]{
+            new Vector3f(-2, 0, 0),
+            new Vector3f(-2, 0, 2),
+            new Vector3f( 0, 0, 2),
+            new Vector3f( 0, 0, 0)};
+        boundaryB = new Vector3f[]{
+            new Vector3f( 2,-2, 0),
+            new Vector3f( 2, 0, 0),
+            new Vector3f( 0, 0, 0),
+            new Vector3f( 0,-2, 0)};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertTrue(result.size() == 1 && result.contains(new Vector3f(0, 0, 0)));
+        
+        
+        //Testing boundaries that are separated (Non coplanar)
+        //
+        //                         ___________
+        //     _____________      |           |
+        //     \            \     |     B     |
+        //      \     A      \    |           |
+        //       \            \   |           | 
+        //        \____________\  |           | 
+        //                        |___________|   
+        //
+        //
 
-        //OverLapping Boundary
+        
+        boundaryA = new Vector3f[]{
+            new Vector3f(-2, 0,-2),
+            new Vector3f(-2, 0, 2),
+            new Vector3f(-1, 0, 2),
+            new Vector3f(-1, 0,-2)};
+        boundaryB = new Vector3f[]{
+            new Vector3f( 2,-2, 0),
+            new Vector3f( 2, 2, 0),
+            new Vector3f( 1, 2, 0),
+            new Vector3f( 1,-2, 0)};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertNull(result);
+        
+        
+        //Test For one boundary inside another boundary (Non coplanar)
+        //
+        //         ______
+        //        _\_____\_____
+        //       |   ______    |
+        //       |   \  B  \   |
+        //       | A  \_____\  |
+        //       |_____________|
+ 
+        boundaryA = new Vector3f[]{
+            new Vector3f(-2,-2, 0),
+            new Vector3f(-2, 2, 0),
+            new Vector3f( 2, 2, 0),
+            new Vector3f( 2,-2, 0)};
+        boundaryB = new Vector3f[]{
+            new Vector3f( 1, 0,-2),
+            new Vector3f( 1, 0, 2),
+            new Vector3f(-1, 0, 2),
+            new Vector3f(-1, 0,-2)};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertTrue(result.size() == 2 && result.contains(new Vector3f(1, 0, 0)) && result.contains(new Vector3f(-1, 0, 0)));
+
+        
+        //OverLapping Boundary (Coplanar)
         //     = = = = = = =
         //    ||           ||
         //    ||   A & B   ||
@@ -430,7 +621,8 @@ public class UtilTest {
         result = Util.boundboundIntersect(boundaryA, boundaryB);
         assertNull(result);
 
-        //Boundary with only edge overlapping
+        
+        //Boundary with only edge overlapping (Coplanar)
         //
         //               ___________
         //              |           |
@@ -453,15 +645,16 @@ public class UtilTest {
         assertNull(result);
         
         
-        //Boundary with only edge overlapping
+        //Boundary with only edge overlapping (Coplanar)
         //
-        // _____________
-        //              |
-        //              |
-        //              |___________
+        //  ____________
+        // |            |
+        // |     A      |
+        // |____________|___________
         //              |           |
-        //              |           |
+        //              |     B     |
         //              |___________|
+        //
         boundaryA = new Vector3f[]{
             new Vector3f(-1, -1, 0),
             new Vector3f(-1, 0, 0),
@@ -472,6 +665,53 @@ public class UtilTest {
             new Vector3f(0, 2, 0),
             new Vector3f(1, 2, 0),
             new Vector3f(1, 0, 0),};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertNull(result);
+        
+        
+        //Boundary with only edge overlapping (Coplanar)
+        //
+        //  ____________
+        // |            |
+        // |     A      |
+        // |____________|     ___________
+        //                   |           |
+        //                   |     B     |
+        //                   |___________|
+        //
+        boundaryA = new Vector3f[]{
+            new Vector3f(-1, -1, 0),
+            new Vector3f(-1,  0, 0),
+            new Vector3f( 0,  0, 0),
+            new Vector3f( 0, -1, 0)};
+        boundaryB = new Vector3f[]{
+            new Vector3f(2, 0, 0),
+            new Vector3f(2, 2, 0),
+            new Vector3f(1, 2, 0),
+            new Vector3f(1, 0, 0),};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertNull(result);
+        
+        //Boundary with only edge overlapping (Coplanar)
+        //
+        //  ____________
+        // |            |
+        // |     A     _|_________
+        // |__________|_|         |
+        //            |     B     |
+        //            |___________|
+        //            
+        //
+        boundaryA = new Vector3f[]{
+            new Vector3f(-2, -1, 0),
+            new Vector3f(-2,  2, 0),
+            new Vector3f( 1,  2, 0),
+            new Vector3f( 1, -1, 0)};
+        boundaryB = new Vector3f[]{
+            new Vector3f( 2,-2, 0),
+            new Vector3f( 2, 1, 0),
+            new Vector3f(-1, 1, 0),
+            new Vector3f(-1,-2, 0),};
         result = Util.boundboundIntersect(boundaryA, boundaryB);
         assertNull(result);
             
