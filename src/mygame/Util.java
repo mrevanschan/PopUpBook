@@ -19,8 +19,19 @@ import java.util.ArrayList;
  */
 public final class Util {
 
-    public static final float FLT_EPSILON = 0.0009f;
 
+    /**
+     *A threshold value used to compare two float value
+     * if the difference between two value is smaller that 
+     * FLT_EPSILON we consider them as the same value
+     */
+    public static final float FLT_EPSILON = 0.0001f;
+
+    /**
+     * Clone the ArrayList of an Vector3f and return as Array
+     * @param arrayList ArrayList of Vector3f
+     * @return Array clone of Vector3f
+     */
     public static Vector3f[] toArray(ArrayList<Vector3f> arrayList) {
         Vector3f[] array = new Vector3f[arrayList.size()];
         for (int i = 0; i < arrayList.size(); i++) {
@@ -29,6 +40,12 @@ public final class Util {
         return array;
     }
 
+    /**
+     * Creates a polygon Mesh from the given vertices
+     * Vectices must be ordered
+     * @param vertices Ordered Vertices
+     * @return  Polygon mesh from the vertices
+     */
     public static Mesh makeMesh(Vector3f[] vertices) {
         Mesh mesh = new Mesh();
         mesh.setDynamic();
@@ -106,6 +123,16 @@ public final class Util {
 
     }
 
+    /**
+     * Return resulting point after a rotation translation of a point around a given axis and radian;
+     * The rotate follows a left hand rotation rule with the axis's dirrection being the order of the
+     * axis point given. 
+     * @param point the point to rotate
+     * @param axis1 pointA that makes the axis
+     * @param axis2 pointB that makes the axis
+     * @param radian radian to rotate
+     * @return
+     */
     public static Vector3f rotatePoint(Vector3f point, Vector3f axis1, Vector3f axis2, float radian) {
         Vector3f center = closestPointOnLine(axis1, axis2.subtract(axis1), point);
         Vector3f up = point.subtract(center);
@@ -113,6 +140,16 @@ public final class Util {
         return center.add(up.mult(FastMath.cos(radian))).add(side.mult(FastMath.sin(radian)));
     }
 
+    /**
+     * Checks if point Mid is between point left and right. 
+     * Note that Mid being between left and right doesn't mean
+     * that they are inLine
+     * 
+     * @param left Left point
+     * @param  mid Mid Point
+     * @param right Right
+     * @return If mid is between left and right
+     */
     public static boolean isBetween(Vector3f left, Vector3f mid, Vector3f right) {
         if (!inLine(left, mid, right)) {
             //System.out.println("Not In Line");
@@ -124,6 +161,15 @@ public final class Util {
         return mid.subtract(left).dot(right.subtract(mid)) > 0;
     }
 
+    /**
+     * Checks if point Mid is in line with point left and right
+     * Note the in line doesn't gaurentees that mid is in between
+     * 
+     * @param left Left Point
+     * @param mid Mid Point
+     * @param right Right Point
+     * @return if mid, left and right are aligned
+     */
     public static boolean inLine(Vector3f left, Vector3f mid, Vector3f right) {
         Vector3f vector1 = left.subtract(mid);
         Vector3f vector2 = mid.subtract(right);
@@ -134,11 +180,28 @@ public final class Util {
         return vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO) < FLT_EPSILON;
     }
 
+    /**
+     * Get the shortest vector, perpendicular from am infinitely long line to a point
+     * 
+     * @param linePoint A point that define the line
+     * @param lineDirrection The Direction of the line
+     * @param targetPoint The target point
+     * @return the vector from the line to the point
+     */
     public static Vector3f lineToPointTranslation(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint) {
         float angle = lineDirrection.normalize().angleBetween(targetPoint.subtract(linePoint).normalize());
         return targetPoint.subtract(linePoint.add(lineDirrection.normalize().mult(targetPoint.distance(linePoint) * FastMath.cos(angle))));
     }
 
+    /**
+     * Find the point on a infinitely long line that is closest
+     * to a targeted point
+     * 
+     * @param linePoint A point that defines the line
+     * @param lineDirrection The direction of the line
+     * @param targetPoint Target Point
+     * @return The point on the line that is closest to the target Point
+     */
     public static Vector3f closestPointOnLine(Vector3f linePoint, Vector3f lineDirrection, Vector3f targetPoint) {
         if (linePoint.subtract(targetPoint).normalize().cross(linePoint.subtract(linePoint.add(lineDirrection)).normalize()).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
             return targetPoint;
@@ -147,7 +210,13 @@ public final class Util {
         return linePoint.add(lineDirrection.normalize().mult(targetPoint.distance(linePoint) * FastMath.cos(angle)));
     }
 
-    public static Vector3f closestPointToDirrection(Vector3f dirrection, Vector3f[] boundary) {
+    /**
+     * Given a set points defining a boundary, Gets the point that is furthest in a directions
+     * @param direction the direction
+     * @param boundary the vertices definng a boundary
+     * @return furthest vertex in a direction
+     */
+    public static Vector3f closestPointToDirection(Vector3f direction, Vector3f[] boundary) {
 
         Vector3f center = new Vector3f();
 
@@ -155,7 +224,7 @@ public final class Util {
             center.addLocal(point);
         }
         center.divideLocal(boundary.length);
-        Vector3f target = dirrection.mult(1000f).add(center);
+        Vector3f target = direction.mult(1000f).add(center);
         Vector3f closest = new Vector3f(center);
         for (Vector3f point : boundary) {
             if (point.distance(target) < closest.distance(target)) {
@@ -165,15 +234,29 @@ public final class Util {
         return closest;
     }
 
-    public static boolean lineTouchesBoundary(Vector3f rayPoint, Vector3f rayDir, Vector3f[] boundary) {
-        return !(castLineOnBoundary(rayPoint, rayDir, boundary) == null && castLineOnBoundary(rayPoint, rayDir.negate(), boundary) == null);
+    /**
+     * Checks if a infinely long line touches a boundary
+     * @param linePoint point that defines the line
+     * @param lineDir the direction of the line
+     * @param boundary the set of vertices making the boundary
+     * @return
+     */
+    public static boolean lineTouchesBoundary(Vector3f linePoint, Vector3f lineDir, Vector3f[] boundary) {
+        return !(castRayOnBoundary(linePoint, lineDir, boundary) == null && castRayOnBoundary(linePoint, lineDir.negate(), boundary) == null);
     }
 
+    /**
+     * Checks if a given point is coplanar and within a boundary
+     * @param target The target point
+     * @param boundary The vertices making the boundary
+     * @return if the target is in coplanar and within the boundary
+     */
     public static boolean inBoundary(Vector3f target, Vector3f[] boundary) {
         if (FastMath.abs(target.subtract(boundary[0]).normalize().dot(getBountdaryNormal(boundary).normalize())) < FastMath.FLT_EPSILON) {
             //System.out.println("On Plane" + FastMath.abs(target.subtract(boundary[0].normalize()).dot(getBountdaryNormal(boundary).normalize())));
             Vector3f dir = null;
             float length = 0f;
+            ArrayList<Vector3f> collision = new ArrayList<>();
             for (int i = 0; i < boundary.length; i++){
                 if(target.distance(boundary[i])>length){
                     length = target.distance(boundary[i]);
@@ -188,19 +271,27 @@ public final class Util {
                 if (target.equals(boundary[i]) || (inLine(boundary[i], target, boundary[(i + 1) % boundary.length])) && isBetween(boundary[i], target, boundary[(i + 1) % boundary.length])) {
                     return true;
                 }
-                if (segmentIntesection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
-                    intersectCount++;
+                Vector3f rayHit = segmentIntesection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]);
+                if (rayHit != null && !Util.containsVector3f(collision, rayHit)) {
+                    collision.add(rayHit);
                 }
             }
 
-            return (intersectCount & 1) != 0;
+            return (collision.size() & 1) != 0;
         }else{
             return false;
         }
 
     }
 
-    public static Vector3f castLineOnBoundary(Vector3f rayStart, Vector3f rayDir, Vector3f[] boundary) {
+    /**
+     * Cast a Ray to the boundary and checks for collision with the frame of the boundary only
+     * @param rayStart 
+     * @param rayDir
+     * @param boundary
+     * @return
+     */
+    public static Vector3f castRayOnBoundary(Vector3f rayStart, Vector3f rayDir, Vector3f[] boundary) {
         Vector3f closestCollision = null;
         Vector3f rayEnd = rayStart.add(rayDir.normalize().mult(100f));
         for (int i = 0; i < boundary.length; i++) {
@@ -216,33 +307,41 @@ public final class Util {
         return closestCollision;
     }
 
-    public static Vector3f[] lineBoundaryIntersectionPair(Vector3f point, Vector3f dir, Vector3f[] boundary) {
+    /**
+     * Gets the pair of points that are furthest aways from each other from:
+     * the set of intersection points between a boundary and an infinetly long line
+     * 
+     * @param linePoint the point that defines the line
+     * @param lineDir the direction of the line
+     * @param boundary the boundary
+     * @return the pair point intersection points
+     */
+    public static Vector3f[] lineBoundaryIntersectionPair(Vector3f linePoint, Vector3f lineDir, Vector3f[] boundary) {
         ArrayList<Vector3f> intersections = new ArrayList<>();
 
         for (int i = 0; i < boundary.length; i++) {
-            if (inLine(boundary[i], dir, boundary[(i + 1) % boundary.length]) && isBetween(boundary[i], dir, boundary[(i + 1) % boundary.length])) {
-                if (boundary[(i + 1) % boundary.length].subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
+            if (inLine(boundary[i], lineDir, boundary[(i + 1) % boundary.length]) && isBetween(boundary[i], lineDir, boundary[(i + 1) % boundary.length])) {
+                if (boundary[(i + 1) % boundary.length].subtract(boundary[i]).cross(lineDir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON) {
                     intersections.add(boundary[i].clone());
                     intersections.add(boundary[(i + 1) % boundary.length].clone());
-                } else if (point.distance(boundary[i]) < FastMath.FLT_EPSILON) {
+                } else if (linePoint.distance(boundary[i]) < FastMath.FLT_EPSILON) {
                     intersections.add(boundary[i].clone());
                     intersections.add(boundary[i].clone());
                 }
             }
-            if (point.subtract(boundary[i]).cross(dir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON && inLine(boundary[i], dir, boundary[(i + 1) % boundary.length])) {
+            if (linePoint.subtract(boundary[i]).cross(lineDir).distance(Vector3f.ZERO) < FastMath.FLT_EPSILON && inLine(boundary[i], lineDir, boundary[(i + 1) % boundary.length])) {
                 intersections.add(boundary[i].clone());
             } else {
-                Vector3f intersection = segmentIntesection(point, point.add(dir.normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
+                Vector3f intersection = segmentIntesection(linePoint, linePoint.add(lineDir.normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
                     intersections.add(intersection);
                 }
-                intersection = segmentIntesection(point, point.add(dir.negate().normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
+                intersection = segmentIntesection(linePoint, linePoint.add(lineDir.negate().normalize().mult(100f)), boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
                     intersections.add(intersection);
                 }
             }
         }
-        //System.out.println("Intersection Count = " + intersections.size());
         Vector3f[] returnPair = new Vector3f[2];
         returnPair[0] = new Vector3f();
         returnPair[1] = new Vector3f();
@@ -257,30 +356,46 @@ public final class Util {
         return returnPair;
     }
 
-    public static Vector3f segmentIntesection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4) {
-        if ((point1.distance(point3) < FastMath.FLT_EPSILON || point2.distance(point3) < FastMath.FLT_EPSILON) && !(inLine(point1, point4, point2) && isBetween(point1, point4, point2))) {
-            return point3;
+    /**
+     * Intersection points of two line segments
+     * @param lineAStart
+     * @param lineAEnd
+     * @param lineBStart
+     * @param lineBEnd
+     * @return
+     */
+    public static Vector3f segmentIntesection(Vector3f lineAStart, Vector3f lineAEnd, Vector3f lineBStart, Vector3f lineBEnd) {
+        if ((lineAStart.distance(lineBStart) < FastMath.FLT_EPSILON || lineAEnd.distance(lineBStart) < FastMath.FLT_EPSILON) && !(inLine(lineAStart, lineBEnd, lineAEnd) && isBetween(lineAStart, lineBEnd, lineAEnd))) {
+            return lineBStart;
         }
-        if ((point1.distance(point4) < FastMath.FLT_EPSILON || point2.distance(point4) < FastMath.FLT_EPSILON) && !(inLine(point1, point3, point2) && isBetween(point1, point3, point2))) {
-            return point4;
+        if ((lineAStart.distance(lineBEnd) < FastMath.FLT_EPSILON || lineAEnd.distance(lineBEnd) < FastMath.FLT_EPSILON) && !(inLine(lineAStart, lineBStart, lineAEnd) && isBetween(lineAStart, lineBStart, lineAEnd))) {
+            return lineBEnd;
         }
-        if (point1.subtract(point2).normalize().cross(point3.subtract(point4).normalize()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-            if (inLine(point1, point4, point2) && isBetween(point1, point4, point2)) {
-                return point4;
+        if (lineAStart.subtract(lineAEnd).normalize().cross(lineBStart.subtract(lineBEnd).normalize()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
+            if (inLine(lineAStart, lineBEnd, lineAEnd) && isBetween(lineAStart, lineBEnd, lineAEnd)) {
+                return lineBEnd;
             }
-            if (inLine(point1, point3, point2) && isBetween(point1, point3, point2)) {
-                return point3;
+            if (inLine(lineAStart, lineBStart, lineAEnd) && isBetween(lineAStart, lineBStart, lineAEnd)) {
+                return lineBStart;
             }
-            if (inLine(point3, point2, point4) && isBetween(point3, point2, point4)) {
-                return point2;
+            if (inLine(lineBStart, lineAEnd, lineBEnd) && isBetween(lineBStart, lineAEnd, lineBEnd)) {
+                return lineAEnd;
             }
-            if (inLine(point3, point1, point4) && isBetween(point3, point1, point4)) {
-                return point1;
+            if (inLine(lineBStart, lineAStart, lineBEnd) && isBetween(lineBStart, lineAStart, lineBEnd)) {
+                return lineAStart;
             }
         }
-        return lineSegmentIntersectHelper(point1, point2, point3, point4, false);
+        return lineSegmentIntersectHelper(lineAStart, lineAEnd, lineBStart, lineBEnd, false);
     }
 
+    /**
+     *
+     * @param point1
+     * @param point2
+     * @param point3
+     * @param point4
+     * @return
+     */
     public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4) {
 //        if(point1.subtract(point2).normalize().cross(point4.subtract(point3).normalize()).normalize().distance(Vector3f.ZERO)<FastMath.FLT_EPSILON){
 //            return null;
@@ -333,6 +448,14 @@ public final class Util {
         }
     }
 
+    /**
+     *
+     * @param linePoint
+     * @param lineDir
+     * @param planePoint
+     * @param planeNormal
+     * @return
+     */
     public static Vector3f linePlaneIntersection(Vector3f linePoint, Vector3f lineDir, Vector3f planePoint, Vector3f planeNormal) {
 
         if (FastMath.abs(lineDir.dot(planeNormal)) > FastMath.FLT_EPSILON) {
@@ -345,11 +468,19 @@ public final class Util {
         return null;
     }
 
+    /**
+     *
+     * @param linePoint
+     * @param lineDir
+     * @param planePoint
+     * @param planeNormal
+     * @return
+     */
     public static Vector3f rayPlaneIntersection(Vector3f linePoint, Vector3f lineDir, Vector3f planePoint, Vector3f planeNormal) {
 
         if (FastMath.abs(lineDir.normalize().dot(planeNormal.normalize())) > FastMath.FLT_EPSILON) {
             float d = (planePoint.subtract(linePoint).dot(planeNormal)) / (lineDir.dot(planeNormal));
-            if (d > FastMath.FLT_EPSILON) {
+            if (d >= 0) {
                 return linePoint.add(lineDir.mult(d));
             }
         } else {
@@ -359,6 +490,11 @@ public final class Util {
         return null;
     }
 
+    /**
+     *
+     * @param boundary
+     * @return
+     */
     public static Vector3f getBountdaryNormal(Vector3f[] boundary) {
         for (int i = 0; i < boundary.length; i++) {
             Vector3f normal = boundary[(boundary.length + i - 1) % boundary.length].subtract(boundary[i]).normalize().cross(boundary[(i + 1) % boundary.length].subtract(boundary[i]).normalize()).normalize();
@@ -369,6 +505,12 @@ public final class Util {
         return null;
     }
 
+    /**
+     *
+     * @param boundaryA
+     * @param boundaryB
+     * @return
+     */
     public static ArrayList<Vector3f> boundboundIntersect(Vector3f[] boundaryA, Vector3f[] boundaryB) {
         ArrayList<Vector3f> collisionList = new ArrayList<>();
         Vector3f normalA = getBountdaryNormal(boundaryA);

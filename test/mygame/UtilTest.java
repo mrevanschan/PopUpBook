@@ -191,15 +191,15 @@ public class UtilTest {
             new Vector3f(1, -1, 0),};
 
         //Check the closeset point of each directions
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(0, 1, 0), boundary), new Vector3f(-1, 1, 0));
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(0, -1, 0), boundary), new Vector3f(-1, -1, 0));
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(1, 0, 0), boundary), new Vector3f(1, 1, 0));
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(-1, 0, 0), boundary), new Vector3f(-1, -1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(0, 1, 0), boundary), new Vector3f(-1, 1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(0, -1, 0), boundary), new Vector3f(-1, -1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(1, 0, 0), boundary), new Vector3f(1, 1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(-1, 0, 0), boundary), new Vector3f(-1, -1, 0));
 
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(-1, -1, 0), boundary), new Vector3f(-1, -1, 0));
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(1, -1, 0), boundary), new Vector3f(1, -1, 0));
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(1, 1, 0), boundary), new Vector3f(1, 1, 0));
-        assertVector3f(Util.closestPointToDirrection(new Vector3f(-1, 1, 0), boundary), new Vector3f(-1, 1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(-1, -1, 0), boundary), new Vector3f(-1, -1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(1, -1, 0), boundary), new Vector3f(1, -1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(1, 1, 0), boundary), new Vector3f(1, 1, 0));
+        assertVector3f(Util.closestPointToDirection(new Vector3f(-1, 1, 0), boundary), new Vector3f(-1, 1, 0));
     }
 
     /**
@@ -244,52 +244,51 @@ public class UtilTest {
     public void testInBoundary() {
         System.out.println("inBoundary");
         Vector3f[] boundary = new Vector3f[]{
-            new Vector3f(-1, -1, 0),
-            new Vector3f(-1, 1, 0),
-            new Vector3f(1, 1, 0),
-            new Vector3f(1, -1, 0),};
+            new Vector3f(-1, 0, 0),
+            new Vector3f( 0, 1, 0),
+            new Vector3f(1, 0, 0)};
         
-        //Test Middle of boundary
+        //Test Enge of boundary
         assertTrue(Util.inBoundary(new Vector3f(0, 0, 0), boundary));
         
-        //Test Edge of boundary
+        //Test Corner of boundary
         assertTrue(Util.inBoundary(new Vector3f(0, 1, 0), boundary));
         
-        //Test Vectex of boundary
-        assertTrue(Util.inBoundary(new Vector3f(1, 1, 0), boundary));
-        
         //Test OutSide of boundary
-        assertFalse(Util.inBoundary(new Vector3f(2, 0, 0), boundary));
+        assertFalse(Util.inBoundary(new Vector3f(2, 1, 0), boundary));
+        
+        
     }
 
     /**
-     * Test of castLineOnBoundary method, of class Util.
+     * Test of castRayOnBoundary method, of class Util.
      */
     @Test
     public void testCastLineOnBoundary() {
-        System.out.println("castLineOnBoundary");
+        System.out.println("castRayOnBoundary");
         Vector3f[] boundary = new Vector3f[]{
             new Vector3f(-1, -1, 0),
             new Vector3f(-1, 1, 0),
             new Vector3f(1, 1, 0),
             new Vector3f(1, -1, 0),};
+        
         //Cast Line From outside towards boundary
-        assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(1, 0, 0));
+        assertVector3f(Util.castRayOnBoundary(new Vector3f(2, 0, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(1, 0, 0));
         
         //Cast Line From outside boundary toward and parallel to an edge
-        assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(1, 1, 0));
+        assertVector3f(Util.castRayOnBoundary(new Vector3f(2, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(1, 1, 0));
         
         //Cast Line From middle of an edge and out parallel to that edge
-        assertVector3f(Util.castLineOnBoundary(new Vector3f(0, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(-1, 1, 0));
+        assertVector3f(Util.castRayOnBoundary(new Vector3f(0, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(-1, 1, 0));
         
         //Cast Line From inside the boundary to one vertex
-        assertVector3f(Util.castLineOnBoundary(new Vector3f(0, 0, 0), new Vector3f(1, 1, 0), boundary), new Vector3f(1, 1, 0));
+        assertVector3f(Util.castRayOnBoundary(new Vector3f(0, 0, 0), new Vector3f(1, 1, 0), boundary), new Vector3f(1, 1, 0));
         
         //Cast Line From outside boundary to one vertex
-        assertVector3f(Util.castLineOnBoundary(new Vector3f(3, 0, 0), new Vector3f(1, 1, 0).subtract(new Vector3f(3, 0, 0)).normalize(), boundary), new Vector3f(1, 1, 0));
+        assertVector3f(Util.castRayOnBoundary(new Vector3f(3, 0, 0), new Vector3f(1, 1, 0).subtract(new Vector3f(3, 0, 0)).normalize(), boundary), new Vector3f(1, 1, 0));
         
         //Cast Line From outside boundary away from boundary
-        assertNull(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f(1, 0, 0), boundary));
+        assertNull(Util.castRayOnBoundary(new Vector3f(2, 0, 0), new Vector3f(1, 0, 0), boundary));
     }
 
     /**

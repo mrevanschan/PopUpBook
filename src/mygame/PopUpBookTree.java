@@ -143,6 +143,7 @@ public class PopUpBookTree {
                 
                 System.out.println("From "+ i + " To " + (i+1));
                 System.out.println("Collision " + planeCollision);
+
                 System.out.println("Null?" +planeCollision != null);
                 System.out.println("Distance" + planeCollision.distance(nextPoint));
                 System.out.println("InBound " + Util.inBoundary(planeCollision, boundaryB));

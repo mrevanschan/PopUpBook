@@ -153,7 +153,7 @@ public class D1SCreationState extends BaseAppState {
                                 }
                                 verticesB.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(length).add(verticesB.get(1)));
                             }
-                            
+
                             fitInBoundaries();
                             updateGraphics();
                         }
@@ -553,32 +553,29 @@ public class D1SCreationState extends BaseAppState {
             midPlane.setOriginNormal(axisPoints[1], axisTranslationA.subtract(axisTranslationB).normalize());
             System.out.println("Normal + " + midPlane.getNormal());
             Vector3f sideNormal = null;
-            for (PopUpBookTree.JointNode joint : pageA.relatedJoint) {
-                if (joint.type.equals("D2Joint")) {
-                    sideNormal = joint.theOther(pageA).getNormal();
-                    Vector3f[] axis = pageA.axis;
-                    if (FastMath.abs(axis[0].distance(axisPoints[1])) < FastMath.abs(axis[1].distance(axisPoints[1]))) {
-                        axisTranslationA = axis[1].subtract(axis[0]);
-                    } else {
-                        axisTranslationA = axis[0].subtract(axis[1]);
-                    }
-                    axisTranslationB = midPlane.reflect(axisPoints[1].add(axisTranslationA), null).subtract(axisPoints[1]);
-                    break;
+
+            if (pageA.joint.type.equals("D2Joint")) {
+                sideNormal = pageA.joint.theOther(pageA).getNormal();
+                Vector3f[] axis = pageA.axis;
+                if (FastMath.abs(axis[0].distance(axisPoints[1])) < FastMath.abs(axis[1].distance(axisPoints[1]))) {
+                    axisTranslationA = axis[1].subtract(axis[0]);
+                } else {
+                    axisTranslationA = axis[0].subtract(axis[1]);
                 }
+                axisTranslationB = midPlane.reflect(axisPoints[1].add(axisTranslationA), null).subtract(axisPoints[1]);
             }
+
             if (sideNormal == null) {
-                for (PopUpBookTree.JointNode joint : pageB.relatedJoint) {
-                    if (joint.type.equals("D2Joint")) {
-                        sideNormal = joint.theOther(pageB).getNormal();
-                        Vector3f[] axis = pageB.axis;
-                        if (FastMath.abs(axis[0].distance(axisPoints[1])) < FastMath.abs(axis[1].distance(axisPoints[1]))) {
-                            axisTranslationB = axis[1].subtract(axis[0]);
-                        } else {
-                            axisTranslationB = axis[0].subtract(axis[1]);
-                        }
-                        axisTranslationA = midPlane.reflect(axisPoints[1].add(axisTranslationB), null).subtract(axisPoints[1]);
-                        break;
+                if (pageB.joint.type.equals("D2Joint")) {
+                    sideNormal = pageB.joint.theOther(pageB).getNormal();
+                    Vector3f[] axis = pageB.axis;
+                    if (FastMath.abs(axis[0].distance(axisPoints[1])) < FastMath.abs(axis[1].distance(axisPoints[1]))) {
+                        axisTranslationB = axis[1].subtract(axis[0]);
+                    } else {
+                        axisTranslationB = axis[0].subtract(axis[1]);
                     }
+                    axisTranslationA = midPlane.reflect(axisPoints[1].add(axisTranslationB), null).subtract(axisPoints[1]);
+
                 }
             }
             if (sideNormal != null) {
@@ -614,7 +611,7 @@ public class D1SCreationState extends BaseAppState {
                         }
                     }
                 }
-                
+
                 Vector3f translation;
                 if (Util.isBetween(limitB[0], limitA[0], limitB[1]) || Util.isBetween(limitB[0], limitA[1], limitB[1])) {
                     if (Util.isBetween(limitB[0], limitA[0], limitB[1]) && Util.isBetween(limitB[0], limitA[1], limitB[1])) {

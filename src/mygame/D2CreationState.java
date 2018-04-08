@@ -190,7 +190,7 @@ public class D2CreationState extends BaseAppState {
                                         referencePoint.addLocal(translation);
                                     } else {
                                         //Too tall
-                                        Vector3f tallestPoint = Util.closestPointToDirrection(axisTranslationA, pageA.boundary);
+                                        Vector3f tallestPoint = Util.closestPointToDirection(axisTranslationA, pageA.boundary);
                                         Vector3f adjustTranslation = Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationA.mult(100f)), verticesA.get(0).add(deltaAxis.mult(100f)), verticesA.get(1).add(deltaAxis.negate().mult(100f)));
                                         if (adjustTranslation != null) {
                                             adjustTranslation.set(tallestPoint.subtract(adjustTranslation));
@@ -278,7 +278,7 @@ public class D2CreationState extends BaseAppState {
                                         referencePoint.addLocal(translation);
                                     } else {
                                         //Too tall
-                                        Vector3f tallestPoint = Util.closestPointToDirrection(axisTranslationB, pageB.boundary);
+                                        Vector3f tallestPoint = Util.closestPointToDirection(axisTranslationB, pageB.boundary);
                                         Vector3f adjustTranslation = Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationB.mult(100f)), verticesB.get(0).add(deltaAxis.mult(100f)), verticesB.get(1).add(deltaAxis.negate().mult(100f)));
                                         if (adjustTranslation != null) {
                                             adjustTranslation.set(tallestPoint.subtract(adjustTranslation));
@@ -496,12 +496,12 @@ public class D2CreationState extends BaseAppState {
                                         pairPoint = verticesB.get(pairNum(verticesB.indexOf(referencePoint)));
                                     }
 
-                                    Vector3f dirrection1 = referencePoint.subtract(pairPoint).mult(100f);
-                                    Vector3f dirrection2 = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
-                                    Vector3f point1 = pairPoint.add(dirrection2);
-                                    Vector3f point2 = pairPoint.add(dirrection2.negate());
-                                    Vector3f point3 = point2.add(dirrection1);
-                                    Vector3f point4 = point1.add(dirrection1);
+                                    Vector3f direction1 = referencePoint.subtract(pairPoint).mult(100f);
+                                    Vector3f direction2 = Util.lineToPointTranslation(referencePoint, deltaAxis, app.getCamera().getLocation()).cross(deltaAxis).normalize().mult(50f);
+                                    Vector3f point1 = pairPoint.add(direction2);
+                                    Vector3f point2 = pairPoint.add(direction2.negate());
+                                    Vector3f point3 = point2.add(direction1);
+                                    Vector3f point4 = point1.add(direction1);
                                     Geometry collision = new Geometry("Collision", Util.makeMesh(new Vector3f[]{point1, point2, point3, point4}));
                                     collisionNode.attachChild(collision);
                                     //app.text.setText("shiftDot");
@@ -699,29 +699,29 @@ public class D2CreationState extends BaseAppState {
 
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])) {
-                verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
-                verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                verticesA.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
+                verticesA.get(1).set(Util.closestPointToDirection(deltaAxis, boundary));
                 app.setText("Hint", "Both Out");
             }
             if (Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])) {
-                verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                verticesA.get(1).set(Util.closestPointToDirection(deltaAxis, boundary));
                 if (verticesA.get(1).distance(verticesA.get(0)) < 0.25f) {
                     Vector3f temp = verticesA.get(1).add(deltaAxis.normalize().negate().mult(0.25f));
                     if (Util.isBetween(boundary[0], temp, boundary[1])) {
                         verticesA.get(0).set(temp);
                     } else {
-                        verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+                        verticesA.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
                     }
                 }
             }
             if (!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && Util.isBetween(boundary[0], verticesA.get(1), boundary[1])) {
-                verticesA.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+                verticesA.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
                 if (verticesA.get(0).distance(verticesA.get(1)) < 0.25f) {
                     Vector3f temp = verticesA.get(0).add(deltaAxis.normalize().mult(0.25f));
                     if (Util.isBetween(boundary[0], temp, boundary[1])) {
                         verticesA.get(1).set(temp);
                     } else {
-                        verticesA.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                        verticesA.get(1).set(Util.closestPointToDirection(deltaAxis, boundary));
                     }
                 }
             }
@@ -730,28 +730,28 @@ public class D2CreationState extends BaseAppState {
         boundary = Util.lineBoundaryIntersectionPair(verticesB.get(0), deltaAxis, pageB.boundary);
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesB.get(1), boundary[1])) {
-                verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
-                verticesB.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                verticesB.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
+                verticesB.get(1).set(Util.closestPointToDirection(deltaAxis, boundary));
             }
             if (Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesB.get(1), boundary[1])) {
-                verticesB.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                verticesB.get(1).set(Util.closestPointToDirection(deltaAxis, boundary));
                 if (verticesB.get(1).distance(verticesB.get(0)) < 0.25f) {
                     Vector3f temp = verticesB.get(1).add(deltaAxis.normalize().negate().mult(0.25f));
                     if (Util.isBetween(boundary[0], temp, boundary[1])) {
                         verticesB.get(0).set(temp);
                     } else {
-                        verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+                        verticesB.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
                     }
                 }
             }
             if (!Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && Util.isBetween(boundary[0], verticesB.get(1), boundary[1])) {
-                verticesB.get(0).set(Util.closestPointToDirrection(deltaAxis.negate(), boundary));
+                verticesB.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
                 if (verticesB.get(0).distance(verticesB.get(1)) < 0.25f) {
                     Vector3f temp = verticesB.get(0).add(deltaAxis.normalize().mult(0.25f));
                     if (Util.isBetween(boundary[0], temp, boundary[1])) {
                         verticesB.get(1).set(temp);
                     } else {
-                        verticesB.get(1).set(Util.closestPointToDirrection(deltaAxis, boundary));
+                        verticesB.get(1).set(Util.closestPointToDirection(deltaAxis, boundary));
                     }
                 }
             }

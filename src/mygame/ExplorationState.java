@@ -80,30 +80,30 @@ public class ExplorationState extends BaseAppState {
                 }
                 case E_D2: {
                     if (app.selected.size() == 2) {
-                          Geometry geomA = app.selected.get(0);
-                          Geometry geomB = app.selected.get(1);
-                          ArrayList<Vector3f> results = app.popUpBook.boundboundIntersect(app.popUpBook.geomPatchMap.get(geomA).translatedBoundary, app.popUpBook.geomPatchMap.get(geomB).translatedBoundary);
-                          
-                          if(results!= null){
-                              for(Vector3f point:results){
-                              addDot(point);
-                            }
-                          }
-//                        if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
-//                            Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
-//                            Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
-//                            if (normal1.cross(normal2).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-//                                app.popUpBook.fold(0f);
-//                                setEnabled(false);
-//                                app.getStateManager().getState(D2CreationState.class).setEnabled(true);
-//
-//                            } else {
-//                                app.setText("Error", "The two planes Must not be parallel");
+//                          Geometry geomA = app.selected.get(0);
+//                          Geometry geomB = app.selected.get(1);
+//                          ArrayList<Vector3f> results = app.popUpBook.boundboundIntersect(app.popUpBook.geomPatchMap.get(geomA).translatedBoundary, app.popUpBook.geomPatchMap.get(geomB).translatedBoundary);
+//                          
+//                          if(results!= null){
+//                              for(Vector3f point:results){
+//                              addDot(point);
 //                            }
-//
-//                        } else {
-//                            app.setText("Error", "Not neigbour");
-//                        }
+//                          }
+                        if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
+                            Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
+                            Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
+                            if (normal1.cross(normal2).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
+                                app.popUpBook.fold(0f);
+                                setEnabled(false);
+                                app.getStateManager().getState(D2CreationState.class).setEnabled(true);
+
+                            } else {
+                                app.setText("Error", "The two planes Must not be parallel");
+                            }
+
+                        } else {
+                            app.setText("Error", "Not neigbour");
+                        }
                     } else {
                         app.setText("Error", "Please Select two planes");
                     }
