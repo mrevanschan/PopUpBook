@@ -78,21 +78,24 @@ public class ExplorationState extends BaseAppState {
                 }
                 case E_D2: {
                     if (app.selected.size() == 2) {
-                        if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
-                            Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
-                            Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
-                            if (normal1.cross(normal2).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-                                app.popUpBook.fold(0f);
-                                setEnabled(false);
-                                app.getStateManager().getState(D2CreationState.class).setEnabled(true);
-
-                            } else {
-                                app.setText("Error","The two planes Must not be parallel");
-                            }
-
-                        } else {
-                            app.setText("Error","Not neigbour");
-                        }
+                          Geometry geomA = app.selected.get(0);
+                          Geometry geomB = app.selected.get(1);
+                          app.popUpBook.boundboundIntersect(app.popUpBook.geomPatchMap.get(geomA).translatedBoundary, app.popUpBook.geomPatchMap.get(geomB).translatedBoundary);
+//                        if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
+//                            Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
+//                            Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
+//                            if (normal1.cross(normal2).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
+//                                app.popUpBook.fold(0f);
+//                                setEnabled(false);
+//                                app.getStateManager().getState(D2CreationState.class).setEnabled(true);
+//
+//                            } else {
+//                                app.setText("Error", "The two planes Must not be parallel");
+//                            }
+//
+//                        } else {
+//                            app.setText("Error", "Not neigbour");
+//                        }
                     } else {
                         app.setText("Error", "Please Select two planes");
                     }
@@ -123,13 +126,20 @@ public class ExplorationState extends BaseAppState {
                         fold = 0;
                         percentage += 0.1;
                         if (percentage > 0.98f) {
-                            percentage = 1f-0.0005f;
+                            percentage = 1f - 0.0005f;
                             app.setText("Hint", "100%");
                         } else {
                             app.setText("Hint", (int) (percentage * 100) + "%");
                         }
 
                         app.popUpBook.fold(percentage);
+                        ArrayList<Vector3f> collision = app.popUpBook.getCollisions();
+                        if (collision != null) {
+                            for (Vector3f point : collision) {
+                                addDot(point);
+                            }
+                            fold = 0;
+                        }
                     }
                     break;
                 }
@@ -140,12 +150,13 @@ public class ExplorationState extends BaseAppState {
                         if (percentage < 0.02f) {
                             percentage = 0f;
                             app.setText("Hint", "0%");
-                        
+
                         } else {
                             app.setText("Hint", (int) (percentage * 100) + "%");
-                        
+
                         }
                         app.popUpBook.fold(percentage);
+
                     }
                     break;
                 }
@@ -183,16 +194,16 @@ public class ExplorationState extends BaseAppState {
                 }
                 case E_DELETE: {
                     if (keyPressed) {
-                        if(app.selected.size() == 0){
+                        if (app.selected.size() == 0) {
                             app.setText("Hint", "To Delete, You Must Select A Plane");
-                        }else if(app.selected.size() == 2) {
+                        } else if (app.selected.size() == 2) {
                             app.setText("Hint", "To Delete, You Must Select Only One Plane");
-                        }else{
+                        } else {
                             app.popUpBook.delete(app.popUpBook.geomPatchMap.get(app.selected.get(0)));
                             app.selected.clear();
                             app.popUpBook.update();
                         }
-                        
+
                     }
                     break;
                 }
@@ -217,7 +228,7 @@ public class ExplorationState extends BaseAppState {
         inputManager.addMapping(E_FOLD, new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping(E_D1, new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping(E_D2, new KeyTrigger(KeyInput.KEY_2));
-        inputManager.addMapping(E_DELETE, new KeyTrigger(KeyInput.KEY_DELETE),new KeyTrigger(KeyInput.KEY_BACK));
+        inputManager.addMapping(E_DELETE, new KeyTrigger(KeyInput.KEY_DELETE), new KeyTrigger(KeyInput.KEY_BACK));
         inputManager.addMapping(E_FOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addMapping(E_UNFOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_LEFT));
         dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -230,21 +241,22 @@ public class ExplorationState extends BaseAppState {
         if (fold == 1) {
             if (percentage < 0.98f) {
                 percentage += tpf * frame;
-                app.setText("Hint", (int) (percentage * 100) + "%");  
+                app.setText("Hint", (int) (percentage * 100) + "%");
 
             } else {
                 fold = 0;
                 percentage = 0.99f;
                 app.setText("Hint", "100%");
             }
+
+            app.popUpBook.fold(percentage);
             ArrayList<Vector3f> collision = app.popUpBook.getCollisions();
-            if(collision != null){
-                for(Vector3f point : collision){
+            if (collision != null) {
+                for (Vector3f point : collision) {
                     addDot(point);
                 }
                 fold = 0;
             }
-            app.popUpBook.fold(percentage);
         } else if (fold == -1) {
             if (percentage < 0.02) {
                 fold = 0;
@@ -270,7 +282,7 @@ public class ExplorationState extends BaseAppState {
     protected void onEnable() {
         app.setText("Mode", "Exploration Mode");
         app.popUpBook.fold(0f);
-        
+
         inputManager.addListener(buildListener, E_D1);
         inputManager.addListener(buildListener, E_D2);
         inputManager.addListener(exploreListener, E_FOLD);
@@ -295,14 +307,13 @@ public class ExplorationState extends BaseAppState {
         System.out.println("Explore disabled");
         //System.out.println(app.getInputManager().de);
     }
-    
-    private void addDot(Vector3f dotLocation) {
-            Geometry dot = new Geometry("Dot", new Sphere(8, 8, 0.5f));
-            dot.setMaterial(dotMaterial);
-            dot.setLocalTranslation(dotLocation);
-            app.getRootNode().attachChild(dot);
-        
-    }
 
+    private void addDot(Vector3f dotLocation) {
+        Geometry dot = new Geometry("Dot", new Sphere(8, 8, 0.5f));
+        dot.setMaterial(dotMaterial);
+        dot.setLocalTranslation(dotLocation);
+        app.getRootNode().attachChild(dot);
+
+    }
 
 }

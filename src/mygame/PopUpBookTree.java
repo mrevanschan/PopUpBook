@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import static mygame.Util.getBountdaryNormal;
+import static mygame.Util.inBoundary;
+import static mygame.Util.linePlaneIntersection;
 
 /**
  *
@@ -87,25 +90,20 @@ public class PopUpBookTree {
 
     public ArrayList<Vector3f> getCollisions() {
         ArrayList<Vector3f> collisionList = new ArrayList<>();
-//        PatchNode[] patchList = new PatchNode[geomPatchMap.size()];
-//        int i = 0;
-//        for(PatchNode patch:geomPatchMap.values()){
-//            patchList[i] = patch;
-//            i++;
-//        }
         PatchNode[] patchList = geomPatchMap.values().toArray(new PatchNode[geomPatchMap.size()]);
         for (int i = 0; i < patchList.length; i++) {
             for (int x = i + 1; x < patchList.length; x++) {
                 PatchNode patchA = patchList[i];
                 PatchNode patchB = patchList[x];
+                
                 if (!patchA.isNeighbor(patchB)) {
-                    ArrayList<Vector3f> collision = Util.boundboundIntersect(patchA.boundary, patchB.boundary);
+                    //System.out.println("Checking "+i +" "+x);
+                    ArrayList<Vector3f> collision = boundboundIntersect(patchA.translatedBoundary, patchB.translatedBoundary);
                     if (collision != null) {
-                        for (Vector3f point : collision) {
-                            if (!collisionList.contains(point)) {
-                                System.out.println("Collision "+point);
-                                collisionList.add(point);
-                            }
+                        patchA.geometry.setMaterial(app.markPaper);
+                        patchB.geometry.setMaterial(app.markPaper);
+                        for(Vector3f point:collision){
+                            collisionList.add(point);
                         }
                     }
                 }
@@ -115,6 +113,44 @@ public class PopUpBookTree {
             return collisionList;
         } else {
             return null;
+        }
+    }
+    public boolean onBoundary(Vector3f point, Vector3f[]boundary){
+       for (int i = 0; i < boundary.length; i++) {
+            Vector3f nextPoint = boundary[(i + 1) % boundary.length];
+            if(Util.inLine(boundary[i], point, nextPoint) && Util.isBetween(boundary[i], point, nextPoint)){
+                return true;
+            }
+        }
+       return false;
+    }
+    public ArrayList<Vector3f> boundboundIntersect(Vector3f[] boundaryA, Vector3f[] boundaryB) {
+        ArrayList<Vector3f> collisionList = new ArrayList<>();
+        Vector3f normalA = getBountdaryNormal(boundaryA);
+        Vector3f normalB = getBountdaryNormal(boundaryB);
+        
+        for (int i = 0; i < boundaryA.length; i++) {
+            Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
+            Vector3f planeCollision = Util.rayPlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
+            if (planeCollision != null && planeCollision.distance(boundaryA[i]) < boundaryA[i].distance(nextPoint) && inBoundary(planeCollision, boundaryB) && !onBoundary(planeCollision, boundaryB)) {
+                System.out.println("From "+ boundaryA[i] + " To " + nextPoint);
+                System.out.println("Collision " + planeCollision);
+                collisionList.add(planeCollision);
+            }
+        }
+        for (int i = 0; i < boundaryB.length; i++) {
+            Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
+            Vector3f planeCollision = Util.rayPlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
+            if (planeCollision != null && planeCollision.distance(boundaryB[i]) < boundaryB[i].distance(nextPoint) && inBoundary(planeCollision, boundaryA) && !onBoundary(planeCollision, boundaryA)) {
+                collisionList.add(planeCollision);
+            }
+        }
+        
+        
+        if(collisionList.size()< 2) {
+            return null;
+        }else{
+            return collisionList;
         }
     }
 
@@ -501,7 +537,7 @@ public class PopUpBookTree {
         public Vector3f[] axis;
         private Vector3f[] translatedAxis;
         public Vector3f[] boundary;
-        private Vector3f[] translatedBoundary;
+        public Vector3f[] translatedBoundary;
         private boolean ready;
         public ArrayList<PatchNode> next;
         public PatchNode parent;

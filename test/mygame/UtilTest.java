@@ -578,6 +578,11 @@ public class UtilTest {
         Vector3f origin = new Vector3f(0, 5, 0);
         Vector3f target = new Vector3f(0, 0, 0);
         assertVector3f(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal), target);
+        
+        //Test if a line does not start on plane and is dirrection is toward the plane
+        origin = new Vector3f(0, 5, 0);
+        target = new Vector3f(0, 0, 0);
+        assertVector3f(Util.linePlaneIntersection(origin, origin.subtract(target).normalize(), planePoint, planeNormal), target);
 
         //Test if line starts from plane and line dirrection is not parallel to plane
         origin = new Vector3f(0, 0, 0);
@@ -593,6 +598,42 @@ public class UtilTest {
         origin = new Vector3f(0, 0, 0);
         target = new Vector3f(1, 0, 0);
         assertNull(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
+
+    }
+    /**
+     * Test of linePlaneIntersection method, of class Util.
+     */
+    @Test
+    public void testRayPlaneIntersection() {
+        System.out.println("rayPlaneIntersection");
+
+        Vector3f planePoint = new Vector3f(0, 0, 0);
+        Vector3f planeNormal = new Vector3f(0, 1, 0);
+
+        //Test if a line does not start on plane and is dirrection is toward the plane
+        Vector3f origin = new Vector3f(0, 5, 0);
+        Vector3f target = new Vector3f(0, 0, 0);
+        assertVector3f(Util.rayPlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal), target);
+        
+        //Test if a line does not start on plane and is dirrection is toward the plane
+        origin = new Vector3f(0, 5, 0);
+        target = new Vector3f(0, 0, 0);
+        assertNull(Util.rayPlaneIntersection(origin, origin.subtract(target).normalize(), planePoint, planeNormal));
+
+        //Test if line starts from plane and line dirrection is not parallel to plane
+        origin = new Vector3f(0, 0, 0);
+        target = new Vector3f(0, 1, 0);
+        assertVector3f(Util.rayPlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal), origin);
+
+        //Test if line dirrection does not touch plane from line starting point
+        origin = new Vector3f(0, 1, 0);
+        target = new Vector3f(0, 1, 0);
+        assertNull(Util.rayPlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
+
+        //Test if line and plane is parallel
+        origin = new Vector3f(0, 0, 0);
+        target = new Vector3f(1, 0, 0);
+        assertNull(Util.rayPlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
 
     }
 

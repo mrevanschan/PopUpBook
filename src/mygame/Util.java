@@ -328,6 +328,19 @@ public final class Util {
 
         return null;
     }
+    public static Vector3f rayPlaneIntersection(Vector3f linePoint, Vector3f lineDir, Vector3f planePoint, Vector3f planeNormal) {
+        
+        if (FastMath.abs(lineDir.normalize().dot(planeNormal.normalize())) > FastMath.FLT_EPSILON) {
+            float d = (planePoint.subtract(linePoint).dot(planeNormal.normalize())) / (lineDir.normalize().dot(planeNormal.normalize()));
+            if(d > FastMath.FLT_EPSILON){
+                return linePoint.add(lineDir.normalize().mult(d));
+            }
+        } else {
+            //System.out.println("lineDir.dot(planeNormal) = " + lineDir.dot(planeNormal));
+        }
+
+        return null;
+    }
 
     public static Vector3f getBountdaryNormal(Vector3f[] boundary) {
         for (int i = 0; i < boundary.length; i++) {
@@ -346,14 +359,16 @@ public final class Util {
         for (int i = 0; i < boundaryA.length; i++) {
             Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
             Vector3f planeCollision = linePlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
-            if (planeCollision != null && inBoundary(planeCollision, boundaryB) && !containsVector3f(collisionList, planeCollision)) {
+            if (planeCollision != null && planeCollision.distance(boundaryA[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryA[i]) < boundaryA[i].distance(nextPoint) &&
+                    planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryB) && !containsVector3f(collisionList, planeCollision)) {
                 collisionList.add(planeCollision);
             }
         }
         for (int i = 0; i < boundaryB.length; i++) {
             Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
             Vector3f planeCollision = linePlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
-            if (planeCollision != null && inBoundary(planeCollision, boundaryA) && !containsVector3f(collisionList, planeCollision)) {
+            if (planeCollision != null && planeCollision.distance(boundaryB[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryB[i]) < boundaryB[i].distance(nextPoint) &&
+                    planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryA) && !containsVector3f(collisionList, planeCollision)) {
                 collisionList.add(planeCollision);
             }
         }
