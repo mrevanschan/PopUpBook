@@ -77,8 +77,8 @@ public class PopUpBookTree {
         back = addPatch(null, backBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
         front = addPatch(null, frontBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
         bookJoint = new JointNode(back, front, new Vector3f[]{new Vector3f(0f, 0f, -height / 2f), new Vector3f(0f, 0f, height / 2f)}, "D1Joint");
-        back.relatedJoint.add(bookJoint);
-        front.relatedJoint.add(bookJoint);
+        back.joint = bookJoint;
+        front.joint = bookJoint;
         joints.add(bookJoint);
         mark1 = new Geometry("name", new Sphere(5, 5, 0.05f));
         Material dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -96,7 +96,9 @@ public class PopUpBookTree {
                 PatchNode patchA = patchList[i];
                 PatchNode patchB = patchList[x];
                 
-                if (!patchA.isNeighbor(patchB)) {
+                if (!patchA.isNeighbor(patchB) &&
+                    !patchA.joint.theOther(patchA).isNeighbor(patchB) && 
+                    !patchB.joint.theOther(patchB).isNeighbor(patchA)) {
                     //System.out.println("Checking "+i +" "+x);
                     ArrayList<Vector3f> collision = boundboundIntersect(patchA.translatedBoundary, patchB.translatedBoundary);
                     if (collision != null) {
@@ -132,22 +134,44 @@ public class PopUpBookTree {
         for (int i = 0; i < boundaryA.length; i++) {
             Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
             Vector3f planeCollision = Util.rayPlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
-            if (planeCollision != null && planeCollision.distance(boundaryA[i]) < boundaryA[i].distance(nextPoint) && inBoundary(planeCollision, boundaryB) && !onBoundary(planeCollision, boundaryB)) {
-                System.out.println("From "+ boundaryA[i] + " To " + nextPoint);
+            if (planeCollision != null &&
+                planeCollision.distanceSquared(boundaryA[i]) < boundaryA[i].distanceSquared(nextPoint) &&
+                planeCollision.distanceSquared(nextPoint) > FastMath.FLT_EPSILON &&
+                planeCollision.distanceSquared(boundaryA[i]) > FastMath.FLT_EPSILON &&
+                Util.inBoundary(planeCollision, boundaryB)// && !onBoundary(planeCollision, boundaryB)
+                    ) {
+                
+                System.out.println("From "+ i + " To " + (i+1));
                 System.out.println("Collision " + planeCollision);
+                System.out.println("Null?" +planeCollision != null);
+                System.out.println("Distance" + planeCollision.distance(nextPoint));
+                System.out.println("InBound " + Util.inBoundary(planeCollision, boundaryB));
+                Util.inBoundary(planeCollision, boundaryB);
+                onBoundary(planeCollision, boundaryB);
+                System.out.println("OnBound " + !onBoundary(planeCollision, boundaryB));
                 collisionList.add(planeCollision);
             }
         }
         for (int i = 0; i < boundaryB.length; i++) {
             Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
             Vector3f planeCollision = Util.rayPlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
-            if (planeCollision != null && planeCollision.distance(boundaryB[i]) < boundaryB[i].distance(nextPoint) && inBoundary(planeCollision, boundaryA) && !onBoundary(planeCollision, boundaryA)) {
+            if (planeCollision != null &&
+                planeCollision.distanceSquared(boundaryB[i]) < boundaryB[i].distanceSquared(nextPoint) &&
+                planeCollision.distanceSquared(nextPoint) > Util.FLT_EPSILON &&
+                planeCollision.distanceSquared(boundaryB[i]) > Util.FLT_EPSILON &&
+                Util.inBoundary(planeCollision, boundaryA)// && !onBoundary(planeCollision, boundaryA)
+                    ) {
+                System.out.println("From "+ i + " To " + (i+1));
+                System.out.println("Collision " + planeCollision);
+                System.out.println("Null?" +planeCollision != null);
+                System.out.println("Distance" + planeCollision.distance(nextPoint));
+                System.out.println("InBound " + Util.inBoundary(planeCollision, boundaryB));
                 collisionList.add(planeCollision);
             }
         }
+    
         
-        
-        if(collisionList.size()< 2) {
+        if(collisionList.size()< 1) {
             return null;
         }else{
             return collisionList;
@@ -166,12 +190,14 @@ public class PopUpBookTree {
             geomPatchMap.remove(patch.geometry);
             System.out.println(patch);
             //patch.geometry = null;
-            for (JointNode joint : patch.relatedJoint) {
-                PatchNode otherPatch = joint.theOther(patch);
-                otherPatch.relatedJoint.remove(joint);
-                joints.remove(joint);
-                delete(otherPatch);
+            if(patch.joint != null){
+                patch.joint.theOther(patch).joint = null;
+                joints.remove(patch.joint);
+                delete(patch.joint.theOther(patch));
+                patch.joint = null;
             }
+            
+            
             patch.parent.next.remove(patch);
             while (!patch.next.isEmpty()) {
                 System.out.println("Next" + patchs.indexOf(patch.next.get(0)));
@@ -197,8 +223,8 @@ public class PopUpBookTree {
 
     public void addJoint(PatchNode patchA, PatchNode patchB, Vector3f[] axis, String type) {
         JointNode joint = new JointNode(patchA, patchB, axis, type);
-        patchA.relatedJoint.add(joint);
-        patchB.relatedJoint.add(joint);
+        patchA.joint = joint;
+        patchB.joint = joint;
         joints.add(joint);
     }
 
@@ -293,8 +319,8 @@ public class PopUpBookTree {
                 PatchNode patchA = new PatchNode(parentA, new Vector3f[]{axisA1.clone(), axisA2.clone()}, Util.toArray(pointsA));
                 PatchNode patchB = new PatchNode(parentB, new Vector3f[]{axisB1.clone(), axisB2.clone()}, Util.toArray(pointsB));
                 JointNode joint = new JointNode(patchA, patchB, new Vector3f[]{jointA1, jointA2}, "D1Joint");
-                patchA.relatedJoint.add(joint);
-                patchB.relatedJoint.add(joint);
+                patchA.joint = joint;
+                patchB.joint = joint;
                 joints.add(joint);
                 fold(1f - 0.0008f, false);
 
@@ -421,8 +447,8 @@ public class PopUpBookTree {
                 PatchNode patchA = new PatchNode(parentA, new Vector3f[]{pointsA.get(0), pointsA.get(1)}, Util.toArray(pointsA));
                 PatchNode patchB = new PatchNode(parentB, new Vector3f[]{jointPointB, pointsB.get(1)}, Util.toArray(pointsB));
                 JointNode joint = new JointNode(patchA, patchB, new Vector3f[]{jointPoint, pointsA.get(2).clone()}, "D2Joint");
-                patchA.relatedJoint.add(joint);
-                patchB.relatedJoint.add(joint);
+                patchA.joint = joint;
+                patchB.joint = joint;
                 joints.add(joint);
                 fold(0.999f, false);
 
@@ -541,13 +567,12 @@ public class PopUpBookTree {
         private boolean ready;
         public ArrayList<PatchNode> next;
         public PatchNode parent;
-        public ArrayList<JointNode> relatedJoint;
+        public JointNode joint;
         private ArrayList<Vector3f> attatched;
 
         private PatchNode(Geometry prev, Geometry geometry, Vector3f[] axis, Vector3f[] boundary) {
             this.next = new ArrayList<>();
-
-            this.relatedJoint = new ArrayList<>();
+            this.joint = null;
             this.geometry = geometry;
             this.axis = axis;
             translatedAxis = new Vector3f[2];
@@ -573,7 +598,7 @@ public class PopUpBookTree {
             translatedAxis[0] = axis[0].clone();
             translatedAxis[1] = axis[1].clone();
             geomPatchMap.get(prev).next.add(this);
-            this.relatedJoint = new ArrayList<>();
+            joint = null;
             translatedBuffer = buffer;
         }
 
@@ -584,12 +609,7 @@ public class PopUpBookTree {
             if (next.contains(patch) || patch.next.contains(this)) {
                 return true;
             }
-            for (JointNode joint : relatedJoint) {
-                if (joint.patchA.equals(patch) || joint.patchB.equals(patch)) {
-                    return true;
-                }
-            }
-            return false;
+            return joint.patchA.equals(patch) || joint.patchB.equals(patch);
         }
 
         public float distanceFromPoint(Vector3f point) {
@@ -643,9 +663,9 @@ public class PopUpBookTree {
             for (Vector3f point : translatedBuffer) {
                 point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
             }
-            for (JointNode joint : relatedJoint) {
-                joint.rotate(this, axis, radian);
-            }
+            
+            joint.rotate(this, axis, radian);
+            
             translatedAxis[0].set(Util.rotatePoint(translatedAxis[0], axis[0], axis[1], radian));
             translatedAxis[1].set(Util.rotatePoint(translatedAxis[1], axis[0], axis[1], radian));
         }

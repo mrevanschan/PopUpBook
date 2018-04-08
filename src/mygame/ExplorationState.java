@@ -22,6 +22,7 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.shape.Sphere;
 import java.util.ArrayList;
 
@@ -35,6 +36,7 @@ public class ExplorationState extends BaseAppState {
     private PopUpBook app;
     private int fold;
     private Material dotMaterial;
+    private Node collisionIndicatorNode;
     public static final String E_CLICK = "Click";
     public static final String E_FOLD = "Fold";
     public static final String E_DELETE = "DELETE";
@@ -80,7 +82,13 @@ public class ExplorationState extends BaseAppState {
                     if (app.selected.size() == 2) {
                           Geometry geomA = app.selected.get(0);
                           Geometry geomB = app.selected.get(1);
-                          app.popUpBook.boundboundIntersect(app.popUpBook.geomPatchMap.get(geomA).translatedBoundary, app.popUpBook.geomPatchMap.get(geomB).translatedBoundary);
+                          ArrayList<Vector3f> results = app.popUpBook.boundboundIntersect(app.popUpBook.geomPatchMap.get(geomA).translatedBoundary, app.popUpBook.geomPatchMap.get(geomB).translatedBoundary);
+                          
+                          if(results!= null){
+                              for(Vector3f point:results){
+                              addDot(point);
+                            }
+                          }
 //                        if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
 //                            Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
 //                            Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
@@ -231,6 +239,8 @@ public class ExplorationState extends BaseAppState {
         inputManager.addMapping(E_DELETE, new KeyTrigger(KeyInput.KEY_DELETE), new KeyTrigger(KeyInput.KEY_BACK));
         inputManager.addMapping(E_FOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addMapping(E_UNFOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_LEFT));
+        collisionIndicatorNode = new Node("Collision indicator");
+        this.app.getRootNode().attachChild(collisionIndicatorNode);
         dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         dotMaterial.setColor("Color", ColorRGBA.Red);
 
@@ -258,6 +268,10 @@ public class ExplorationState extends BaseAppState {
                 fold = 0;
             }
         } else if (fold == -1) {
+            collisionIndicatorNode.detachAllChildren();
+            for(Geometry patch:app.popUpBook.geomPatchMap.keySet()){
+                patch.setMaterial(app.paper);
+            }
             if (percentage < 0.02) {
                 fold = 0;
                 percentage = 0f;
@@ -309,10 +323,10 @@ public class ExplorationState extends BaseAppState {
     }
 
     private void addDot(Vector3f dotLocation) {
-        Geometry dot = new Geometry("Dot", new Sphere(8, 8, 0.5f));
+        Geometry dot = new Geometry("Dot", new Sphere(8, 8, 0.05f));
         dot.setMaterial(dotMaterial);
         dot.setLocalTranslation(dotLocation);
-        app.getRootNode().attachChild(dot);
+        collisionIndicatorNode.attachChild(dot);
 
     }
 

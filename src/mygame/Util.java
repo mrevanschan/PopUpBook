@@ -19,7 +19,7 @@ import java.util.ArrayList;
  */
 public final class Util {
 
-    public static final float FLT_EPSILON = 0.00001f;
+    public static final float FLT_EPSILON = 0.0009f;
 
     public static Vector3f[] toArray(ArrayList<Vector3f> arrayList) {
         Vector3f[] array = new Vector3f[arrayList.size()];
@@ -118,7 +118,7 @@ public final class Util {
             //System.out.println("Not In Line");
             return false;
         }
-        if (mid.equals(left) || mid.equals(right)) {
+        if (mid.distance(left)< FLT_EPSILON || mid.distance(right)< FLT_EPSILON) {
             return true;
         }
         return mid.subtract(left).dot(right.subtract(mid)) > 0;
@@ -127,7 +127,7 @@ public final class Util {
     public static boolean inLine(Vector3f left, Vector3f mid, Vector3f right) {
         Vector3f vector1 = left.subtract(mid);
         Vector3f vector2 = mid.subtract(right);
-        if (vector1.length() < FastMath.FLT_EPSILON || vector2.length() < FastMath.FLT_EPSILON) {
+        if (vector1.length() < FLT_EPSILON || vector2.length() < FLT_EPSILON) {
             return true;
         }
         //System.out.println("OOLD: "+ vector1.normalize().cross(vector2.normalize()).distance(Vector3f.ZERO));
@@ -170,18 +170,34 @@ public final class Util {
     }
 
     public static boolean inBoundary(Vector3f target, Vector3f[] boundary) {
-        Vector3f dir = boundary[0].add(boundary[1]).divide(2).subtract(target).normalize().mult(100f);
-        int intersectCount = 0;
-        for (int i = 0; i < boundary.length; i++) {
-            if (target.equals(boundary[i]) || (inLine(boundary[i], target, boundary[(i + 1) % boundary.length])) && isBetween(boundary[i], target, boundary[(i + 1) % boundary.length])) {
-                return true;
+        if (FastMath.abs(target.subtract(boundary[0]).normalize().dot(getBountdaryNormal(boundary).normalize())) < FastMath.FLT_EPSILON) {
+            //System.out.println("On Plane" + FastMath.abs(target.subtract(boundary[0].normalize()).dot(getBountdaryNormal(boundary).normalize())));
+            Vector3f dir = null;
+            float length = 0f;
+            for (int i = 0; i < boundary.length; i++){
+                if(target.distance(boundary[i])>length){
+                    length = target.distance(boundary[i]);
+                }
+                if(!inLine(boundary[i], target, boundary[(i + 1) % boundary.length]) && dir == null){
+                    dir = boundary[i].add(boundary[(i + 1) % boundary.length]).divide(2).subtract(target).normalize();
+                }
             }
-            if (segmentIntesection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
-                intersectCount++;
+            dir.multLocal(length);
+            int intersectCount = 0;
+            for (int i = 0; i < boundary.length; i++) {
+                if (target.equals(boundary[i]) || (inLine(boundary[i], target, boundary[(i + 1) % boundary.length])) && isBetween(boundary[i], target, boundary[(i + 1) % boundary.length])) {
+                    return true;
+                }
+                if (segmentIntesection(target, target.add(dir), boundary[i], boundary[(i + 1) % boundary.length]) != null) {
+                    intersectCount++;
+                }
             }
+
+            return (intersectCount & 1) != 0;
+        }else{
+            return false;
         }
 
-        return (intersectCount & 1) != 0;
     }
 
     public static Vector3f castLineOnBoundary(Vector3f rayStart, Vector3f rayDir, Vector3f[] boundary) {
@@ -312,7 +328,7 @@ public final class Util {
             }
 
         } else {
-            //System.out.println("Distance = " + pointA.distance(pointB));
+            System.out.println("Distance = " + pointA.distance(pointB));
             return null;
         }
     }
@@ -328,12 +344,13 @@ public final class Util {
 
         return null;
     }
+
     public static Vector3f rayPlaneIntersection(Vector3f linePoint, Vector3f lineDir, Vector3f planePoint, Vector3f planeNormal) {
-        
+
         if (FastMath.abs(lineDir.normalize().dot(planeNormal.normalize())) > FastMath.FLT_EPSILON) {
-            float d = (planePoint.subtract(linePoint).dot(planeNormal.normalize())) / (lineDir.normalize().dot(planeNormal.normalize()));
-            if(d > FastMath.FLT_EPSILON){
-                return linePoint.add(lineDir.normalize().mult(d));
+            float d = (planePoint.subtract(linePoint).dot(planeNormal)) / (lineDir.dot(planeNormal));
+            if (d > FastMath.FLT_EPSILON) {
+                return linePoint.add(lineDir.mult(d));
             }
         } else {
             //System.out.println("lineDir.dot(planeNormal) = " + lineDir.dot(planeNormal));
@@ -359,29 +376,29 @@ public final class Util {
         for (int i = 0; i < boundaryA.length; i++) {
             Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
             Vector3f planeCollision = linePlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
-            if (planeCollision != null && planeCollision.distance(boundaryA[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryA[i]) < boundaryA[i].distance(nextPoint) &&
-                    planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryB) && !containsVector3f(collisionList, planeCollision)) {
+            if (planeCollision != null && planeCollision.distance(boundaryA[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryA[i]) < boundaryA[i].distance(nextPoint)
+                    && planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryB) && !containsVector3f(collisionList, planeCollision)) {
                 collisionList.add(planeCollision);
             }
         }
         for (int i = 0; i < boundaryB.length; i++) {
             Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
             Vector3f planeCollision = linePlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
-            if (planeCollision != null && planeCollision.distance(boundaryB[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryB[i]) < boundaryB[i].distance(nextPoint) &&
-                    planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryA) && !containsVector3f(collisionList, planeCollision)) {
+            if (planeCollision != null && planeCollision.distance(boundaryB[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryB[i]) < boundaryB[i].distance(nextPoint)
+                    && planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryA) && !containsVector3f(collisionList, planeCollision)) {
                 collisionList.add(planeCollision);
             }
         }
-        if(collisionList.size()< 2) {
+        if (collisionList.size() < 2) {
             return null;
-        }else{
+        } else {
             return collisionList;
         }
     }
-    
-    private static boolean containsVector3f(ArrayList<Vector3f> list,Vector3f target){
-        for(Vector3f point:list){
-            if(target.distance(point)< Util.FLT_EPSILON){
+
+    private static boolean containsVector3f(ArrayList<Vector3f> list, Vector3f target) {
+        for (Vector3f point : list) {
+            if (target.distance(point) < Util.FLT_EPSILON) {
                 return true;
             }
         }
