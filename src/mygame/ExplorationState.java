@@ -23,6 +23,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Sphere;
+import java.util.ArrayList;
 
 /**
  *
@@ -32,8 +33,8 @@ public class ExplorationState extends BaseAppState {
 
     private InputManager inputManager;
     private PopUpBook app;
-    private Geometry mark;
     private int fold;
+    private Material dotMaterial;
     public static final String E_CLICK = "Click";
     public static final String E_FOLD = "Fold";
     public static final String E_DELETE = "DELETE";
@@ -219,6 +220,8 @@ public class ExplorationState extends BaseAppState {
         inputManager.addMapping(E_DELETE, new KeyTrigger(KeyInput.KEY_DELETE),new KeyTrigger(KeyInput.KEY_BACK));
         inputManager.addMapping(E_FOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addMapping(E_UNFOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_LEFT));
+        dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        dotMaterial.setColor("Color", ColorRGBA.Red);
 
     }
 
@@ -233,6 +236,13 @@ public class ExplorationState extends BaseAppState {
                 fold = 0;
                 percentage = 0.99f;
                 app.setText("Hint", "100%");
+            }
+            ArrayList<Vector3f> collision = app.popUpBook.getCollisions();
+            if(collision != null){
+                for(Vector3f point : collision){
+                    addDot(point);
+                }
+                fold = 0;
             }
             app.popUpBook.fold(percentage);
         } else if (fold == -1) {
@@ -284,6 +294,14 @@ public class ExplorationState extends BaseAppState {
         inputManager.removeListener(exploreListener);
         System.out.println("Explore disabled");
         //System.out.println(app.getInputManager().de);
+    }
+    
+    private void addDot(Vector3f dotLocation) {
+            Geometry dot = new Geometry("Dot", new Sphere(8, 8, 0.5f));
+            dot.setMaterial(dotMaterial);
+            dot.setLocalTranslation(dotLocation);
+            app.getRootNode().attachChild(dot);
+        
     }
 
 

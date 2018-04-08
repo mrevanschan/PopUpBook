@@ -56,6 +56,8 @@ public class UtilTest {
         Vector3f axis1 = new Vector3f(5, 0, 0);
         Vector3f axis2 = new Vector3f(-5, 0, 0);
         float pi = FastMath.PI;
+        
+        //Test All angles from -360 degrees to 360 degrees with 45 degree increments
         assertVector3f(Util.rotatePoint(point, axis1, axis2, pi * -0.25f), new Vector3f(0, 2 * FastMath.cos(pi * 0.25f), 2 * FastMath.sin(pi * -0.25f)));
         assertVector3f(Util.rotatePoint(point, axis1, axis2, pi * -0.50f), new Vector3f(0, 2 * FastMath.cos(pi * 0.50f), 2 * FastMath.sin(pi * -0.50f)));
         assertVector3f(Util.rotatePoint(point, axis1, axis2, pi * -0.75f), new Vector3f(0, 2 * FastMath.cos(pi * 0.75f), 2 * FastMath.sin(pi * -0.75f)));
@@ -86,12 +88,23 @@ public class UtilTest {
         System.out.println("isBetween");
         Vector3f left = new Vector3f(-5, 0, 0);
         Vector3f right = new Vector3f(5, 0, 0);
+        
+        //Case: middle equals left
         assertTrue(Util.isBetween(left, left, right));
+        
+        //Case: middle equals right
         assertTrue(Util.isBetween(left, right, right));
+        
+        //Case: middle between left and right
         assertTrue(Util.isBetween(left, new Vector3f(0, 0, 0), right));
 
+        //Case: middle outside left and right
         assertFalse(Util.isBetween(left, new Vector3f(-6, 0, 0), right));
+        
+        //Case: middle outside left and right
         assertFalse(Util.isBetween(left, new Vector3f(6, 0, 0), right));
+        
+        //Case: middle not in line with left and right
         assertFalse(Util.isBetween(left, new Vector3f(0, 1, 0), right));
 
     }
@@ -104,12 +117,20 @@ public class UtilTest {
         System.out.println("inLine");
         Vector3f left = new Vector3f(-5, 0, 0);
         Vector3f right = new Vector3f(5, 0, 0);
+        //Case: middle Point same as left
         assertTrue(Util.inLine(left, left, right));
+        
+        //Case: middle Point same as right
         assertTrue(Util.inLine(left, right, right));
+        
+        //Case: middle Point in between left & right
         assertTrue(Util.inLine(left, new Vector3f(0, 0, 0), right));
+        
+        //Case: middle Point outside left & right
         assertTrue(Util.inLine(left, new Vector3f(6, 0, 0), right));
+        
+        //Case: middle Point outside left & right
         assertTrue(Util.inLine(left, new Vector3f(-6, 0, 0), right));
-        // TODO review the generated test code and remove the default call to fail.
     }
 
     /**
@@ -120,8 +141,12 @@ public class UtilTest {
         System.out.println("lineToPointTranslation");
         Vector3f linePoint = new Vector3f();
         Vector3f lineDirrection = new Vector3f(1, 0, 0);
+        
+        //Case: target is on line
         Vector3f target = linePoint;
         assertVector3f(Util.lineToPointTranslation(linePoint, lineDirrection, target), Vector3f.ZERO);
+        
+        //Case: target is not on line
         target = new Vector3f(0, 3, 0);
         assertVector3f(Util.lineToPointTranslation(linePoint, lineDirrection, target), target);
 
@@ -175,7 +200,6 @@ public class UtilTest {
         assertVector3f(Util.closestPointToDirrection(new Vector3f(1, -1, 0), boundary), new Vector3f(1, -1, 0));
         assertVector3f(Util.closestPointToDirrection(new Vector3f(1, 1, 0), boundary), new Vector3f(1, 1, 0));
         assertVector3f(Util.closestPointToDirrection(new Vector3f(-1, 1, 0), boundary), new Vector3f(-1, 1, 0));
-        // TODO review the generated test code and remove the default call to fail
     }
 
     /**
@@ -648,7 +672,7 @@ public class UtilTest {
             new Vector3f( 0, 2, 0),
             new Vector3f( 0,-2, 0)};
         result = Util.boundboundIntersect(boundaryA, boundaryB);
-        assertTrue(result.size() == 1 && result.contains(new Vector3f(0, 0, 0)));
+        assertNull(result);
         
         
         //Test boundaries with only one touching vertices (Non coplanar)
@@ -673,7 +697,7 @@ public class UtilTest {
             new Vector3f( 0, 0, 0),
             new Vector3f( 0,-2, 0)};
         result = Util.boundboundIntersect(boundaryA, boundaryB);
-        assertTrue(result.size() == 1 && result.contains(new Vector3f(0, 0, 0)));
+        assertNull(result);
         
         
         //Testing boundaries that are separated (Non coplanar)
@@ -702,6 +726,34 @@ public class UtilTest {
         result = Util.boundboundIntersect(boundaryA, boundaryB);
         assertNull(result);
         
+        
+        //Testing boundaries that are separated (Non coplanar)
+        //
+        //
+        //
+        //           _____
+        //          |     |     
+        //     _____|  B  |_ 
+        //     \    |     | \   
+        //      \   |_____|  \   
+        //       \   A        \  
+        //        \____________\ 
+        //                       
+        //
+
+        
+        boundaryA = new Vector3f[]{
+            new Vector3f(-2, 0,-2),
+            new Vector3f(-2, 0, 2),
+            new Vector3f( 2, 0, 2),
+            new Vector3f( 2, 0,-2)};
+        boundaryB = new Vector3f[]{
+            new Vector3f( 1, 0, 0),
+            new Vector3f( 1, 2, 0),
+            new Vector3f(-1, 2, 0),
+            new Vector3f(-1, 0, 0)};
+        result = Util.boundboundIntersect(boundaryA, boundaryB);
+        assertNull(result);
         
         //Test For one boundary inside another boundary (Non coplanar)
         //
@@ -839,8 +891,6 @@ public class UtilTest {
             new Vector3f(-1,-2, 0),};
         result = Util.boundboundIntersect(boundaryA, boundaryB);
         assertNull(result);
-            
-        
     }
 
 }

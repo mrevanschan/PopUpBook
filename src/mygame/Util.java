@@ -115,7 +115,7 @@ public final class Util {
 
     public static boolean isBetween(Vector3f left, Vector3f mid, Vector3f right) {
         if (!inLine(left, mid, right)) {
-            System.out.println("Not In Line");
+            //System.out.println("Not In Line");
             return false;
         }
         if (mid.equals(left) || mid.equals(right)) {
@@ -226,7 +226,7 @@ public final class Util {
                 }
             }
         }
-        System.out.println("Intersection Count = " + intersections.size());
+        //System.out.println("Intersection Count = " + intersections.size());
         Vector3f[] returnPair = new Vector3f[2];
         returnPair[0] = new Vector3f();
         returnPair[1] = new Vector3f();
@@ -312,7 +312,7 @@ public final class Util {
             }
 
         } else {
-            System.out.println("Distance = " + pointA.distance(pointB));
+            //System.out.println("Distance = " + pointA.distance(pointB));
             return null;
         }
     }
@@ -346,17 +346,30 @@ public final class Util {
         for (int i = 0; i < boundaryA.length; i++) {
             Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
             Vector3f planeCollision = linePlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
-            if (planeCollision != null && inBoundary(planeCollision, boundaryB) && !collisionList.contains(planeCollision)) {
+            if (planeCollision != null && inBoundary(planeCollision, boundaryB) && !containsVector3f(collisionList, planeCollision)) {
                 collisionList.add(planeCollision);
             }
         }
         for (int i = 0; i < boundaryB.length; i++) {
             Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
             Vector3f planeCollision = linePlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
-            if (planeCollision != null && inBoundary(planeCollision, boundaryA) && !collisionList.contains(planeCollision)) {
+            if (planeCollision != null && inBoundary(planeCollision, boundaryA) && !containsVector3f(collisionList, planeCollision)) {
                 collisionList.add(planeCollision);
             }
         }
-        return (collisionList.isEmpty()) ? null : collisionList;
+        if(collisionList.size()< 2) {
+            return null;
+        }else{
+            return collisionList;
+        }
+    }
+    
+    private static boolean containsVector3f(ArrayList<Vector3f> list,Vector3f target){
+        for(Vector3f point:list){
+            if(target.distance(point)< Util.FLT_EPSILON){
+                return true;
+            }
+        }
+        return false;
     }
 }

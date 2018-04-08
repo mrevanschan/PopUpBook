@@ -50,7 +50,7 @@ public class PopUpBookTree {
     private PopUpBook app;
 
     PopUpBookTree(float width, float height, PopUpBook app) {
-        
+
         this.app = app;
         this.width = width;
         this.height = height;
@@ -80,22 +80,42 @@ public class PopUpBookTree {
         mark1 = new Geometry("name", new Sphere(5, 5, 0.05f));
         Material dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         dotMaterial.setColor("Color", ColorRGBA.Red);
-        mark1.setMaterial(dotMaterial);
-        app.getRootNode().attachChild(mark1);
+        //mark1.setMaterial(dotMaterial);
+        //app.getRootNode().attachChild(mark1);
 
     }
-    public boolean collisionFree(){
-        PatchNode[] patchList = (PatchNode[])geomPatchMap.values().toArray();
-        for(int i = 0; i < patchList.length; i++){
-            for(int x = i+1; x < patchList.length;x++){
+
+    public ArrayList<Vector3f> getCollisions() {
+        ArrayList<Vector3f> collisionList = new ArrayList<>();
+//        PatchNode[] patchList = new PatchNode[geomPatchMap.size()];
+//        int i = 0;
+//        for(PatchNode patch:geomPatchMap.values()){
+//            patchList[i] = patch;
+//            i++;
+//        }
+        PatchNode[] patchList = geomPatchMap.values().toArray(new PatchNode[geomPatchMap.size()]);
+        for (int i = 0; i < patchList.length; i++) {
+            for (int x = i + 1; x < patchList.length; x++) {
                 PatchNode patchA = patchList[i];
                 PatchNode patchB = patchList[x];
-                if(!patchA.isNeighbor(patchB)){
-                    
+                if (!patchA.isNeighbor(patchB)) {
+                    ArrayList<Vector3f> collision = Util.boundboundIntersect(patchA.boundary, patchB.boundary);
+                    if (collision != null) {
+                        for (Vector3f point : collision) {
+                            if (!collisionList.contains(point)) {
+                                System.out.println("Collision "+point);
+                                collisionList.add(point);
+                            }
+                        }
+                    }
                 }
             }
         }
-        return true;
+        if (!collisionList.isEmpty()) {
+            return collisionList;
+        } else {
+            return null;
+        }
     }
 
     public Geometry getFront() {
@@ -117,7 +137,7 @@ public class PopUpBookTree {
                 delete(otherPatch);
             }
             patch.parent.next.remove(patch);
-            while(!patch.next.isEmpty()) {
+            while (!patch.next.isEmpty()) {
                 System.out.println("Next" + patchs.indexOf(patch.next.get(0)));
                 delete(patch.next.get(0));
             }
@@ -342,7 +362,7 @@ public class PopUpBookTree {
                 patchs.remove(patchB);
                 geomPatchMap.get(parentA).next.remove(patchA);
                 geomPatchMap.get(parentB).next.remove(patchB);
-                
+
                 joints.remove(joint);
                 break;
             }
@@ -427,7 +447,7 @@ public class PopUpBookTree {
                     joints.remove(joint);
                     return null;
                 }
-                
+
                 geomPatchMap.get(parentA).next.remove(patchA);
                 geomPatchMap.get(parentB).next.remove(patchB);
                 patchs.remove(patchA);
@@ -581,14 +601,7 @@ public class PopUpBookTree {
                     patch.rotate(axis, radian);
                 }
                 for (Vector3f point : translatedBoundary) {
-                    if(!(this.equals(front)|| this.equals(back))){
-                            System.out.println("Before " + point);
-                            System.out.println("Radian " + radian);
-                        }
-                        point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
-                        if(!(this.equals(front)|| this.equals(back))){
-                            System.out.println("After " + point);
-                        }
+                    point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
                 }
             }
             for (Vector3f point : translatedBuffer) {
