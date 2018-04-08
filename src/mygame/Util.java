@@ -188,17 +188,7 @@ public final class Util {
         Vector3f closestCollision = null;
         Vector3f rayEnd = rayStart.add(rayDir.normalize().mult(100f));
         for (int i = 0; i < boundary.length; i++) {
-            if (inLine(boundary[i], rayStart, boundary[(i + 1) % boundary.length])) {
-//                if(boundary[i].distance(rayStart) < boundary[(i + 1) % boundary.length].distance(rayStart)){
-//                    if (closestCollision == null || boundary[i].distance(rayStart) < closestCollision.distance(rayStart)) {
-//                        closestCollision = boundary[i].clone();
-//                    }
-//                }else{
-//                    if (closestCollision == null || boundary[(i + 1) % boundary.length].distance(rayStart) < closestCollision.distance(rayStart)) {
-//                        closestCollision = boundary[(i + 1) % boundary.length].clone();
-//                    }
-//                }
-            } else {
+            if (!inLine(boundary[i], rayStart, boundary[(i + 1) % boundary.length])) {
                 Vector3f intersection = segmentIntesection(rayStart, rayEnd, boundary[i], boundary[(i + 1) % boundary.length]);
                 if (intersection != null) {
                     if (closestCollision == null || intersection.distance(rayStart) < closestCollision.distance(rayStart)) {
@@ -206,7 +196,6 @@ public final class Util {
                     }
                 }
             }
-
         }
         return closestCollision;
     }
@@ -277,12 +266,15 @@ public final class Util {
     }
 
     public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4) {
-        if (inLine(point1, point3, point2)) {
-            return point3;
-        }
-        if (inLine(point1, point4, point2)) {
-            return point4;
-        }
+//        if(point1.subtract(point2).normalize().cross(point4.subtract(point3).normalize()).normalize().distance(Vector3f.ZERO)<FastMath.FLT_EPSILON){
+//            return null;
+//        }
+//        if ((point1.distance(point3) < FastMath.FLT_EPSILON || point2.distance(point3) < FastMath.FLT_EPSILON) && !inLine(point1, point4, point2)) {
+//            return point3;
+//        }
+//        if ((point1.distance(point4) < FastMath.FLT_EPSILON || point2.distance(point4) < FastMath.FLT_EPSILON) && !inLine(point1, point3, point2)) {
+//            return point4;
+//        }
         return lineSegmentIntersectHelper(point1, point2, point3, point4, true);
     }
 

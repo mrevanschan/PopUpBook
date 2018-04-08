@@ -135,12 +135,22 @@ public class UtilTest {
         System.out.println("closestPointOnLine");
         Vector3f linePoint = new Vector3f(0, 0, 0);
         Vector3f lineDirrection = new Vector3f(1, 0, 0);
+        
+        //Case: target is on line
         Vector3f target = linePoint;
         assertVector3f(Util.closestPointOnLine(linePoint, lineDirrection, target), target);
-        target = new Vector3f(0, 1, 0);
-        assertVector3f(Util.closestPointOnLine(linePoint, lineDirrection, target), new Vector3f(0, 0, 0));
+        
+        //Case: target target not on line near the line dirrection
+        target = new Vector3f(1, 1, 0);
+        assertVector3f(Util.closestPointOnLine(linePoint, lineDirrection, target), new Vector3f(1, 0, 0));
+        
+        //Case: target target not on line and opposite the line dirrection
         target = new Vector3f(-1, 1, 0);
         assertVector3f(Util.closestPointOnLine(linePoint, lineDirrection, target), new Vector3f(-1, 0, 0));
+        
+        //Case: target target not on line and near the linePoint
+        target = new Vector3f( 0, 1, 0);
+        assertVector3f(Util.closestPointOnLine(linePoint, lineDirrection, target), new Vector3f(0, 0, 0));
     }
 
     /**
@@ -155,6 +165,7 @@ public class UtilTest {
             new Vector3f(1, 1, 0),
             new Vector3f(1, -1, 0),};
 
+        //Check the closeset point of each directions
         assertVector3f(Util.closestPointToDirrection(new Vector3f(0, 1, 0), boundary), new Vector3f(-1, 1, 0));
         assertVector3f(Util.closestPointToDirrection(new Vector3f(0, -1, 0), boundary), new Vector3f(-1, -1, 0));
         assertVector3f(Util.closestPointToDirrection(new Vector3f(1, 0, 0), boundary), new Vector3f(1, 1, 0));
@@ -179,11 +190,26 @@ public class UtilTest {
             new Vector3f(1, 1, 0),
             new Vector3f(1, -1, 0),};
 
+        //Test line shooting toward the boundary in the center from outside boundary
         assertTrue(Util.lineTouchesBoundary(new Vector3f(5, 0, 0), new Vector3f(-1, 0, 0), boundary));
+        
+        //Test line shooting parallel on and to an edge from outside boundary
         assertTrue(Util.lineTouchesBoundary(new Vector3f(5, 1, 0), new Vector3f(-1, 0, 0), boundary));
+        
+        //Test line shooting toward boundary edge from the center of boundary
         assertTrue(Util.lineTouchesBoundary(new Vector3f(0, 0, 0), new Vector3f(-1, 0, 0), boundary));
+        
+        //Test line shooting from edge toward dirrection parallel to edge
         assertTrue(Util.lineTouchesBoundary(new Vector3f(0, 1, 0), new Vector3f(-1, 0, 0), boundary));
+        
+        //Test line shooting from inside to a vertex
         assertTrue(Util.lineTouchesBoundary(new Vector3f(0, 0, 0), new Vector3f(-1, -1, 0), boundary));
+        
+        //Test line shooting from outside to a vertex
+        assertTrue(Util.lineTouchesBoundary(new Vector3f(2, 0, 0), new Vector3f(-1, -1, 0).subtract(new Vector3f(2, 0, 0)).normalize(), boundary));
+        
+        //Test line shooting away from boundary from outside the boundary
+        assertFalse(Util.lineTouchesBoundary(new Vector3f(2, 0, 0), new Vector3f( 0, 1, 0), boundary));
 
     }
 
@@ -198,12 +224,17 @@ public class UtilTest {
             new Vector3f(-1, 1, 0),
             new Vector3f(1, 1, 0),
             new Vector3f(1, -1, 0),};
-
+        
+        //Test Middle of boundary
         assertTrue(Util.inBoundary(new Vector3f(0, 0, 0), boundary));
+        
+        //Test Edge of boundary
         assertTrue(Util.inBoundary(new Vector3f(0, 1, 0), boundary));
-        assertTrue(Util.inBoundary(new Vector3f(0.5f, 1, 0), boundary));
-        assertTrue(Util.inBoundary(new Vector3f(-0.5f, 1, 0), boundary));
+        
+        //Test Vectex of boundary
         assertTrue(Util.inBoundary(new Vector3f(1, 1, 0), boundary));
+        
+        //Test OutSide of boundary
         assertFalse(Util.inBoundary(new Vector3f(2, 0, 0), boundary));
     }
 
@@ -218,13 +249,22 @@ public class UtilTest {
             new Vector3f(-1, 1, 0),
             new Vector3f(1, 1, 0),
             new Vector3f(1, -1, 0),};
+        //Cast Line From outside towards boundary
         assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(1, 0, 0));
+        
+        //Cast Line From outside boundary toward and parallel to an edge
         assertVector3f(Util.castLineOnBoundary(new Vector3f(2, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(1, 1, 0));
+        
+        //Cast Line From middle of an edge and out parallel to that edge
         assertVector3f(Util.castLineOnBoundary(new Vector3f(0, 1, 0), new Vector3f(-1, 0, 0), boundary), new Vector3f(-1, 1, 0));
+        
+        //Cast Line From inside the boundary to one vertex
         assertVector3f(Util.castLineOnBoundary(new Vector3f(0, 0, 0), new Vector3f(1, 1, 0), boundary), new Vector3f(1, 1, 0));
-
+        
+        //Cast Line From outside boundary to one vertex
         assertVector3f(Util.castLineOnBoundary(new Vector3f(3, 0, 0), new Vector3f(1, 1, 0).subtract(new Vector3f(3, 0, 0)).normalize(), boundary), new Vector3f(1, 1, 0));
-
+        
+        //Cast Line From outside boundary away from boundary
         assertNull(Util.castLineOnBoundary(new Vector3f(2, 0, 0), new Vector3f(1, 0, 0), boundary));
     }
 
@@ -239,40 +279,110 @@ public class UtilTest {
             new Vector3f(-1, 1, 0),
             new Vector3f(1, 1, 0),
             new Vector3f(1, -1, 0),};
-
+        //Test Ray That From point outside boundary to a boundary vertex
+        //               
+        //                          
+        //               ___________
+        //              |           |
+        //     ---------+-----X-----+------
+        //              |___________|
+        //
         Vector3f[] result = Util.lineBoundaryIntersectionPair(Vector3f.ZERO, Vector3f.UNIT_X, boundary);
         assertTrue(result[0].distance(new Vector3f(1, 0, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, 0, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(1, 0, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1, 0, 0)) < FastMath.FLT_EPSILON);
 
+        
+        //Test Ray That From point outside boundary to a boundary vertex
+        //               
+        //                          
+        //               ___________
+        //              |           |
+        //    ----X-----+-----------+------
+        //              |___________|
+        //
         result = Util.lineBoundaryIntersectionPair(new Vector3f(3, 0, 0), Vector3f.UNIT_X, boundary);
         assertTrue(result[0].distance(new Vector3f(1, 0, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, 0, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(1, 0, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1, 0, 0)) < FastMath.FLT_EPSILON);
-
+     
+        //Test Ray That From point outside boundary to a boundary vertex
+        //               
+        //                          
+        //               ___________
+        //              |           |
+        //        ------X-----------+----
+        //              |___________|
+        //
         result = Util.lineBoundaryIntersectionPair(new Vector3f(1, 0, 0), Vector3f.UNIT_X, boundary);
         assertTrue(result[0].distance(new Vector3f(1, 0, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, 0, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(1, 0, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1, 0, 0)) < FastMath.FLT_EPSILON);
 
+        
+        //Test Ray That From point outside boundary to a boundary vertex
+        //               
+        //                          
+        //      --------X--------------
+        //              |             |
+        //              |             |
+        //              |_____________|
+        //
         result = Util.lineBoundaryIntersectionPair(new Vector3f(1, 1, 0), Vector3f.UNIT_X, boundary);
         assertTrue(result[0].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, 1, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1, 1, 0)) < FastMath.FLT_EPSILON);
 
+        //Test Ray That From point outside boundary to a boundary vertex
+        //
+        //              |  
+        //              X 
+        //              |_____________             
+        //              |             |
+        //              |             |
+        //              |             |
+        //              |_____________|
+        //
         result = Util.lineBoundaryIntersectionPair(new Vector3f(3, 1, 0), Vector3f.UNIT_X, boundary);
         assertTrue(result[0].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, 1, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1, 1, 0)) < FastMath.FLT_EPSILON);
-
+        
+        
+        //Test Ray That From point outside boundary to a boundary vertex
+        //                /
+        //               /
+        //              /_____________
+        //             /|             |
+        //            / |             |
+        //           X  |             |
+        //          /   |_____________|
+        //
         result = Util.lineBoundaryIntersectionPair(new Vector3f(0, 1, 0), Vector3f.UNIT_X, boundary);
         assertTrue(result[0].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, 1, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(-1, 1, 0)) < FastMath.FLT_EPSILON);
-
+        
+        
+        //Test Ray That From point outside boundary to a boundary vertex
+        //                 
+        //             \ 
+        //              \____
+        //              |\   |
+        //              | X  |
+        //              |  \ |
+        //              |___\|
+        //                   \
         result = Util.lineBoundaryIntersectionPair(new Vector3f(0, 0, 0), new Vector3f(1, 1, 0), boundary);
         assertTrue(result[0].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(-1, -1, 0)) < FastMath.FLT_EPSILON
                 || result[1].distance(new Vector3f(-1, -1, 0)) < FastMath.FLT_EPSILON && result[0].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON);
 
+        
+        //Test Ray That From point outside boundary to a boundary vertex
+        //                
+        //               /
+        //              /_____________
+        //             /|             |
+        //            / |             |
+        //           X  |             |
+        //          /   |_____________|
+        //
         result = Util.lineBoundaryIntersectionPair(new Vector3f(3, 0, 0), new Vector3f(1, 1, 0).subtract(new Vector3f(3, 0, 0)).normalize(), boundary);
-        System.out.println("Result1:" + result[0]);
         assertTrue(result[0].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON && result[1].distance(new Vector3f(1, 1, 0)) < FastMath.FLT_EPSILON);
-        //fail();
-
     }
 
     /**
@@ -353,48 +463,63 @@ public class UtilTest {
         System.out.println("lineIntersection");
         //Test Intersection of Segment which starting point touches
         //
-        //    1              2
-        //    X--------------X 3 
+        //                   ^ 3
+        //                   | 
         //                   |
         //                   |
         //                   |
         //                   |
         //                   |
-        //                   X 4
-        // 
-        assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0)), new Vector3f(4, 0, 0));
-        assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0), new Vector3f(4, 0, 0)), new Vector3f(4, 0, 0));
-        assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(1, 0, 0), new Vector3f(8, 4, 0)), new Vector3f(1, 0, 0));
-        assertVector3f(Util.segmentIntesection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 4, 0), new Vector3f(1, 0, 0)), new Vector3f(1, 0, 0));
+        //   <---------------y 4
+        //   1               2
+        assertVector3f(Util.lineIntersection(new Vector3f(1, 1, 0), new Vector3f(4, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0)), new Vector3f(4, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(1, 1, 0), new Vector3f(4, 0, 0), new Vector3f(8, 0, 0), new Vector3f(4, 0, 0)), new Vector3f(4, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(1, 0, 0), new Vector3f(8, 4, 0)), new Vector3f(1, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(1, 0, 0), new Vector3f(4, 0, 0), new Vector3f(8, 4, 0), new Vector3f(1, 0, 0)), new Vector3f(1, 0, 0));
         
         
         //Test Intersection of Crossing segments
         //
-        //            X 3
+        //            ^ 3
         //            |
         //    1       |
-        //    X-------+------X 2 
+        //    <-------+------> 2 
         //            |
         //            |
-        //            X 4
+        //            V 4
         //               
-        assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
         
         
         //Test Intersection of Segment of "T" Shape
         //
-        //                 X 3
+        //                 ^ 3
         //                 |
         //    1            |
-        //    X------------X 2 
+        //    <------------> 2 
         //                 |
         //                 |
-        //                 X 4
+        //                 V 4
         //                 
-        assertVector3f(Util.segmentIntesection(new Vector3f(0, 0, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
-        assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(0, 0, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
-        assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(0, 0, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
-        assertVector3f(Util.segmentIntesection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(0, 0, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(0, 0, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(4, 4, 0), new Vector3f(0, 0, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(0, 0, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f(4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(0, 0, 0)), new Vector3f(0, 0, 0));
+        
+        //Test Intersection of Segment of "T" Shape
+        //
+        //                 ^ 3
+        //                 |
+        //    1            |
+        //    <-------> 2  |
+        //                 |
+        //                 |
+        //                 V 4
+        //                 
+        assertVector3f(Util.lineIntersection(new Vector3f(-1,-1, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f( 4, 4, 0), new Vector3f(-1, -1, 0), new Vector3f(4, -4, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f( 4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(-1, 1, 0), new Vector3f(-4, 4, 0)), new Vector3f(0, 0, 0));
+        assertVector3f(Util.lineIntersection(new Vector3f( 4, 4, 0), new Vector3f(-4, -4, 0), new Vector3f(4, -4, 0), new Vector3f( 1,-1, 0)), new Vector3f(0, 0, 0));
 
         
         //Test Intersection of Parallel segment overlaping
