@@ -83,8 +83,6 @@ public class PopUpBookTree {
         mark1 = new Geometry("name", new Sphere(5, 5, 0.05f));
         Material dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         dotMaterial.setColor("Color", ColorRGBA.Red);
-        //mark1.setMaterial(dotMaterial);
-        //app.getRootNode().attachChild(mark1);
 
     }
 
@@ -100,7 +98,7 @@ public class PopUpBookTree {
                     !patchA.joint.theOther(patchA).isNeighbor(patchB) && 
                     !patchB.joint.theOther(patchB).isNeighbor(patchA)) {
                     //System.out.println("Checking "+i +" "+x);
-                    ArrayList<Vector3f> collision = boundboundIntersect(patchA.translatedBoundary, patchB.translatedBoundary);
+                    ArrayList<Vector3f> collision = Util.boundboundIntersect(patchA.translatedBoundary, patchB.translatedBoundary);
                     if (collision != null) {
                         patchA.geometry.setMaterial(app.markPaper);
                         patchB.geometry.setMaterial(app.markPaper);
@@ -117,67 +115,7 @@ public class PopUpBookTree {
             return null;
         }
     }
-    public boolean onBoundary(Vector3f point, Vector3f[]boundary){
-       for (int i = 0; i < boundary.length; i++) {
-            Vector3f nextPoint = boundary[(i + 1) % boundary.length];
-            if(Util.inLine(boundary[i], point, nextPoint) && Util.isBetween(boundary[i], point, nextPoint)){
-                return true;
-            }
-        }
-       return false;
-    }
-    public ArrayList<Vector3f> boundboundIntersect(Vector3f[] boundaryA, Vector3f[] boundaryB) {
-        ArrayList<Vector3f> collisionList = new ArrayList<>();
-        Vector3f normalA = getBountdaryNormal(boundaryA);
-        Vector3f normalB = getBountdaryNormal(boundaryB);
-        
-        for (int i = 0; i < boundaryA.length; i++) {
-            Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
-            Vector3f planeCollision = Util.rayPlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
-            if (planeCollision != null &&
-                planeCollision.distanceSquared(boundaryA[i]) < boundaryA[i].distanceSquared(nextPoint) &&
-                planeCollision.distanceSquared(nextPoint) > FastMath.FLT_EPSILON &&
-                planeCollision.distanceSquared(boundaryA[i]) > FastMath.FLT_EPSILON &&
-                Util.inBoundary(planeCollision, boundaryB)// && !onBoundary(planeCollision, boundaryB)
-                    ) {
-                
-                System.out.println("From "+ i + " To " + (i+1));
-                System.out.println("Collision " + planeCollision);
-
-                System.out.println("Null?" +planeCollision != null);
-                System.out.println("Distance" + planeCollision.distance(nextPoint));
-                System.out.println("InBound " + Util.inBoundary(planeCollision, boundaryB));
-                Util.inBoundary(planeCollision, boundaryB);
-                onBoundary(planeCollision, boundaryB);
-                System.out.println("OnBound " + !onBoundary(planeCollision, boundaryB));
-                collisionList.add(planeCollision);
-            }
-        }
-        for (int i = 0; i < boundaryB.length; i++) {
-            Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
-            Vector3f planeCollision = Util.rayPlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
-            if (planeCollision != null &&
-                planeCollision.distanceSquared(boundaryB[i]) < boundaryB[i].distanceSquared(nextPoint) &&
-                planeCollision.distanceSquared(nextPoint) > Util.FLT_EPSILON &&
-                planeCollision.distanceSquared(boundaryB[i]) > Util.FLT_EPSILON &&
-                Util.inBoundary(planeCollision, boundaryA)// && !onBoundary(planeCollision, boundaryA)
-                    ) {
-                System.out.println("From "+ i + " To " + (i+1));
-                System.out.println("Collision " + planeCollision);
-                System.out.println("Null?" +planeCollision != null);
-                System.out.println("Distance" + planeCollision.distance(nextPoint));
-                System.out.println("InBound " + Util.inBoundary(planeCollision, boundaryB));
-                collisionList.add(planeCollision);
-            }
-        }
     
-        
-        if(collisionList.size()< 1) {
-            return null;
-        }else{
-            return collisionList;
-        }
-    }
 
     public Geometry getFront() {
         return front.geometry;

@@ -289,7 +289,7 @@ public final class Util {
      * @param rayStart 
      * @param rayDir
      * @param boundary
-     * @return
+     * @return the point of collision
      */
     public static Vector3f castRayOnBoundary(Vector3f rayStart, Vector3f rayDir, Vector3f[] boundary) {
         Vector3f closestCollision = null;
@@ -362,7 +362,7 @@ public final class Util {
      * @param lineAEnd
      * @param lineBStart
      * @param lineBEnd
-     * @return
+     * @return the intersection point of the two sigments
      */
     public static Vector3f segmentIntesection(Vector3f lineAStart, Vector3f lineAEnd, Vector3f lineBStart, Vector3f lineBEnd) {
         if ((lineAStart.distance(lineBStart) < FastMath.FLT_EPSILON || lineAEnd.distance(lineBStart) < FastMath.FLT_EPSILON) && !(inLine(lineAStart, lineBEnd, lineAEnd) && isBetween(lineAStart, lineBEnd, lineAEnd))) {
@@ -389,26 +389,28 @@ public final class Util {
     }
 
     /**
-     *
-     * @param point1
-     * @param point2
-     * @param point3
-     * @param point4
+     * Intersection of two infinitly long line
+     * @param lineAPoint1
+     * @param lineAPoint2
+     * @param lineBPoint1
+     * @param lineBPoint2
      * @return
      */
-    public static Vector3f lineIntersection(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4) {
-//        if(point1.subtract(point2).normalize().cross(point4.subtract(point3).normalize()).normalize().distance(Vector3f.ZERO)<FastMath.FLT_EPSILON){
-//            return null;
-//        }
-//        if ((point1.distance(point3) < FastMath.FLT_EPSILON || point2.distance(point3) < FastMath.FLT_EPSILON) && !inLine(point1, point4, point2)) {
-//            return point3;
-//        }
-//        if ((point1.distance(point4) < FastMath.FLT_EPSILON || point2.distance(point4) < FastMath.FLT_EPSILON) && !inLine(point1, point3, point2)) {
-//            return point4;
-//        }
-        return lineSegmentIntersectHelper(point1, point2, point3, point4, true);
+    public static Vector3f lineIntersection(Vector3f lineAPoint1, Vector3f lineAPoint2, Vector3f lineBPoint1, Vector3f lineBPoint2) {
+        return lineSegmentIntersectHelper(lineAPoint1, lineAPoint2, lineBPoint1, lineBPoint2, true);
     }
-
+    
+    
+    /**
+     * Helper method for lineIntersection and segmentIntersection
+     * Where line 1 & 2 define one line and 3 & 4 define another
+     * @param point1 linePoint1
+     * @param point2 linePoint2
+     * @param point3 linePoint3
+     * @param point4 linePoint4
+     * @param infiniteLine if the lines are infinely long or not
+     * @return collision point
+     */
     private static Vector3f lineSegmentIntersectHelper(Vector3f point1, Vector3f point2, Vector3f point3, Vector3f point4, boolean infiniteLine) {
         Vector3f v13 = point1.subtract(point3);
         Vector3f v43 = point4.subtract(point3);
@@ -449,11 +451,11 @@ public final class Util {
     }
 
     /**
-     *
-     * @param linePoint
-     * @param lineDir
-     * @param planePoint
-     * @param planeNormal
+     * Get the intersection between a infinitely long line and a infinitely large plane
+     * @param linePoint point that difines the line
+     * @param lineDir direction of the line
+     * @param planePoint point that defines the plane
+     * @param planeNormal the normal verctor of the plane
      * @return
      */
     public static Vector3f linePlaneIntersection(Vector3f linePoint, Vector3f lineDir, Vector3f planePoint, Vector3f planeNormal) {
@@ -469,31 +471,31 @@ public final class Util {
     }
 
     /**
-     *
-     * @param linePoint
-     * @param lineDir
+     * Get the intersection between an infinitely large plane and a ray cast
+     * @param rayStart
+     * @param rayDir
      * @param planePoint
      * @param planeNormal
-     * @return
+     * @return the intersection Point
      */
-    public static Vector3f rayPlaneIntersection(Vector3f linePoint, Vector3f lineDir, Vector3f planePoint, Vector3f planeNormal) {
+    public static Vector3f rayPlaneIntersection(Vector3f rayStart, Vector3f rayDir, Vector3f planePoint, Vector3f planeNormal) {
 
-        if (FastMath.abs(lineDir.normalize().dot(planeNormal.normalize())) > FastMath.FLT_EPSILON) {
-            float d = (planePoint.subtract(linePoint).dot(planeNormal)) / (lineDir.dot(planeNormal));
+        if (FastMath.abs(rayDir.normalize().dot(planeNormal.normalize())) > FastMath.FLT_EPSILON) {
+            float d = (planePoint.subtract(rayStart).dot(planeNormal)) / (rayDir.dot(planeNormal));
             if (d >= 0) {
-                return linePoint.add(lineDir.mult(d));
+                return rayStart.add(rayDir.mult(d));
             }
         } else {
-            //System.out.println("lineDir.dot(planeNormal) = " + lineDir.dot(planeNormal));
+            //System.out.println("rayDir.dot(planeNormal) = " + rayDir.dot(planeNormal));
         }
 
         return null;
     }
 
     /**
-     *
-     * @param boundary
-     * @return
+     * get the Normal of a boundary
+     * @param boundary vertices of the boudary
+     * @return normal of the boundary
      */
     public static Vector3f getBountdaryNormal(Vector3f[] boundary) {
         for (int i = 0; i < boundary.length; i++) {
@@ -504,36 +506,45 @@ public final class Util {
         }
         return null;
     }
-
+    
     /**
-     *
-     * @param boundaryA
-     * @param boundaryB
-     * @return
+     * Intersection of two boundaries
+     * @param boundaryA boundaryA
+     * @param boundaryB boundaryB
+     * @return intersection of the two boundaries
      */
     public static ArrayList<Vector3f> boundboundIntersect(Vector3f[] boundaryA, Vector3f[] boundaryB) {
         ArrayList<Vector3f> collisionList = new ArrayList<>();
         Vector3f normalA = getBountdaryNormal(boundaryA);
         Vector3f normalB = getBountdaryNormal(boundaryB);
+        
         for (int i = 0; i < boundaryA.length; i++) {
             Vector3f nextPoint = boundaryA[(i + 1) % boundaryA.length];
-            Vector3f planeCollision = linePlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
-            if (planeCollision != null && planeCollision.distance(boundaryA[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryA[i]) < boundaryA[i].distance(nextPoint)
-                    && planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryB) && !containsVector3f(collisionList, planeCollision)) {
+            Vector3f planeCollision = Util.rayPlaneIntersection(boundaryA[i], nextPoint.subtract(boundaryA[i]).normalize(), boundaryB[0], normalB);
+            if (planeCollision != null &&
+                planeCollision.distanceSquared(boundaryA[i]) < boundaryA[i].distanceSquared(nextPoint) &&
+                planeCollision.distanceSquared(nextPoint) >  FLT_EPSILON &&
+                planeCollision.distanceSquared(boundaryA[i]) > FLT_EPSILON &&
+                Util.inBoundary(planeCollision, boundaryB)) {
                 collisionList.add(planeCollision);
             }
         }
         for (int i = 0; i < boundaryB.length; i++) {
             Vector3f nextPoint = boundaryB[(i + 1) % boundaryB.length];
-            Vector3f planeCollision = linePlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
-            if (planeCollision != null && planeCollision.distance(boundaryB[i]) > FastMath.FLT_EPSILON && planeCollision.distance(boundaryB[i]) < boundaryB[i].distance(nextPoint)
-                    && planeCollision.distance(nextPoint) > FastMath.FLT_EPSILON && inBoundary(planeCollision, boundaryA) && !containsVector3f(collisionList, planeCollision)) {
+            Vector3f planeCollision = Util.rayPlaneIntersection(boundaryB[i], nextPoint.subtract(boundaryB[i]).normalize(), boundaryA[0], normalA);
+            if (planeCollision != null &&
+                planeCollision.distanceSquared(boundaryB[i]) < boundaryB[i].distanceSquared(nextPoint) &&
+                planeCollision.distanceSquared(nextPoint) > FLT_EPSILON &&
+                planeCollision.distanceSquared(boundaryB[i]) > FLT_EPSILON &&
+                Util.inBoundary(planeCollision, boundaryA)) {
                 collisionList.add(planeCollision);
             }
         }
-        if (collisionList.size() < 2) {
+    
+        
+        if(collisionList.size()< 1) {
             return null;
-        } else {
+        }else{
             return collisionList;
         }
     }
