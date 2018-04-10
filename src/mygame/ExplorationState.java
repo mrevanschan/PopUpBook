@@ -47,7 +47,7 @@ public class ExplorationState extends BaseAppState {
 
     private final ActionListener buildListener = new BuildListener();
     private final ActionListener exploreListener = new ExplorationListener();
-    private final float frame = 0.75f;
+    private final float frame = 1f;//0.75f;
     private float percentage = 0;
 
     private class BuildListener implements ActionListener {

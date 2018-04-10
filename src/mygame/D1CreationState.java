@@ -106,7 +106,10 @@ public class D1CreationState extends BaseAppState {
                                 pointSet = verticesB;
                             }
                             int i = pointSet.indexOf(dotVecticesMap.get(selected));
-                            pointSet.get(i).set(newPoint);
+                            if(pointSet.get((i+1)%pointSet.size()).distance(newPoint ) > 0.5f && pointSet.get((i-1+pointSet.size())%pointSet.size()).distance(newPoint )>0.5f){
+                                pointSet.get(i).set(newPoint);
+                            }
+                            
                             for (int x = 0; x < pointSet.size(); x++) {
                                 boolean matched = false;
                                 if (x != i && x != 1 && x != 0) {
