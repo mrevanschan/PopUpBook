@@ -844,7 +844,7 @@ public class D1CreationState extends BaseAppState {
                 boundaryAGeom.setMaterial(allowed);
                 boundaryBGeom.setMaterial(allowed.clone());
                 tempNode.attachChild(boundaryAGeom);
-                tempNode.attachChild(boundaryBGeom);
+                //tempNode.attachChild(boundaryBGeom);
 
             } else {
                 boundaryAGeom.setMesh(Util.makeMesh(boundaryA.toArray(new Vector3f[boundaryA.size()])));

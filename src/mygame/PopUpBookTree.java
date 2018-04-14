@@ -18,38 +18,27 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.util.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
-import static mygame.Util.getBountdaryNormal;
-import static mygame.Util.inBoundary;
-import static mygame.Util.linePlaneIntersection;
 
 /**
  *
  * @author Evans
  */
 public class PopUpBookTree {
-
-    private Node rootNode;
-    public PatchNode front;
-    public PatchNode back;
-    private JointNode bookJoint;
-    private ArrayList<PatchNode> patchs;
+    
     public HashMap<Geometry, PatchNode> geomPatchMap = new HashMap<>();
+    private PatchNode front;
+    private PatchNode back;
+    private JointNode bookJoint;
     private ArrayList<JointNode> joints;
-    public float height;
-    public float width;
-    public Node planes;
-    public Node lines;
-    private Geometry mark1;
-    private Geometry mark2;
-    private Geometry mark3;
-    private Geometry mark4;
+    private float height;
+    private float width;
+    private Node lines;
     private PopUpBook app;
 
     PopUpBookTree(float width, float height, PopUpBook app) {
@@ -57,7 +46,6 @@ public class PopUpBookTree {
         this.app = app;
         this.width = width;
         this.height = height;
-        planes = app.planes;
         lines = new Node("Line");
         app.getRootNode().attachChild(lines);
         Vector3f[] backBoundary = new Vector3f[4];
@@ -71,7 +59,6 @@ public class PopUpBookTree {
         frontBoundary[2] = new Vector3f(-width, 0f, -height / 2);
         frontBoundary[1] = new Vector3f(-width, 0f, height / 2);
         frontBoundary[0] = new Vector3f(0f, 0f, height / 2);
-        patchs = new ArrayList<>();
         joints = new ArrayList<>();
 
         back = addPatch(null, backBoundary, new Vector3f[]{Vector3f.UNIT_Z.negate(), Vector3f.UNIT_Z});
@@ -80,10 +67,6 @@ public class PopUpBookTree {
         back.joint = bookJoint;
         front.joint = bookJoint;
         joints.add(bookJoint);
-        mark1 = new Geometry("name", new Sphere(5, 5, 0.05f));
-        Material dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        dotMaterial.setColor("Color", ColorRGBA.Red);
-
     }
 
     public ArrayList<Vector3f> getCollisions() {
@@ -123,8 +106,6 @@ public class PopUpBookTree {
 
     public void delete(PatchNode patch) {
         if (!patch.equals(front) && !patch.equals(back)) {
-            System.out.println(patchs.indexOf(patch));
-            patchs.remove(patch);
             if(patch.geometry!= null){
                 patch.geometry.removeFromParent();
             }
@@ -143,7 +124,6 @@ public class PopUpBookTree {
             }
             
             while (!patch.next.isEmpty()) {
-                System.out.println("Next" + patchs.indexOf(patch.next.get(0)));
                 delete(patch.next.get(0));
             }
             //patch = null;
@@ -156,9 +136,8 @@ public class PopUpBookTree {
         System.out.println("actually");
         Geometry geometry = new Geometry("Patch", Util.makeMesh(boundary));
         geometry.setMaterial(app.paper);
-        planes.attachChild(geometry);
+        app.patches.attachChild(geometry);
         PatchNode patch = new PatchNode(prev, geometry, axis, boundary);
-        patchs.add(patch);
         geomPatchMap.put(geometry, patch);
 
         return patch;
@@ -247,25 +226,25 @@ public class PopUpBookTree {
             Vector3f jointA1, Vector3f jointA2, Vector3f jointB1, Vector3f jointB2, String type) {
         reset();
         ArrayList<ArrayList<Vector3f>> returnArray = new ArrayList();
-
+        
         switch (type) {
             case "D1Joint": {
                 ArrayList<Vector3f> pointsA = new ArrayList<>();
                 ArrayList<Vector3f> pointsB = new ArrayList<>();
-                pointsA.add(axisA1.clone());
-                pointsA.add(axisA2.clone());
+                pointsA.add(axisA1 .clone());
+                pointsA.add(axisA2 .clone());
                 pointsA.add(jointA1.clone());
-                pointsB.add(axisB1.clone());
-                pointsB.add(axisB2.clone());
+                pointsB.add(axisB1 .clone());
+                pointsB.add(axisB2 .clone());
                 pointsB.add(jointB1.clone());
-
+                
                 PatchNode patchA = new PatchNode(parentA, new Vector3f[]{axisA1.clone(), axisA2.clone()}, Util.toArray(pointsA));
                 PatchNode patchB = new PatchNode(parentB, new Vector3f[]{axisB1.clone(), axisB2.clone()}, Util.toArray(pointsB));
-                JointNode joint = new JointNode(patchA, patchB, new Vector3f[]{jointA1, jointA2}, "D1Joint");
+                JointNode joint  = new JointNode(patchA, patchB, new Vector3f[]{jointA1, jointA2}, "D1Joint");
                 patchA.joint = joint;
                 patchB.joint = joint;
                 joints.add(joint);
-                fold(1f - 0.0008f, false);
+                fold(1f - 0.0001f, false);
 
                 ArrayList<Vector3f> boundaryA = new ArrayList();
                 ArrayList<Vector3f> boundaryB = new ArrayList();
@@ -286,7 +265,6 @@ public class PopUpBookTree {
                     temp.collideWith(new Ray(patchB.translatedBuffer[1], patchB.translatedBuffer[0].subtract(patchB.translatedBuffer[1]).normalize()), results);
                     boundaryB.add(results.getFarthestCollision().getContactPoint());
                     results.clear();
-
                     boundaryA.add(patchA.translatedBuffer[1]);
                     boundaryB.add(patchB.translatedBuffer[1]);
 
@@ -298,8 +276,6 @@ public class PopUpBookTree {
                     boundaryB.add(results.getFarthestCollision().getContactPoint());
                     results.clear();
                 } catch (Exception e) {
-                    patchs.remove(patchA);
-                    patchs.remove(patchB);
                     joints.remove(joints.size() - 1);
                     return null;
                 }
@@ -335,36 +311,34 @@ public class PopUpBookTree {
                         boundary.add(legalPoint.remove(closest));
                     }
 
-                    Vector3f transformation = original.get(1).subtract(boundary.get(1));
-                    if (transformation.distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-                        for (Vector3f point : boundary) {
-                            point.addLocal(transformation);
-                        }
-                    }
-
-                    Vector3f v = boundary.get(0).subtract(boundary.get(1)).normalize();
-                    Vector3f u = original.get(0).subtract(original.get(1)).normalize();
-                    float angle = u.angleBetween(v);
-                    if (angle > FastMath.FLT_EPSILON) {
-                        for (Vector3f point : boundary) {
-                            point.set(Util.rotatePoint(point, original.get(1), original.get(1).add(u.cross(v)), angle));
-                        }
-                    }
-                    angle = (u.cross(boundary.get(2).subtract(original.get(1))).normalize()).angleBetween(
-                            u.cross(original.get(2).subtract(original.get(1))).normalize());
-                    if (original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(0), original.get(1), angle))
-                            > original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(1), original.get(0), angle))) {
-                        angle = angle * -1;
-                    }
-                    if (FastMath.abs(angle) > FastMath.FLT_EPSILON) {
-                        for (Vector3f point : boundary) {
-                            point.set(Util.rotatePoint(point, boundary.get(0), boundary.get(1), angle));
-                        }
-                    }
+//                    Vector3f transformation = original.get(1).subtract(boundary.get(1));
+//                    if (transformation.distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
+//                        for (Vector3f point : boundary) {
+//                            point.addLocal(transformation);
+//                        }
+//                    }
+//
+//                    Vector3f v = boundary.get(0).subtract(boundary.get(1)).normalize();
+//                    Vector3f u = original.get(0).subtract(original.get(1)).normalize();
+//                    float angle = u.angleBetween(v);
+//                    if (angle > FastMath.FLT_EPSILON) {
+//                        for (Vector3f point : boundary) {
+//                            point.set(Util.rotatePoint(point, original.get(1), original.get(1).add(u.cross(v)), angle));
+//                        }
+//                    }
+//                    angle = (u.cross(boundary.get(2).subtract(original.get(1))).normalize()).angleBetween(
+//                            u.cross(original.get(2).subtract(original.get(1))).normalize());
+//                    if (original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(0), original.get(1), angle))
+//                            > original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(1), original.get(0), angle))) {
+//                        angle = angle * -1;
+//                    }
+//                    if (FastMath.abs(angle) > FastMath.FLT_EPSILON) {
+//                        for (Vector3f point : boundary) {
+//                            point.set(Util.rotatePoint(point, boundary.get(0), boundary.get(1), angle));
+//                        }
+//                    }
                     original = pointsB;
                 }
-                patchs.remove(patchA);
-                patchs.remove(patchB);
                 geomPatchMap.get(parentA).next.remove(patchA);
                 geomPatchMap.get(parentB).next.remove(patchB);
 
@@ -447,16 +421,12 @@ public class PopUpBookTree {
                     results.clear();
 
                 } catch (Exception e) {
-                    patchs.remove(patchA);
-                    patchs.remove(patchB);
                     joints.remove(joint);
                     return null;
                 }
 
                 geomPatchMap.get(parentA).next.remove(patchA);
                 geomPatchMap.get(parentB).next.remove(patchB);
-                patchs.remove(patchA);
-                patchs.remove(patchB);
                 joints.remove(joint);
                 break;
             }
@@ -468,7 +438,7 @@ public class PopUpBookTree {
     }
 
     public void reset() {
-        for (PatchNode patch : patchs) {
+        for (PatchNode patch : geomPatchMap.values()) {
             patch.reset();
         }
         for (JointNode joint : joints) {
@@ -484,7 +454,7 @@ public class PopUpBookTree {
         Material lineMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         lineMaterial.setColor("Color", ColorRGBA.Black);
 
-        for (PatchNode patch : patchs) {
+        for (PatchNode patch : geomPatchMap.values()) {
             patch.geometry.getMesh().getBuffer(VertexBuffer.Type.Position).updateData(BufferUtils.createFloatBuffer(patch.translatedBuffer));
             patch.geometry.getMesh().createCollisionData();
             for (int i = 0; i < patch.translatedBoundary.length; i++) {
@@ -728,7 +698,6 @@ public class PopUpBookTree {
                         float c = FastMath.sqr(baseLength) - FastMath.sqr(jointLength);
                         float midLength = (-b + FastMath.sqrt((b * b) - (4 * c))) / 2;
                         midPoint = c1.add(midPoint.normalize().mult(midLength));
-                        mark1.setLocalTranslation(midPoint);
                         patchA.rotateFromTo(axisA[0], midPoint);
                         patchB.rotateFromTo(axisB[0], midPoint);
                     }

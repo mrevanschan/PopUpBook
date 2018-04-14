@@ -144,7 +144,7 @@ public class D2CreationState extends BaseAppState {
                             if (autolock) {
                                 tempNode.attachChild(mark);
                                 results.clear();
-                                app.planes.collideWith(ray, results);
+                                app.patches.collideWith(ray, results);
                                 if (results.size() > 0) {
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
                                     PopUpBookTree.PatchNode collidePatch = app.popUpBook.geomPatchMap.get(results.getClosestCollision().getGeometry());
@@ -231,7 +231,7 @@ public class D2CreationState extends BaseAppState {
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
                             if (autolock) {
                                 results.clear();
-                                app.planes.collideWith(ray, results);
+                                app.patches.collideWith(ray, results);
                                 if (results.size() > 0) {
                                     
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();

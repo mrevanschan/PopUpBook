@@ -177,7 +177,7 @@ public class ExplorationState extends BaseAppState {
                         Vector3f dir = app.getCamera().getWorldCoordinates(
                                 click2d, 1f).subtractLocal(click3d).normalizeLocal();
                         Ray ray = new Ray(click3d, dir);
-                        app.planes.collideWith(ray, results);
+                        app.patches.collideWith(ray, results);
                         if (results.size() > 0) {
 
                             // The closest collision point is what was truly hit:
@@ -185,7 +185,6 @@ public class ExplorationState extends BaseAppState {
                             if (!(app.selected.contains(closest.getGeometry()))) {
                                 closest.getGeometry().setMaterial(app.markPaper);
                                 app.selected.add(closest.getGeometry());
-                                app.selectedLocation.add(closest.getContactPoint());
                             }
 
                         } else {
@@ -195,7 +194,6 @@ public class ExplorationState extends BaseAppState {
                             }
 
                             app.selected.clear();
-                            app.selectedLocation.clear();
                         }
                     }
                     break;
@@ -309,7 +307,6 @@ public class ExplorationState extends BaseAppState {
         }
 
         app.selected.clear();
-        app.selectedLocation.clear();
         //app.getRootNode().detachChild(mark);
 
     }
