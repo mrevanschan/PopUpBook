@@ -18,6 +18,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.util.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ public class PopUpBookTree {
     private float height;
     private float width;
     private Node lines;
+    private Geometry mark1;
+    private Geometry mark2;
     private PopUpBook app;
 
     PopUpBookTree(float width, float height, PopUpBook app) {
@@ -67,6 +70,12 @@ public class PopUpBookTree {
         back.joint = bookJoint;
         front.joint = bookJoint;
         joints.add(bookJoint);
+        mark1 = new Geometry("hi", new Sphere(10, 10, 0.5f));
+        mark2 = new Geometry("hi", new Sphere(10, 10, 0.5f));
+        mark1.setMaterial(app.markPaper);
+        mark2.setMaterial(app.markPaper);
+        app.getRootNode().attachChild(mark1);
+        app.getRootNode().attachChild(mark2);
     }
 
     public ArrayList<Vector3f> getCollisions() {
@@ -260,6 +269,7 @@ public class PopUpBookTree {
                 try {
                     temp.collideWith(new Ray(patchA.translatedBuffer[1], patchA.translatedBuffer[0].subtract(patchA.translatedBuffer[1]).normalize()), results);
                     boundaryA.add(results.getFarthestCollision().getContactPoint());
+                    mark1.setLocalTranslation(results.getFarthestCollision().getContactPoint());
                     results.clear();
 
                     temp.collideWith(new Ray(patchB.translatedBuffer[1], patchB.translatedBuffer[0].subtract(patchB.translatedBuffer[1]).normalize()), results);
@@ -270,6 +280,7 @@ public class PopUpBookTree {
 
                     temp.collideWith(new Ray(patchA.translatedBuffer[1], patchA.translatedBuffer[2].subtract(patchA.translatedBuffer[1]).normalize()), results);
                     boundaryA.add(results.getFarthestCollision().getContactPoint());
+                    mark1.setLocalTranslation(results.getFarthestCollision().getContactPoint());
                     results.clear();
 
                     temp.collideWith(new Ray(patchB.translatedBuffer[1], patchB.translatedBuffer[2].subtract(patchB.translatedBuffer[1]).normalize()), results);
@@ -288,13 +299,13 @@ public class PopUpBookTree {
                     thresholdPlane1.setPlanePoints(boundary.get(0), boundary.get(1), boundary.get(1).add(new Vector3f(0, 1, 0)));
                     thresholdPlane2.setPlanePoints(boundary.get(2), boundary.get(1), boundary.get(2).add(new Vector3f(0, 1, 0)));
 
-                    Plane.Side wrongSide1 = thresholdPlane1.whichSide(boundary.get(2));
-                    Plane.Side wrongSide2 = thresholdPlane2.whichSide(boundary.get(0));
+                    Plane.Side rightSide1 = thresholdPlane1.whichSide(boundary.get(2));
+                    Plane.Side rightSide2 = thresholdPlane2.whichSide(boundary.get(0));
 
                     ArrayList<Vector3f> legalPoint = new ArrayList<>();
                     for (Vector3f point : back.boundary) {
                         if (!thresholdPlane1.isOnPlane(point) && !thresholdPlane2.isOnPlane(point)
-                                && thresholdPlane1.whichSide(point).equals(wrongSide1) && thresholdPlane2.whichSide(point).equals(wrongSide2)) {
+                                && thresholdPlane1.whichSide(point).equals(rightSide1) && thresholdPlane2.whichSide(point).equals(rightSide2)) {
                             legalPoint.add(point.clone());
                         }
                     }

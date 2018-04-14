@@ -100,6 +100,7 @@ public class PopUpBook extends SimpleApplication{
         paper.setColor("Ambient", ColorRGBA.White);
         paper.setTexture("DiffuseMap", assetManager.loadTexture("Textures/paper.jpg"));
         paper.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+        paper.getAdditionalRenderState().setWireframe(true);
         
         Texture paperTexture = assetManager.loadTexture("Textures/selected.jpg");
         paperTexture.setWrap(Texture.WrapMode.Repeat);
