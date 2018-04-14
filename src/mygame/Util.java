@@ -76,27 +76,24 @@ public final class Util {
             while (!clean) {
                 clean = true;
                 size = notDone.size();
-                boolean lastConcave = false;
-                int found = -1;
                 for (int i : notDone) {
                     Vector3f u = vertices[notDone.get((notDone.indexOf(i) - 1 + size) % size)].subtract(vertices[i]);
                     Vector3f v = vertices[notDone.get((notDone.indexOf(i) + 1) % size)].subtract(vertices[i]);
-                    if (!plane.whichSide(vertices[0].add(u.cross(v))).equals(correct)) {
-                        lastConcave = true;
-                    } else {
-                        if (lastConcave) {
-                            found = i;
+                    if (plane.whichSide(vertices[0].add(u.cross(v))).equals(correct)) {
+                        Vector3f prevPointNormal = vertices[notDone.get((notDone.indexOf(i) - 2 + size) % size)].subtract(vertices[(i-1+size)%size]).cross(
+                        vertices[notDone.get(notDone.indexOf(i))].subtract(vertices[(i-1+size)%size]));
+                        Vector3f nextPointNormal = vertices[notDone.get(notDone.indexOf(i))].subtract(vertices[(i+1)%size]).cross(
+                        vertices[notDone.get((notDone.indexOf(i) + 2)%size)].subtract(vertices[(i+1)%size]));
+                        if(!plane.whichSide(vertices[0].add(prevPointNormal)).equals(correct) || !plane.whichSide(vertices[0].add(nextPointNormal)).equals(correct)){
+                            clean = false;
+                            triangle.add(notDone.get((notDone.indexOf(i) - 1 + size) % size));
+                            triangle.add(i);
+                            triangle.add(notDone.get((notDone.indexOf(i) + 1) % size));
+                            notDone.remove(notDone.indexOf(i));
                             break;
                         }
-                        lastConcave = false;
+                        
                     }
-                }
-                if (found != -1) {
-                    clean = false;
-                    triangle.add(notDone.get((notDone.indexOf(found) - 1 + size) % size));
-                    triangle.add(found);
-                    triangle.add(notDone.get((notDone.indexOf(found) + 1) % size));
-                    notDone.remove(notDone.indexOf(found));
                 }
             }
         }
@@ -293,13 +290,13 @@ public final class Util {
             }
 
             if (collision.size() % 2 == 1) {
-//               System.out.println("boundary = new Vector3f[]{");
-//               for(Vector3f point:boundary){
-//                   System.out.println("new Vector3f("+point.x+"f,"+point.y+"f,"+point.z+"f),");
-//               }
-//                System.out.println("};");
-//                System.out.println("assertFalse(Util.inBoundary(new Vector3f("+target.x+"f, "+target.y+"f, "+target.z+"f), boundary));");
-//                
+               System.out.println("boundary = new Vector3f[]{");
+               for(Vector3f point:boundary){
+                   System.out.println("new Vector3f("+point.x+"f,"+point.y+"f,"+point.z+"f),");
+               }
+                System.out.println("};");
+                System.out.println("assertFalse(Util.inBoundary(new Vector3f("+target.x+"f, "+target.y+"f, "+target.z+"f), boundary));");
+                
                 return true;
             } else {
                 return false;

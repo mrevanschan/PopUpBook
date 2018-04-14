@@ -125,7 +125,9 @@ public class PopUpBookTree {
         if (!patch.equals(front) && !patch.equals(back)) {
             System.out.println(patchs.indexOf(patch));
             patchs.remove(patch);
-            patch.geometry.removeFromParent();
+            if(patch.geometry!= null){
+                patch.geometry.removeFromParent();
+            }
             geomPatchMap.remove(patch.geometry);
             System.out.println(patch);
             //patch.geometry = null;
@@ -136,8 +138,10 @@ public class PopUpBookTree {
                 patch.joint = null;
             }
             
+            if(patch.parent!= null && patch.parent.next !=null){
+               patch.parent.next.remove(patch); 
+            }
             
-            patch.parent.next.remove(patch);
             while (!patch.next.isEmpty()) {
                 System.out.println("Next" + patchs.indexOf(patch.next.get(0)));
                 delete(patch.next.get(0));

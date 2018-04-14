@@ -115,7 +115,7 @@ public class D1CreationState extends BaseAppState {
                                 if (x != i && x != 1 && x != 0) {
                                     Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
                                     Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(0).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
-                                    if (newPointVector.distance(thisPointVector) < 0.25f) {
+                                    if (newPointVector.distance(thisPointVector) < 0.1f) {
                                         pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
                                         matched = true;
                                     }
@@ -123,7 +123,7 @@ public class D1CreationState extends BaseAppState {
                                 if (x != i && x != 2 && x != 1) {
                                     Vector3f newPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(i));
                                     Vector3f thisPointVector = Util.lineToPointTranslation(pointSet.get(1), pointSet.get(2).subtract(pointSet.get(1)).normalize(), pointSet.get(x));
-                                    if (newPointVector.distance(thisPointVector) < 0.25f) {
+                                    if (newPointVector.distance(thisPointVector) < 0.1f) {
                                         pointSet.get(i).addLocal(thisPointVector.subtract(newPointVector));
                                         matched = true;
                                     }
@@ -194,7 +194,7 @@ public class D1CreationState extends BaseAppState {
                             } else {
                                 if (angleLock && results.size() > 0 && verticesA.get(0).equals(dotVecticesMap.get(results.getClosestCollision().getGeometry()))) {
                                     results.getClosestCollision().getGeometry().getMaterial().setColor("Color", ColorRGBA.Yellow);
-                                    verticesA.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(verticesB.get(1).distance(verticesB.get(0))));
+                                    verticesB.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(verticesB.get(1).distance(verticesB.get(0))));
                                 } else {
                                     //app.text.setText("Changing B");
                                     Vector3f original = newPoint.subtract(verticesB.get(1));
