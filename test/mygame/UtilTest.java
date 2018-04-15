@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mygame;
 
@@ -103,8 +115,6 @@ public class UtilTest {
 
         //Case: middle outside left and right
         assertFalse(Util.isBetween(left, new Vector3f(6, 0, 0), right));
-
-
 
     }
 
@@ -259,12 +269,12 @@ public class UtilTest {
         //Test OutSide of boundary
         assertFalse(Util.inBoundary(new Vector3f(2, 1, 0), boundary));
 
-        boundary = new Vector3f[]{
-            new Vector3f(1.3654681f, 0.24405645f, 1.2177012f),
-            new Vector3f(0.8967668f, 0.24405651f, 1.9191623f),
-            new Vector3f(1.6216447f, 0.24405654f, 2.4035103f),
-            new Vector3f(2.5590482f, 0.24405627f, 1.0005871f),};
-        assertFalse(Util.inBoundary(new Vector3f(0.305151f, 0.2440567f, -0.58478975f), boundary));
+//        boundary = new Vector3f[]{
+//            new Vector3f(-1.5086666f, 1.1768901f, -1.2674335f),
+//            new Vector3f(-1.1122129f, 0.7164461f, -1.3435565f),
+//            new Vector3f(0.05424501f, 1.0607107f, 2.649074f),
+//            new Vector3f(-2.3423676f, 3.589048f, 2.419222f),};
+//        assertFalse(Util.inBoundary(new Vector3f(1.0973322f, 0.0f, 2.75f), boundary));
 
     }
 
@@ -292,6 +302,7 @@ public class UtilTest {
         assertFalse(Util.onBoundary(new Vector3f(0, 0.5f, 0), boundary));
 
     }
+
     /**
      * Test of inBoundary method, of class Util.
      */
@@ -306,7 +317,7 @@ public class UtilTest {
             new Vector3f(-1, 0, 0)};
 
         //Tested a boundary with multiple vertices in a line
-        assertVector3f(Util.getBountdaryNormal(boundary),new Vector3f(0, 0, 1));
+        assertVector3f(Util.getBountdaryNormal(boundary), new Vector3f(0, 0, 1));
     }
 
     /**
@@ -648,7 +659,6 @@ public class UtilTest {
         assertNull(Util.linePlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
 
     }
-    
 
     /**
      * Test of linePlaneIntersection method, of class Util.
@@ -686,7 +696,6 @@ public class UtilTest {
         assertNull(Util.rayPlaneIntersection(origin, target.subtract(origin).normalize(), planePoint, planeNormal));
 
     }
-    
 
     /**
      * Test of boundboundIntersect method, of class Util.

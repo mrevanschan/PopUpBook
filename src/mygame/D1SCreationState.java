@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mygame;
 
@@ -482,6 +494,11 @@ public class D1SCreationState extends BaseAppState {
         inputManager.addListener(d1SBasicInput, D1S_ADD);
         inputManager.addListener(d1SBasicInput, D1S_CONFIRM);
         inputManager.addListener(d1SMouseListener, D1S_MOUSE_MOVE);
+        app.setText("Instruction", "-[Enter]   To confirm\n"
+                                    +"-[ESC]     To discard\n"
+                                    +"-Drag point around to shift point\n"
+                                    + "-Click and Drag point around to shift point\n"
+                                    + "-Hold [D] and left click lines to add points\n");
         initialize();
     }
 
@@ -533,7 +550,7 @@ public class D1SCreationState extends BaseAppState {
                 basePatchA = basePatchB;
                 basePatchB = temp;
             }
-            app.setText("Mode", "D1S Creation Mode");
+            app.setText("Mode", "Special V-Style Joint Creation Mode");
             for (Vector3f point : basePatchA.boundary) {
                 if (!Util.inLine(axisPoints[0], point, axisPoints[1])) {
                     axisTranslationA = Util.lineToPointTranslation(axisPoints[0], centerAxis, point).normalize();
@@ -663,7 +680,7 @@ public class D1SCreationState extends BaseAppState {
 
                 } else {
                     //fail
-                    app.setText("Error", "A D1 Joint cannot be built on these planes ERROR1");
+                    app.setText("Error", "A Special /V-Style Joint cannot be built on these planes ERROR1");
                     setEnabled(false);
                     app.enableState(ExplorationState.class, true);
                 }
@@ -676,7 +693,7 @@ public class D1SCreationState extends BaseAppState {
             }
         } else {
             //fail
-            app.setText("Error", "A D1 Joint cannot be built on these planes Error3");
+            app.setText("Error", "A Special V-style or V-style Joint cannot be built on these planes Error3");
             setEnabled(false);
             app.enableState(ExplorationState.class, true);
         }
@@ -823,9 +840,7 @@ public class D1SCreationState extends BaseAppState {
 
     }
 
-    private void fitCenterPoint() {
 
-    }
 
     private void updateBoundaries() {
         ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry,

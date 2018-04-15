@@ -1,8 +1,21 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+
 package mygame;
 
 import com.jme3.math.FastMath;
@@ -134,8 +147,12 @@ public final class Util {
     public static Vector3f rotatePoint(Vector3f point, Vector3f axis1, Vector3f axis2, float radian) {
         Vector3f center = closestPointOnLine(axis1, axis2.subtract(axis1), point);
         Vector3f up = point.subtract(center);
+        if(up.length() < FastMath.FLT_EPSILON){
+            return point;
+        }
         Vector3f side = setVector3fLength(axis1.subtract(axis2).cross(point.subtract(axis2)), up.length());
         return center.add(up.mult(FastMath.cos(radian))).add(side.mult(FastMath.sin(radian)));
+        
     }
 
     /**

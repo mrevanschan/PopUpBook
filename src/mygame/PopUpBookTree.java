@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mygame;
 
@@ -70,12 +82,12 @@ public class PopUpBookTree {
         back.joint = bookJoint;
         front.joint = bookJoint;
         joints.add(bookJoint);
-        mark1 = new Geometry("hi", new Sphere(10, 10, 0.5f));
-        mark2 = new Geometry("hi", new Sphere(10, 10, 0.5f));
-        mark1.setMaterial(app.markPaper);
-        mark2.setMaterial(app.markPaper);
-        app.getRootNode().attachChild(mark1);
-        app.getRootNode().attachChild(mark2);
+//        mark1 = new Geometry("hi", new Sphere(10, 10, 0.5f));
+//        mark2 = new Geometry("hi", new Sphere(10, 10, 0.5f));
+//        mark1.setMaterial(app.markPaper);
+//        mark2.setMaterial(app.markPaper);
+//        app.getRootNode().attachChild(mark1);
+//        app.getRootNode().attachChild(mark2);
     }
 
     public ArrayList<Vector3f> getCollisions() {
@@ -132,7 +144,7 @@ public class PopUpBookTree {
                patch.parent.next.remove(patch); 
             }
             
-            while (!patch.next.isEmpty()) {
+            while (patch.next!= null && !patch.next.isEmpty()) {
                 delete(patch.next.get(0));
             }
             //patch = null;
@@ -253,7 +265,7 @@ public class PopUpBookTree {
                 patchA.joint = joint;
                 patchB.joint = joint;
                 joints.add(joint);
-                fold(1f - 0.0001f, false);
+                fold(1f - 0.001f, false);
 
                 ArrayList<Vector3f> boundaryA = new ArrayList();
                 ArrayList<Vector3f> boundaryB = new ArrayList();
@@ -267,23 +279,21 @@ public class PopUpBookTree {
                 temp.attachChild(patchBox);
                 CollisionResults results = new CollisionResults();
                 try {
-                    temp.collideWith(new Ray(patchA.translatedBuffer[1], patchA.translatedBuffer[0].subtract(patchA.translatedBuffer[1]).normalize()), results);
+                    temp.collideWith(new Ray(patchA.translatedBoundary[1], patchA.translatedBoundary[0].subtract(patchA.translatedBoundary[1]).normalize()), results);
                     boundaryA.add(results.getFarthestCollision().getContactPoint());
-                    mark1.setLocalTranslation(results.getFarthestCollision().getContactPoint());
                     results.clear();
 
-                    temp.collideWith(new Ray(patchB.translatedBuffer[1], patchB.translatedBuffer[0].subtract(patchB.translatedBuffer[1]).normalize()), results);
+                    temp.collideWith(new Ray(patchB.translatedBoundary[1], patchB.translatedBoundary[0].subtract(patchB.translatedBoundary[1]).normalize()), results);
                     boundaryB.add(results.getFarthestCollision().getContactPoint());
                     results.clear();
-                    boundaryA.add(patchA.translatedBuffer[1]);
-                    boundaryB.add(patchB.translatedBuffer[1]);
+                    boundaryA.add(patchA.translatedBoundary[1]);
+                    boundaryB.add(patchB.translatedBoundary[1]);
 
-                    temp.collideWith(new Ray(patchA.translatedBuffer[1], patchA.translatedBuffer[2].subtract(patchA.translatedBuffer[1]).normalize()), results);
+                    temp.collideWith(new Ray(patchA.translatedBoundary[1], patchA.translatedBoundary[2].subtract(patchA.translatedBoundary[1]).normalize()), results);
                     boundaryA.add(results.getFarthestCollision().getContactPoint());
-                    mark1.setLocalTranslation(results.getFarthestCollision().getContactPoint());
                     results.clear();
 
-                    temp.collideWith(new Ray(patchB.translatedBuffer[1], patchB.translatedBuffer[2].subtract(patchB.translatedBuffer[1]).normalize()), results);
+                    temp.collideWith(new Ray(patchB.translatedBoundary[1], patchB.translatedBoundary[2].subtract(patchB.translatedBoundary[1]).normalize()), results);
                     boundaryB.add(results.getFarthestCollision().getContactPoint());
                     results.clear();
                 } catch (Exception e) {
@@ -322,32 +332,31 @@ public class PopUpBookTree {
                         boundary.add(legalPoint.remove(closest));
                     }
 
-//                    Vector3f transformation = original.get(1).subtract(boundary.get(1));
-//                    if (transformation.distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
-//                        for (Vector3f point : boundary) {
-//                            point.addLocal(transformation);
-//                        }
-//                    }
-//
-//                    Vector3f v = boundary.get(0).subtract(boundary.get(1)).normalize();
-//                    Vector3f u = original.get(0).subtract(original.get(1)).normalize();
-//                    float angle = u.angleBetween(v);
-//                    if (angle > FastMath.FLT_EPSILON) {
-//                        for (Vector3f point : boundary) {
-//                            point.set(Util.rotatePoint(point, original.get(1), original.get(1).add(u.cross(v)), angle));
-//                        }
-//                    }
-//                    angle = (u.cross(boundary.get(2).subtract(original.get(1))).normalize()).angleBetween(
-//                            u.cross(original.get(2).subtract(original.get(1))).normalize());
-//                    if (original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(0), original.get(1), angle))
-//                            > original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(1), original.get(0), angle))) {
-//                        angle = angle * -1;
-//                    }
-//                    if (FastMath.abs(angle) > FastMath.FLT_EPSILON) {
-//                        for (Vector3f point : boundary) {
-//                            point.set(Util.rotatePoint(point, boundary.get(0), boundary.get(1), angle));
-//                        }
-//                    }
+                    Vector3f transformation = original.get(1).subtract(boundary.get(1));
+                    if (transformation.distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
+                        for (Vector3f point : boundary) {
+                            point.addLocal(transformation);
+                        }
+                    }
+
+                    Vector3f v = boundary.get(0).subtract(boundary.get(1)).normalize();
+                    Vector3f u = original.get(0).subtract(original.get(1)).normalize();
+                    float angle = u.angleBetween(v);
+                    for (Vector3f point : boundary) {
+                        point.set(Util.rotatePoint(point, original.get(1), original.get(1).add(u.cross(v)), angle));
+                    }
+                    
+                    angle = (u.cross(boundary.get(2).subtract(original.get(1))).normalize()).angleBetween(
+                            u.cross(original.get(2).subtract(original.get(1))).normalize());
+                    if (original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(0), original.get(1), angle))
+                            > original.get(2).distance(Util.rotatePoint(boundary.get(2), original.get(1), original.get(0), angle))) {
+                        angle = angle * -1;
+                    }
+                    if (FastMath.abs(angle) > FastMath.FLT_EPSILON) {
+                        for (Vector3f point : boundary) {
+                            point.set(Util.rotatePoint(point, boundary.get(0), boundary.get(1), angle));
+                        }
+                    }
                     original = pointsB;
                 }
                 geomPatchMap.get(parentA).next.remove(patchA);
@@ -391,44 +400,44 @@ public class PopUpBookTree {
                 temp.attachChild(patchBox);
                 CollisionResults results = new CollisionResults();
                 try {
-                    temp.collideWith(new Ray(patchA.translatedBuffer[1], patchA.translatedBuffer[0].subtract(patchA.translatedBuffer[1])), results);
-                    patchA.translatedBuffer[0].set(results.getFarthestCollision().getContactPoint());
-                    boundaryA.add(pointsA.get(1).add(pointsA.get(0).subtract(pointsA.get(1)).normalize().mult(patchA.translatedBuffer[1].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchA.translatedBoundary[1], patchA.translatedBoundary[0].subtract(patchA.translatedBoundary[1])), results);
+                    patchA.translatedBoundary[0].set(results.getFarthestCollision().getContactPoint());
+                    boundaryA.add(pointsA.get(1).add(pointsA.get(0).subtract(pointsA.get(1)).normalize().mult(patchA.translatedBoundary[1].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchA.translatedBuffer[0], patchA.translatedBuffer[1].subtract(patchA.translatedBuffer[0])), results);
-                    patchA.translatedBuffer[1].set(results.getFarthestCollision().getContactPoint());
-                    boundaryA.add(boundaryA.get(0).add(pointsA.get(1).subtract(boundaryA.get(0)).normalize().mult(patchA.translatedBuffer[0].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchA.translatedBoundary[0], patchA.translatedBoundary[1].subtract(patchA.translatedBoundary[0])), results);
+                    patchA.translatedBoundary[1].set(results.getFarthestCollision().getContactPoint());
+                    boundaryA.add(boundaryA.get(0).add(pointsA.get(1).subtract(boundaryA.get(0)).normalize().mult(patchA.translatedBoundary[0].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchA.translatedBuffer[3], patchA.translatedBuffer[2].subtract(patchA.translatedBuffer[3])), results);
-                    patchA.translatedBuffer[2].set(results.getFarthestCollision().getContactPoint());
-                    boundaryA.add(pointsA.get(3).add(pointsA.get(2).subtract(pointsA.get(3)).normalize().mult(patchA.translatedBuffer[3].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchA.translatedBoundary[3], patchA.translatedBoundary[2].subtract(patchA.translatedBoundary[3])), results);
+                    patchA.translatedBoundary[2].set(results.getFarthestCollision().getContactPoint());
+                    boundaryA.add(pointsA.get(3).add(pointsA.get(2).subtract(pointsA.get(3)).normalize().mult(patchA.translatedBoundary[3].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchA.translatedBuffer[2], patchA.translatedBuffer[3].subtract(patchA.translatedBuffer[2])), results);
-                    patchA.translatedBuffer[3].set(results.getFarthestCollision().getContactPoint());
-                    boundaryA.add(boundaryA.get(2).add(pointsA.get(3).subtract(boundaryA.get(2)).normalize().mult(patchA.translatedBuffer[2].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchA.translatedBoundary[2], patchA.translatedBoundary[3].subtract(patchA.translatedBoundary[2])), results);
+                    patchA.translatedBoundary[3].set(results.getFarthestCollision().getContactPoint());
+                    boundaryA.add(boundaryA.get(2).add(pointsA.get(3).subtract(boundaryA.get(2)).normalize().mult(patchA.translatedBoundary[2].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchB.translatedBuffer[1], patchB.translatedBuffer[0].subtract(patchB.translatedBuffer[1])), results);
-                    patchB.translatedBuffer[0].set(results.getFarthestCollision().getContactPoint());
-                    boundaryB.add(pointsB.get(1).add(pointsB.get(0).subtract(pointsB.get(1)).normalize().mult(patchB.translatedBuffer[1].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchB.translatedBoundary[1], patchB.translatedBoundary[0].subtract(patchB.translatedBoundary[1])), results);
+                    patchB.translatedBoundary[0].set(results.getFarthestCollision().getContactPoint());
+                    boundaryB.add(pointsB.get(1).add(pointsB.get(0).subtract(pointsB.get(1)).normalize().mult(patchB.translatedBoundary[1].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchB.translatedBuffer[0], patchB.translatedBuffer[1].subtract(patchB.translatedBuffer[0])), results);
-                    patchB.translatedBuffer[1].set(results.getFarthestCollision().getContactPoint());
-                    boundaryB.add(boundaryB.get(0).add(pointsB.get(1).subtract(boundaryB.get(0)).normalize().mult(patchB.translatedBuffer[0].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchB.translatedBoundary[0], patchB.translatedBoundary[1].subtract(patchB.translatedBoundary[0])), results);
+                    patchB.translatedBoundary[1].set(results.getFarthestCollision().getContactPoint());
+                    boundaryB.add(boundaryB.get(0).add(pointsB.get(1).subtract(boundaryB.get(0)).normalize().mult(patchB.translatedBoundary[0].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchB.translatedBuffer[3], patchB.translatedBuffer[2].subtract(patchB.translatedBuffer[3])), results);
-                    patchB.translatedBuffer[2].set(results.getFarthestCollision().getContactPoint());
-                    boundaryB.add(pointsB.get(3).add(pointsB.get(2).subtract(pointsB.get(3)).normalize().mult(patchB.translatedBuffer[3].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchB.translatedBoundary[3], patchB.translatedBoundary[2].subtract(patchB.translatedBoundary[3])), results);
+                    patchB.translatedBoundary[2].set(results.getFarthestCollision().getContactPoint());
+                    boundaryB.add(pointsB.get(3).add(pointsB.get(2).subtract(pointsB.get(3)).normalize().mult(patchB.translatedBoundary[3].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
-                    temp.collideWith(new Ray(patchB.translatedBuffer[2], patchB.translatedBuffer[3].subtract(patchB.translatedBuffer[2])), results);
-                    patchB.translatedBuffer[3].set(results.getFarthestCollision().getContactPoint());
-                    boundaryB.add(boundaryB.get(2).add(pointsB.get(3).subtract(boundaryB.get(2)).normalize().mult(patchB.translatedBuffer[2].distance(results.getFarthestCollision().getContactPoint()))));
+                    temp.collideWith(new Ray(patchB.translatedBoundary[2], patchB.translatedBoundary[3].subtract(patchB.translatedBoundary[2])), results);
+                    patchB.translatedBoundary[3].set(results.getFarthestCollision().getContactPoint());
+                    boundaryB.add(boundaryB.get(2).add(pointsB.get(3).subtract(boundaryB.get(2)).normalize().mult(patchB.translatedBoundary[2].distance(results.getFarthestCollision().getContactPoint()))));
                     results.clear();
 
                 } catch (Exception e) {
@@ -468,6 +477,7 @@ public class PopUpBookTree {
         for (PatchNode patch : geomPatchMap.values()) {
             patch.geometry.getMesh().getBuffer(VertexBuffer.Type.Position).updateData(BufferUtils.createFloatBuffer(patch.translatedBuffer));
             patch.geometry.getMesh().createCollisionData();
+            patch.geometry.updateModelBound();
             for (int i = 0; i < patch.translatedBoundary.length; i++) {
                 Geometry line = new Geometry("Line", new Cylinder());
                 line.setMaterial(lineMaterial);
@@ -516,14 +526,18 @@ public class PopUpBookTree {
             }
         }
 
-        private PatchNode(Geometry prev, Vector3f[] axis, Vector3f[] buffer) {
+        private PatchNode(Geometry prev, Vector3f[] axis, Vector3f[] boundary) {
             this.axis = axis;
             translatedAxis = new Vector3f[2];
             translatedAxis[0] = axis[0].clone();
             translatedAxis[1] = axis[1].clone();
             geomPatchMap.get(prev).next.add(this);
             joint = null;
-            translatedBuffer = buffer;
+            this.boundary = boundary;
+            translatedBoundary = new Vector3f[boundary.length];
+            for (int i = 0; i < boundary.length; i++) {
+                translatedBoundary[i] = boundary[i].clone();
+            }
         }
 
         private boolean isNeighbor(PatchNode patch) {
@@ -580,13 +594,15 @@ public class PopUpBookTree {
                 for (PatchNode patch : next) {
                     patch.rotate(axis, radian);
                 }
-                for (Vector3f point : translatedBoundary) {
-                    point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
-                }
-            }
-            for (Vector3f point : translatedBuffer) {
+                for (Vector3f point : translatedBuffer) {
                 point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
             }
+                
+            }
+            for (Vector3f point : translatedBoundary) {
+                    point.set(Util.rotatePoint(point, axis[0], axis[1], radian));
+                }
+            
             
             joint.rotate(this, axis, radian);
             
@@ -610,12 +626,15 @@ public class PopUpBookTree {
             translatedAxis[1].set(axis[1].clone());
             attatched = null;
             ready = false;
-            if (translatedBoundary != null) {
+            if(geometry!= null){
                 translatedBuffer = BufferUtils.getVector3Array((FloatBuffer) originalBuffer.clone().getData());
-                for (int i = 0; i < boundary.length; i++) {
-                    translatedBoundary[i].set(boundary[i]);
-                }
+                translatedBuffer = BufferUtils.getVector3Array((FloatBuffer) originalBuffer.clone().getData());
             }
+            
+            for (int i = 0; i < boundary.length; i++) {
+                translatedBoundary[i].set(boundary[i]);
+            }
+            
         }
     }
 
@@ -629,6 +648,7 @@ public class PopUpBookTree {
         private Vector3f[] axisB;
         private HashMap<PatchNode, Vector3f[]> translatedJointAxis;
         private Plane.Side upSide;
+        private Vector3f previousIntersection;
 
         private JointNode(PatchNode patchA, PatchNode patchB, Vector3f[] jointAxis, String type) {
             this.type = type;
@@ -643,8 +663,9 @@ public class PopUpBookTree {
             this.patchA = patchA;
             this.patchB = patchB;
             Plane plane = new Plane();
-            plane.setPlanePoints(patchA.translatedBuffer[0], patchA.translatedBuffer[1], patchB.translatedBuffer[0]);
+            plane.setPlanePoints(patchA.translatedBoundary[0], patchA.translatedBoundary[1], patchB.translatedBoundary[0]);
             upSide = plane.whichSide(axisA[0]);
+            previousIntersection = new Vector3f(axisA[0]);
             translatedJointAxis.put(patchA, axisA);
             translatedJointAxis.put(patchB, axisB);
         }
@@ -655,6 +676,9 @@ public class PopUpBookTree {
             } else {
                 return patchA;
             }
+        }
+        private void markReady(){
+            previousIntersection.set(axisA[0]);
         }
 
         private void rotate(PatchNode patch, Vector3f[] axis, float radian) {
@@ -677,7 +701,6 @@ public class PopUpBookTree {
         private boolean fixJoint() {
             switch (type) {
                 case "D1Joint": {
-                    if (axisA[0].subtract(axisA[1]).cross(axisB[0].subtract(axisB[1])).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
                         Plane planeMid = new Plane();
                         Plane planeA = new Plane();
                         float jointLength = jointAxis[0].distance(jointAxis[1]);
@@ -688,9 +711,16 @@ public class PopUpBookTree {
                         midPoint = patchA.translatedAxis[0].subtract(patchA.translatedAxis[1]).normalize().cross(
                                 patchB.translatedAxis[0].subtract(patchB.translatedAxis[1]).normalize())
                                 .normalize().negate();
-                        planeMid.setPlanePoints(patchA.translatedBuffer[0], patchA.translatedBuffer[1], patchB.translatedBuffer[0]);
-                        if (!planeMid.whichSide(midPoint.add(patchA.translatedAxis[1])).equals(upSide)) {
-                            midPoint.negateLocal();
+                        
+                        if (patchA.translatedAxis[0].subtract(patchA.translatedAxis[1]).cross(patchB.translatedAxis[0].subtract(patchB.translatedAxis[1])).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
+                            planeMid.setPlanePoints(patchA.translatedBoundary[0], patchA.translatedBoundary[1], patchB.translatedBoundary[0]);
+                            if (!planeMid.whichSide(midPoint.add(patchA.translatedAxis[1])).equals(upSide)) {
+                                midPoint.negateLocal();
+                            }
+                        }else{
+                            if(midPoint.add(patchA.translatedAxis[1]).distance(previousIntersection) > midPoint.negate().add(patchA.translatedAxis[1]).distance(previousIntersection)){
+                                midPoint.negateLocal();
+                            }
                         }
 
                         Vector3f baseA = Util.closestPointOnLine(patchA.translatedAxis[0], patchA.translatedAxis[0].subtract(patchA.translatedAxis[1]), axisA[0]);
@@ -711,7 +741,8 @@ public class PopUpBookTree {
                         midPoint = c1.add(midPoint.normalize().mult(midLength));
                         patchA.rotateFromTo(axisA[0], midPoint);
                         patchB.rotateFromTo(axisB[0], midPoint);
-                    }
+                    
+                    markReady();
                     break;
                 }
                 case "D2Joint": {
@@ -744,7 +775,7 @@ public class PopUpBookTree {
                     Vector3f v = c2.subtract(c1).normalize();
                     Vector3f w = axisB[0].subtract(axisB[1]).cross(v).normalize();
                     Plane plane = new Plane();
-                    plane.setPlanePoints(patchA.translatedBuffer[0], patchA.translatedBuffer[1], patchB.translatedBuffer[0]);
+                    plane.setPlanePoints(patchA.translatedBoundary[0], patchA.translatedBoundary[1], patchB.translatedBoundary[0]);
                     Vector3f midPoint = c1.add(v.mult(a)).add(w.mult(h));
                     if (!plane.whichSide(midPoint).equals(upSide)) {
                         midPoint = c1.add(v.mult(a)).subtract(w.mult(h));

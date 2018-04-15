@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mygame;
 
@@ -28,7 +40,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author FatE
+ * @author Yin Fung Evans Chan
  */
 public class ExplorationState extends BaseAppState {
 
@@ -37,42 +49,63 @@ public class ExplorationState extends BaseAppState {
     private int fold;
     private Material dotMaterial;
     private Node collisionIndicatorNode;
-    public static final String E_CLICK = "Click";
-    public static final String E_FOLD = "Fold";
-    public static final String E_DELETE = "DELETE";
-    public static final String E_D1 = "D1";
-    public static final String E_D2 = "D2";
-    public static final String E_FOLD_INCREMENT = "E_FOLD_INCREMENT";
-    public static final String E_UNFOLD_INCREMENT = "E_UNFOLD_INCREMENT";
-
+    
+    //input mapping names
+    private final String E_CLICK = "Click";
+    private final String E_FOLD = "Fold";
+    private final String E_DELETE = "DELETE";
+    private final String E_D1 = "D1";
+    private final String E_D2 = "D2";
+    private final String E_FOLD_INCREMENT = "E_FOLD_INCREMENT";
+    private final String E_UNFOLD_INCREMENT = "E_UNFOLD_INCREMENT";
+    private final String E_CLEAR = "E_CLEAR";
+    
+    //input listeners for this app state
     private final ActionListener buildListener = new BuildListener();
     private final ActionListener exploreListener = new ExplorationListener();
-    private final float frame = 1f;//0.75f;
+    
+    //setting for the speed the design folds. bigger number is faster
+    private final float frame = 0.75f;
+    
+    //variable to keep track of fold percentage
     private float percentage = 0;
 
+    
+    /*
+    * ActionListener responsible for inputs regarding joint building.
+    * This includes builing Step Joint, V-style joint, and special v-style joint
+    */
     private class BuildListener implements ActionListener {
-
         @Override
         public void onAction(String action, boolean isPressed, float tpf) {
             switch (action) {
                 case E_D1: {
+                    //Case V-Style || Special V-Style Joint
+                    
                     if (isPressed) {
                         if (app.selected.size() == 2) {
+                            //two patches is selected
                             Geometry geomA = app.selected.get(0);
                             Geometry geomB = app.selected.get(1);
                             geomA.setMaterial(app.paper);
                             geomB.setMaterial(app.paper);
-
+                            
+                            
                             if (app.popUpBook.isNeighbor(geomA, geomB)) {
+                                //Case V-Style Joint
                                 app.popUpBook.fold(0f);
                                 setEnabled(false);
                                 app.getStateManager().getState(D1CreationState.class).setEnabled(true);
                             } else {
+                                //Case Special V-Style Joint
                                 setEnabled(false);
                                 app.popUpBook.fold(0f);
+                                //More Computation to check if Special V-Style conditions are met when D1SCreationState is enabled
+                                //If not app state returns to Exploration state.
                                 app.getStateManager().getState(D1SCreationState.class).setEnabled(true);
                             }
                         } else {
+                            //number of pathes selected is not two
                             app.setText("Error", "Please Select two planes");
                         }
                     }
@@ -80,15 +113,6 @@ public class ExplorationState extends BaseAppState {
                 }
                 case E_D2: {
                     if (app.selected.size() == 2) {
-//                          Geometry geomA = app.selected.get(0);
-//                          Geometry geomB = app.selected.get(1);
-//                          ArrayList<Vector3f> results = app.popUpBook.boundboundIntersect(app.popUpBook.geomPatchMap.get(geomA).translatedBoundary, app.popUpBook.geomPatchMap.get(geomB).translatedBoundary);
-//                          
-//                          if(results!= null){
-//                              for(Vector3f point:results){
-//                              addDot(point);
-//                            }
-//                          }
                         if (app.popUpBook.isNeighbor(app.selected.get(0), app.selected.get(1))) {
                             Vector3f normal1 = app.popUpBook.geomPatchMap.get(app.selected.get(0)).getNormal();
                             Vector3f normal2 = app.popUpBook.geomPatchMap.get(app.selected.get(1)).getNormal();
@@ -109,6 +133,7 @@ public class ExplorationState extends BaseAppState {
                     }
                     break;
                 }
+                
                 default:
                     break;
             }
@@ -134,7 +159,7 @@ public class ExplorationState extends BaseAppState {
                         fold = 0;
                         percentage += 0.1;
                         if (percentage > 0.98f) {
-                            percentage = 1f - 0.0005f;
+                            percentage = 1f - 0.001f;
                             app.setText("Hint", "100%");
                         } else {
                             app.setText("Hint", (int) (percentage * 100) + "%");
@@ -183,17 +208,12 @@ public class ExplorationState extends BaseAppState {
                             // The closest collision point is what was truly hit:
                             CollisionResult closest = results.getClosestCollision();
                             if (!(app.selected.contains(closest.getGeometry()))) {
-                                closest.getGeometry().setMaterial(app.markPaper);
                                 app.selected.add(closest.getGeometry());
                             }
+                            closest.getGeometry().setMaterial(app.markPaper);
 
                         } else {
-
-                            for (Geometry i : app.selected) {
-                                i.setMaterial(app.paper);
-                            }
-
-                            app.selected.clear();
+                            removeSelect();
                         }
                     }
                     break;
@@ -211,6 +231,10 @@ public class ExplorationState extends BaseAppState {
                         }
 
                     }
+                    break;
+                }
+                case E_CLEAR: {
+                    removeSelect();
                     break;
                 }
                 default:
@@ -234,9 +258,12 @@ public class ExplorationState extends BaseAppState {
         inputManager.addMapping(E_FOLD, new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping(E_D1, new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping(E_D2, new KeyTrigger(KeyInput.KEY_2));
+        inputManager.addMapping(E_CLEAR, new KeyTrigger(KeyInput.KEY_ESCAPE));
+
         inputManager.addMapping(E_DELETE, new KeyTrigger(KeyInput.KEY_DELETE), new KeyTrigger(KeyInput.KEY_BACK));
         inputManager.addMapping(E_FOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addMapping(E_UNFOLD_INCREMENT, new KeyTrigger(KeyInput.KEY_LEFT));
+
         collisionIndicatorNode = new Node("Collision indicator");
         this.app.getRootNode().attachChild(collisionIndicatorNode);
         dotMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -250,24 +277,25 @@ public class ExplorationState extends BaseAppState {
             if (percentage < 0.98f) {
                 percentage += tpf * frame;
                 app.setText("Hint", (int) (percentage * 100) + "%");
+                app.popUpBook.fold(percentage);
+                ArrayList<Vector3f> collision = app.popUpBook.getCollisions();
+                if (collision != null) {
+                    for (Vector3f point : collision) {
+                        addDot(point);
+                    }
+                    fold = 0;
+                }
 
             } else {
                 fold = 0;
-                percentage = 0.99f;
+                percentage = 1 - 0.001f;
                 app.setText("Hint", "100%");
+                app.popUpBook.fold(percentage);
             }
 
-            app.popUpBook.fold(percentage);
-            ArrayList<Vector3f> collision = app.popUpBook.getCollisions();
-            if (collision != null) {
-                for (Vector3f point : collision) {
-                    addDot(point);
-                }
-                fold = 0;
-            }
         } else if (fold == -1) {
             collisionIndicatorNode.detachAllChildren();
-            for(Geometry patch:app.popUpBook.geomPatchMap.keySet()){
+            for (Geometry patch : app.popUpBook.geomPatchMap.keySet()) {
                 patch.setMaterial(app.paper);
             }
             if (percentage < 0.02) {
@@ -300,14 +328,16 @@ public class ExplorationState extends BaseAppState {
         inputManager.addListener(exploreListener, E_FOLD);
         inputManager.addListener(exploreListener, E_CLICK);
         inputManager.addListener(exploreListener, E_DELETE);
+        inputManager.addListener(exploreListener, E_CLEAR);
         inputManager.addListener(exploreListener, E_FOLD_INCREMENT);
         inputManager.addListener(exploreListener, E_UNFOLD_INCREMENT);
-        for (Geometry i : app.selected) {
-            i.setMaterial(app.paper);
-        }
-
-        app.selected.clear();
-        //app.getRootNode().detachChild(mark);
+        
+        app.setText("Instruction", "-[1]   special/ v-style joint\n"
+                                 + "-[2]                     Step joint\n"
+                                 + "-[Left Click]            Select\n"
+                                 + "-[Esc]             Deselect all\n"
+                                 + "-[Space], [<-], [->]       fold\n");
+        removeSelect();
 
     }
 
@@ -325,6 +355,13 @@ public class ExplorationState extends BaseAppState {
         dot.setLocalTranslation(dotLocation);
         collisionIndicatorNode.attachChild(dot);
 
+    }
+
+    private void removeSelect() {
+        app.selected.clear();
+        for (Geometry patch : app.popUpBook.geomPatchMap.keySet()) {
+            patch.setMaterial(app.paper);
+        }
     }
 
 }

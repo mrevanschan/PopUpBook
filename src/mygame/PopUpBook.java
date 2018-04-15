@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 package mygame;
 
 import com.jme3.app.SimpleApplication;
@@ -46,10 +63,13 @@ public class PopUpBook extends SimpleApplication{
     
     public static void main(String[] args) {
         PopUpBook app = new PopUpBook();
+        app.setShowSettings(false);
         AppSettings newSettings = new AppSettings(true);
         newSettings.setFrameRate(60);
         newSettings.setVSync(true);
         newSettings.setSamples(16);
+        newSettings.setResolution(1024, 768);
+        newSettings.setTitle("Pop-up Design Software");
         app.setSettings(newSettings);
         app.start();
         
@@ -73,6 +93,7 @@ public class PopUpBook extends SimpleApplication{
         //attach the text area to the guiNode
         guiNode.attachChild(hintText);
         guiNode.attachChild(modeText);
+        guiNode.attachChild(instructionText);
         //guiNode.attachChild(debugText);
         
         //attatch the node for the patches
@@ -100,7 +121,7 @@ public class PopUpBook extends SimpleApplication{
         paper.setColor("Ambient", ColorRGBA.White);
         paper.setTexture("DiffuseMap", assetManager.loadTexture("Textures/paper.jpg"));
         paper.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        paper.getAdditionalRenderState().setWireframe(true);
+        //paper.getAdditionalRenderState().setWireframe(true);
         
         Texture paperTexture = assetManager.loadTexture("Textures/selected.jpg");
         paperTexture.setWrap(Texture.WrapMode.Repeat);
@@ -134,7 +155,7 @@ public class PopUpBook extends SimpleApplication{
             }
             case "Instruction":{
                 instructionText.setText(string);
-                debugText.setLocalTranslation(settings.getWidth()-debugText.getLineWidth()-5, (debugText.getLineHeight()*string.split("[\n|\r]").length)+5, 0);
+                instructionText.setLocalTranslation(settings.getWidth()-instructionText.getLineWidth()-5, (instructionText.getLineHeight()*string.split("[\n|\r]").length)+5, 0);
                 break;
             }
             case "Hint":{

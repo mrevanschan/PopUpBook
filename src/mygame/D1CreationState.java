@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mygame;
 
@@ -544,7 +556,7 @@ public class D1CreationState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        app.setText("Mode", "D1 Creation Mode");
+        app.setText("Mode", "V-Style Joint Creation Mode");
         tempNode = new Node("temp");
         frameNode = new Node("frame");
         collisionNode = new Node("collision");
@@ -560,6 +572,12 @@ public class D1CreationState extends BaseAppState {
         inputManager.addListener(d1BasicInput, D1_CONFIRM);
         inputManager.addListener(d1BasicInput, D1_LOCK_ANGLE);
         inputManager.addListener(d1MouseListener, D1_MOUSE_MOVE);
+        app.setText("Instruction", "-[Enter]   To confirm\n"
+                                  +"-[ESC]     To discard\n"
+                                  +"-Drag point around to shift point\n"
+                                  +"-Hold [S] to lock patch angle\n"
+                                  + "-Click and Drag point around to shift point\n"
+                                  + "-Hold [D] and left click lines to add points\n");
         initialize();
     }
 
@@ -844,7 +862,7 @@ public class D1CreationState extends BaseAppState {
                 boundaryAGeom.setMaterial(allowed);
                 boundaryBGeom.setMaterial(allowed.clone());
                 tempNode.attachChild(boundaryAGeom);
-                //tempNode.attachChild(boundaryBGeom);
+                tempNode.attachChild(boundaryBGeom);
 
             } else {
                 boundaryAGeom.setMesh(Util.makeMesh(boundaryA.toArray(new Vector3f[boundaryA.size()])));

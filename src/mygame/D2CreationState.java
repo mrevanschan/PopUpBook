@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Yin Fung Evans Chan
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package mygame;
 
@@ -582,6 +594,11 @@ public class D2CreationState extends BaseAppState {
         inputManager.addListener(d2BasicInput, D2_SELECT);
         inputManager.addListener(d2BasicInput, D2_LOCK);
         inputManager.addListener(d2MouseListener, D2_MOUSE_MOVE);
+        app.setText("Instruction", "-[Enter]   To confirm\n"
+                              +"-[ESC]     To discard\n"
+                              +"-Drag point around to shift point\n"
+                              +"-Drag lines to shift patches\n"
+                              +"-Hold [S] to align to other patches");
         initialize();
 
     }
@@ -759,7 +776,7 @@ public class D2CreationState extends BaseAppState {
 
         if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
             if(!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))){
-                System.out.println("Error ::" + boundaryA.get(2) + " " + verticesA.get(2) + " " +boundaryA.get(3));
+                //System.out.println("Error ::" + boundaryA.get(2) + " " + verticesA.get(2) + " " +boundaryA.get(3));
             }
             verticesA.get(2).set(boundaryA.get(2));
         }
