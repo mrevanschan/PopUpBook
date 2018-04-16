@@ -269,12 +269,6 @@ public class UtilTest {
         //Test OutSide of boundary
         assertFalse(Util.inBoundary(new Vector3f(2, 1, 0), boundary));
 
-//        boundary = new Vector3f[]{
-//            new Vector3f(-1.5086666f, 1.1768901f, -1.2674335f),
-//            new Vector3f(-1.1122129f, 0.7164461f, -1.3435565f),
-//            new Vector3f(0.05424501f, 1.0607107f, 2.649074f),
-//            new Vector3f(-2.3423676f, 3.589048f, 2.419222f),};
-//        assertFalse(Util.inBoundary(new Vector3f(1.0973322f, 0.0f, 2.75f), boundary));
 
     }
 

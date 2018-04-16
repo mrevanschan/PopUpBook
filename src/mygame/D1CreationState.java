@@ -47,55 +47,75 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- *
- * @author FatE
+ * AppState responsible for V-Style joint creation
+ * @author Evans
  */
 public class D1CreationState extends BaseAppState {
-
+    //refence to input manager and the main application
     private PopUpBook app;
     private InputManager inputManager;
+    
+    //The geometry that the V-Style joint is build on
     private Geometry geometryA;
     private Geometry geometryB;
-    private Vector3f deltaAxis;
-    private Vector3f axisPointA;
-    private Vector3f axisPointB;
-    private Vector3f axisTranslationA;
-    private Vector3f axisTranslationB;
-    private Node tempNode;
-    private Node frameNode;
+    
+    //Axis used in this app state
+    private Vector3f deltaAxis; // axis between geomtryA and geomtryB
+    private Vector3f axisPointA;// axis between geometryA and patch A
+    private Vector3f axisPointB;// axis between geometryB and patch B
+    private Vector3f axisTranslationA;//translation from delta axis to geometryA
+    private Vector3f axisTranslationB;//translation from delta axis to geometryB
+    
+    //Nodes
+    private Node tempNode; //everything in this app state is build base on tempNode. Remove tempNode when appstate is disabled
+    private Node collisionNode; //Used for ray casting for mouse clicking and dragging
+    private Node frameNode; //Contains the frame of the patch in the proces of building
+    
+    //Material
     private Material dotMaterial;
     private Material lineMaterial;
-    private Geometry selected;
+    
+    //Data of the V-style joint patches
     private ArrayList<Vector3f> verticesA;
     private ArrayList<Vector3f> verticesB;
+    private HashMap<Geometry, Vector3f> dotVecticesMap;
+    private HashMap<Geometry, Vector3f[]> lineVecticesMap;
+    
+    //Safety boundary
     private ArrayList<Vector3f> boundaryA;
     private ArrayList<Vector3f> boundaryB;
     private Geometry boundaryAGeom;
     private Geometry boundaryBGeom;
-    private HashMap<Geometry, Vector3f> dotVecticesMap;
-    private HashMap<Geometry, Vector3f[]> lineVecticesMap;
-    private Node collisionNode;
+    
+    //Variable for clicking using collision plane and ray
     private Vector3f referencePoint;
-    public static final String D1_ESCAPE = "Escape";
-    public static final String D1_SELECT = "Select";
-    public static final String D1_ADD = "ADD";
-    public static final String D1_MOUSE_MOVE = "MouseMove";
-    public static final String D1_LOCK_ANGLE = "D1_Angle_Lock";
-    public static final String D1_CONFIRM = "Confirm";
-    private final ActionListener d1BasicInput = new D1BasicListener();
-    private final D1MoustListener d1MouseListener = new D1MoustListener();
+    private Geometry selected;
+    
+    //Constant for line mesh, sphere mesh, and angle increments
     private final float lineRadius = 0.05f;
     private final float sphereRadius = 0.15f;
-    private final int sample = 20;
     private final float angleConstant = FastMath.PI / 8;
-    private Geometry dot;
 
+    //flags different input modes
     private String mode;
     private String dragMode;
     private boolean angleLock;
+    
+    //Input listener and input name mappings
+    
+    private final ActionListener d1BasicInput = new D1BasicListener();
+    private final D1MoustListener d1MouseListener = new D1MoustListener();
+    private static final String D1_ESCAPE = "Escape";
+    private static final String D1_SELECT = "Select";
+    private static final String D1_ADD = "ADD";
+    private static final String D1_MOUSE_MOVE = "MouseMove";
+    private static final String D1_LOCK_ANGLE = "D1_Angle_Lock";
+    private static final String D1_CONFIRM = "Confirm";
 
+    /**
+     * Actionlistener for mouse dragging movement
+     */
     private class D1MoustListener implements AnalogListener {
-
         @Override
         public void onAnalog(String name, float value, float tpf) {
             if (dragMode != null) {
@@ -161,15 +181,12 @@ public class D1CreationState extends BaseAppState {
                                 Float angle = angleConstant / 2 + angleConstant * Math.round((newPoint.subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant / 2) / angleConstant);
                                 Float current = angleConstant / 2 + angleConstant * Math.round((verticesA.get(0).subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant / 2) / angleConstant);
                                 if (current - angle != 0.0f) {
-                                    //app.text.setText("Yes");
                                     Vector3f rotationVectorA = verticesA.get(0).subtract(verticesA.get(1)).cross(deltaAxis);
                                     Vector3f rotationVectorB = verticesB.get(0).subtract(verticesB.get(1)).cross(deltaAxis);
                                     verticesA.get(0).set(Util.rotatePoint(verticesA.get(0), verticesA.get(1).add(rotationVectorA), verticesA.get(1), current - angle));
                                     verticesB.get(0).set(Util.rotatePoint(verticesB.get(0), verticesB.get(1).add(rotationVectorB), verticesB.get(1), current - angle));
                                     Plane plane = new Plane();
                                     plane.setPlanePoints(verticesA.get(0), verticesA.get(1), verticesA.get(2));
-                                    String change = "nope";
-                                    float distance = 0;
                                     for (Vector3f point : verticesA) {
                                         if (FastMath.abs(plane.pseudoDistance(point)) > FastMath.FLT_EPSILON && !point.equals(verticesA.get(0)) && !point.equals(verticesA.get(1)) && !point.equals(verticesA.get(2))) {
                                             point.set(plane.getClosestPoint(point));
@@ -194,7 +211,6 @@ public class D1CreationState extends BaseAppState {
                                     verticesA.get(0).set(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(verticesB.get(1).distance(verticesB.get(0))).add(verticesA.get(1)));
                                 } else {
                                     Vector3f original = newPoint.subtract(verticesA.get(1));
-                                    //app.text.setText("Changing A");
                                     float length = original.length() * FastMath.cos(original.angleBetween(verticesA.get(0).subtract(verticesA.get(1))));
                                     if (length < 0.5f) {
                                         length = 0.5f;
@@ -208,7 +224,6 @@ public class D1CreationState extends BaseAppState {
                                     results.getClosestCollision().getGeometry().getMaterial().setColor("Color", ColorRGBA.Yellow);
                                     verticesB.get(0).set(verticesB.get(0).subtract(verticesB.get(1)).normalize().mult(verticesB.get(1).distance(verticesB.get(0))));
                                 } else {
-                                    //app.text.setText("Changing B");
                                     Vector3f original = newPoint.subtract(verticesB.get(1));
                                     float length = original.length() * FastMath.cos(original.angleBetween(verticesB.get(0).subtract(verticesB.get(1))));
                                     if (length < 0.5f) {
@@ -236,7 +251,6 @@ public class D1CreationState extends BaseAppState {
                                 } else if (targetAngle == FastMath.PI) {
                                     targetAngle -= angleConstant;
                                 }
-                                //app.text.setText("Angle: " + targetAngle * 180 / 3.14);
                                 Vector3f rotationNormal = deltaAxis.cross(verticesA.get(2).subtract(verticesA.get(1)).normalize());
                                 Float currentAngle = angleConstant + angleConstant * Math.round((verticesA.get(2).subtract(verticesA.get(1)).normalize().angleBetween(deltaAxis.normalize()) - angleConstant) / angleConstant);
                                 if (FastMath.abs(currentAngle - targetAngle) > FastMath.FLT_EPSILON) {
@@ -309,7 +323,10 @@ public class D1CreationState extends BaseAppState {
 
         }
     }
-
+    
+    /**
+     * ActionListener for key's and clicks 
+     */
     private class D1BasicListener implements ActionListener {
 
         @Override
@@ -463,8 +480,6 @@ public class D1CreationState extends BaseAppState {
                                             collisionNode.attachChild(collision);
 
                                         } else if (selectedVertex.equals(verticesA.get(2)) || selectedVertex.equals(verticesB.get(2))) {
-                                            //top point
-                                            //app.text.setText("top");
                                             dragMode = "TopAngle";
                                             Vector3f botA = verticesA.get(1).add(deltaAxis.normalize().mult(100f));
                                             Vector3f botB = verticesA.get(1).subtract(deltaAxis.normalize().mult(100f));
@@ -527,11 +542,19 @@ public class D1CreationState extends BaseAppState {
             }
         }
     }
-
+    
+    /**
+     * constructor for the appstate
+     * @param b set enable true or not
+     */
     D1CreationState(boolean b) {
         setEnabled(b);
     }
-
+    
+    /**
+     * Initializes the appstate with reference to the main application. Setting up input and material
+     * @param app main application
+     */
     @Override
     protected void initialize(Application app) {
         this.app = (PopUpBook) app;
@@ -554,6 +577,9 @@ public class D1CreationState extends BaseAppState {
     protected void cleanup(Application app) {
     }
 
+    /**
+     * enable the app state setting remapping the inputlistener, and set up instruction and mode text.
+     */
     @Override
     protected void onEnable() {
         app.setText("Mode", "V-Style Joint Creation Mode");
@@ -580,7 +606,10 @@ public class D1CreationState extends BaseAppState {
                                   + "-Hold [D] and left click lines to add points\n");
         initialize();
     }
-
+    
+    /**
+     * Sets up the point of the patches of the v-style joint and build the frame for it
+     */
     private void initialize() {
         geometryA = app.selected.get(0);
         geometryB = app.selected.get(1);
@@ -667,6 +696,9 @@ public class D1CreationState extends BaseAppState {
 
     }
 
+    /**
+     * fit all vertices in the safety area
+     */
     private void fitInBoundaries() {
         if (!boundaryA.isEmpty()) {
             float length = verticesA.get(0).distance(verticesA.get(1));
@@ -701,15 +733,12 @@ public class D1CreationState extends BaseAppState {
             Vector3f planeNormal = verticesA.get(0).subtract(verticesA.get(1)).cross(verticesA.get(2).subtract(verticesA.get(1)));
             planeBot.setPlanePoints(verticesA.get(0), verticesA.get(1), verticesA.get(1).add(planeNormal));
             planeTop.setPlanePoints(verticesA.get(2), verticesA.get(1), verticesA.get(1).add(planeNormal));
-            //ArrayList<Vector3f> remove = new ArrayList<>();
             for (int i = 3; i < verticesA.size(); i++) {
                 if (FastMath.abs(planeBot.pseudoDistance(verticesA.get(i))) < FastMath.FLT_EPSILON || FastMath.abs(planeTop.pseudoDistance(verticesA.get(i))) < FastMath.FLT_EPSILON) {
-                    //remove.add(verticesA.get(i));
-                    //app.text.setText("on Base or Top");
+                    //Do nothing
                 } else {
                     if (planeBot.whichSide(verticesA.get(i)).equals(planeBot.whichSide(verticesA.get(2)))
                             && planeTop.whichSide(verticesA.get(i)).equals(planeTop.whichSide(verticesA.get(0)))) {
-                        //app.text.setText("rightPlace");
                         for (int x = 2; x < boundaryA.size(); x++) {
                             Vector3f point1 = boundaryA.get(x);
                             Vector3f point2;
@@ -748,23 +777,19 @@ public class D1CreationState extends BaseAppState {
                             }
                         }
                     } else {
-                        //remove.add(verticesA.get(i));
-                        //app.text.setText("not inBetween");
+                        //not in between
                     }
                 }
             }
             planeNormal = verticesB.get(0).subtract(verticesB.get(1)).cross(verticesB.get(2).subtract(verticesB.get(1)));
             planeBot.setPlanePoints(verticesB.get(0), verticesB.get(1), verticesB.get(1).add(planeNormal));
             planeTop.setPlanePoints(verticesB.get(2), verticesB.get(1), verticesB.get(1).add(planeNormal));
-            //ArrayList<Vector3f> remove = new ArrayList<>();
             for (int i = 3; i < verticesB.size(); i++) {
                 if (FastMath.abs(planeBot.pseudoDistance(verticesB.get(i))) < FastMath.FLT_EPSILON || FastMath.abs(planeTop.pseudoDistance(verticesB.get(i))) < FastMath.FLT_EPSILON) {
-                    //remove.add(verticesA.get(i));
-                    //app.text.setText("on Base or Top");
+                    //On base or on top
                 } else {
                     if (planeBot.whichSide(verticesB.get(i)).equals(planeBot.whichSide(verticesB.get(2)))
                             && planeTop.whichSide(verticesB.get(i)).equals(planeTop.whichSide(verticesB.get(0)))) {
-                        //app.text.setText("rightPlace");
                         for (int x = 2; x < boundaryB.size(); x++) {
                             Vector3f point1 = boundaryB.get(x);
                             Vector3f point2;
@@ -802,8 +827,6 @@ public class D1CreationState extends BaseAppState {
                                 }
                             }
                         }
-                    } else {
-                        //remove.add(verticesA.get(i));
                     }
                 }
             }
@@ -811,7 +834,9 @@ public class D1CreationState extends BaseAppState {
         }
 
     }
-
+    /**
+     * fits the center point within the parent patches
+     */
     private void fitCenterPoint() {
         if (verticesA.get(1).distance(axisPointA) < 0.5f || verticesA.get(1).distance(axisPointB) < 0.5f) {
             Vector3f closerPoint;
@@ -840,6 +865,9 @@ public class D1CreationState extends BaseAppState {
         }
     }
 
+    /**
+     * updates the safety area
+     */
     private void updateBoundaries() {
         ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(geometryA, geometryB,
                 verticesA.get(0), verticesA.get(1), verticesB.get(0), verticesB.get(1),
@@ -871,7 +899,12 @@ public class D1CreationState extends BaseAppState {
         }
 
     }
-
+    
+    /**
+     * add line between two points
+     * @param from
+     * @param to 
+     */
     private void addLine(Vector3f from, Vector3f to) {
         Geometry line = new Geometry("Line", new Cylinder());
         line.setMaterial(lineMaterial);
@@ -879,7 +912,13 @@ public class D1CreationState extends BaseAppState {
         lineVecticesMap.put(line, new Vector3f[]{from, to});
         frameNode.attachChild(line);
     }
-
+    
+    /**
+     * updates the state of the line
+     * @param line geometry of the line
+     * @param vertexA line starting point
+     * @param vertexB line ending point
+     */
     private void updateLine(Geometry line, Vector3f vertexA, Vector3f vertexB) {
         if (line.getName().equals("Line")) {
             line.setLocalTranslation(vertexA.add(vertexB).divide(2f));
@@ -889,6 +928,10 @@ public class D1CreationState extends BaseAppState {
         }
     }
 
+    /**
+     * Adds Dot geometry to represent vertex
+     * @param dotLocation  vertex location
+     */
     private void addDot(Vector3f dotLocation) {
         if (!dotVecticesMap.values().contains(dotLocation)) {
             Sphere sphere = new Sphere(8, 8, sphereRadius);
@@ -899,7 +942,12 @@ public class D1CreationState extends BaseAppState {
             dotVecticesMap.put(dot, dotLocation);
         }
     }
-
+    
+    /**
+     * get the Dot geometry at a location
+     * @param point
+     * @return 
+     */
     private Geometry getDot(Vector3f point) {
         for (HashMap.Entry<Geometry, Vector3f> pair : dotVecticesMap.entrySet()) {
             if (pair.getValue().equals(point)) {
@@ -909,12 +957,18 @@ public class D1CreationState extends BaseAppState {
         return null;
     }
 
+    /**
+     * remove listener and tempNode when app state is disabled
+     */
     @Override
     protected void onDisable() {
         inputManager.removeListener(d1BasicInput);
         app.getRootNode().detachChild(tempNode);
     }
 
+    /**
+     * update the visual of the patches when the data for the patches changed 
+     */
     private void updateGraphics() {
         for (HashMap.Entry pair : dotVecticesMap.entrySet()) {
             ((Geometry) pair.getKey()).setLocalTranslation((Vector3f) pair.getValue());

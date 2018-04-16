@@ -46,55 +46,80 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- *
+ * App State responsible for creation of step joint
  * @author FatE
  */
 public class D2CreationState extends BaseAppState {
-
+    //refence to input manager and the main application
     private PopUpBook app;
     private InputManager inputManager;
-    private PopUpBookTree.PatchNode pageA;
-    private PopUpBookTree.PatchNode pageB;
-    private Vector3f deltaAxis;
-    private Vector3f axisTranslationA;
-    private Vector3f axisTranslationB;
+    
+    //The Patch that the Step joint is build on
+    private PopUpBookTree.PatchNode patchA;
+    private PopUpBookTree.PatchNode patchB;
+    
+    //Axis used in this app state
+    private Vector3f deltaAxis; //axis between patchA and patchB
+    private Vector3f axisTranslationA; //translation axis from deltaAxis to new Patch A
+    private Vector3f axisTranslationB; //translation axis from deltaAxis to new Patch B
+    
+    //Plane of symmetry when patchA and patchB form "T" shape
     private Plane midPlane;
-    private Node tempNode;
-    private Node frameNode;
+    
+    
+    //Nodes
+    private Node tempNode; //everything in this app state is build base on tempNode. Remove tempNode when appstate is disabled
+    private Node frameNode;//Contains the frame of the patch in the proces of building
+    private Node collisionNode; //Used for ray casting for mouse clicking and dragging
+    
+    //Material
     private Material dotMaterial;
     private Material lineMaterialA;
     private Material lineMaterialB;
     private Material lineMaterialMid;
+    
+    //Flags for inputs
     private String mode;
     private String dragMode;
-    private Geometry selected;
+    private boolean autoLock;
+    
+    //Data for the step joint patches
     private ArrayList<Vector3f> verticesA;
     private ArrayList<Vector3f> verticesB;
+    private HashMap<Geometry, Vector3f> dotVecticesMap;
+    private HashMap<Geometry, Vector3f[]> lineVecticesMap;
+    
+    //Variable for clicking using collision plane and ray
+    private Vector3f referencePoint;
+    private Geometry selected;
+    
+    //Safety Boundary
     private ArrayList<Vector3f> boundaryA;
     private ArrayList<Vector3f> boundaryB;
     private Geometry boundaryAGeom;
     private Geometry boundaryBGeom;
+    
+    //Visualising Alignment
     private Geometry mark;
-    private Plane planeA;
-    private Plane planeB;
-    private HashMap<Geometry, Vector3f> dotVecticesMap;
-    private HashMap<Geometry, Vector3f[]> lineVecticesMap;
-    private Node collisionNode;
-    private Vector3f referencePoint;
-    private boolean autolock;
-    public static final String D2_ESCAPE = "D2_Escape";
-    public static final String D2_CONFIRM = "D2_Confirm";
-    public static final String D2_SELECT = "D2_Select";
-    public static final String D2_MOUSE_MOVE = "D2_Mouse";
-    public static final String D2_LOCK = "D2_LOCK";
+    
+    //inputNames and inputListeners
+    private final String D2_ESCAPE = "D2_Escape";
+    private final String D2_CONFIRM = "D2_Confirm";
+    private final String D2_SELECT = "D2_Select";
+    private final String D2_MOUSE_MOVE = "D2_Mouse";
+    private final String D2_LOCK = "D2_LOCK";
     private final ActionListener d2BasicInput = new D2BasicListener();
     private final D2MoustListener d2MouseListener = new D2MoustListener();
+    
+    //Constant for line mesh and sphere mesh.
     private final float lineRadius = 0.05f;
     private final float sphereRadius = 0.125f;
-    public static final float PI = 3.1f;
 
+    
+    /**
+     * Actionlistener for mouse dragging movement
+     */
     private class D2MoustListener implements AnalogListener {
-
         @Override
         public void onAnalog(String name, float value, float tpf) {
             if (dragMode != null) {
@@ -108,7 +133,6 @@ public class D2CreationState extends BaseAppState {
                     case "shift": {
                         collisionNode.collideWith(ray, results);
                         if (results.size() > 0) {
-
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
                             app.setText("Hint", newPoint.toString());
                             float angle = verticesA.get(3).subtract(referencePoint).normalize().angleBetween(newPoint.subtract(referencePoint).normalize());
@@ -127,8 +151,8 @@ public class D2CreationState extends BaseAppState {
                                 }
                             }
                             if (Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3)) && Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))
-                                    && (Util.inBoundary(verticesA.get(0), pageA.boundary) || Util.inBoundary(verticesA.get(1), pageA.boundary))
-                                    && (Util.inBoundary(verticesB.get(0), pageB.boundary) || Util.inBoundary(verticesB.get(1), pageB.boundary))) {
+                                    && (Util.inBoundary(verticesA.get(0), patchA.boundary) || Util.inBoundary(verticesA.get(1), patchA.boundary))
+                                    && (Util.inBoundary(verticesB.get(0), patchB.boundary) || Util.inBoundary(verticesB.get(1), patchB.boundary))) {
 
                                 fitInBoundaries();
                                 referencePoint.addLocal(translation);
@@ -153,14 +177,14 @@ public class D2CreationState extends BaseAppState {
                                 geom.setMaterial(app.paper);
                             }
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
-                            if (autolock) {
+                            if (autoLock) {
                                 tempNode.attachChild(mark);
                                 results.clear();
                                 app.patches.collideWith(ray, results);
                                 if (results.size() > 0) {
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
                                     PopUpBookTree.PatchNode collidePatch = app.popUpBook.geomPatchMap.get(results.getClosestCollision().getGeometry());
-                                    if (collidePatch.getNormal().cross(pageA.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePatch.equals(pageB)) {
+                                    if (collidePatch.getNormal().cross(patchA.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePatch.equals(patchB)) {
                                         collidePatch.geometry.setMaterial(app.markPaper);
                                         Vector3f closest = collidePatch.boundary[0];
                                         for (int i = 1; i < collidePatch.boundary.length; i++) {
@@ -182,7 +206,7 @@ public class D2CreationState extends BaseAppState {
                                 point.addLocal(translation);
                             }
                             Plane plane = new Plane();
-                            plane.setOriginNormal(pageB.boundary[0], axisTranslationA.normalize());
+                            plane.setOriginNormal(patchB.boundary[0], axisTranslationA.normalize());
                             if (plane.pseudoDistance(verticesA.get(0)) < 0.25f) {
                                 for (int i = 0; i < verticesA.size(); i++) {
                                     verticesA.get(i).set(preTransState.get(0).get(i));
@@ -196,20 +220,20 @@ public class D2CreationState extends BaseAppState {
                                     }
 
                                 } else {
-                                    if (Util.lineTouchesBoundary(verticesA.get(0), deltaAxis, pageA.boundary)) {
+                                    if (Util.lineTouchesBoundary(verticesA.get(0), deltaAxis, patchA.boundary)) {
                                         //Still OK tall
                                         fitInBoundaries();
                                         referencePoint.addLocal(translation);
                                     } else {
                                         //Too tall
-                                        Vector3f tallestPoint = Util.closestPointToDirection(axisTranslationA, pageA.boundary);
+                                        Vector3f tallestPoint = Util.closestPointToDirection(axisTranslationA, patchA.boundary);
                                         Vector3f adjustTranslation = Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationA.mult(100f)), verticesA.get(0).add(deltaAxis.mult(100f)), verticesA.get(1).add(deltaAxis.negate().mult(100f)));
                                         if (adjustTranslation != null) {
                                             adjustTranslation.set(tallestPoint.subtract(adjustTranslation));
                                             for (Vector3f point : verticesA) {
                                                 point.addLocal(adjustTranslation);
                                             }
-                                            if (!Util.lineTouchesBoundary(verticesA.get(0), deltaAxis, pageA.boundary)) {
+                                            if (!Util.lineTouchesBoundary(verticesA.get(0), deltaAxis, patchA.boundary)) {
                                                 for (int i = 0; i < verticesA.size(); i++) {
                                                     verticesA.get(i).set(preTransState.get(0).get(i));
                                                 }
@@ -241,14 +265,14 @@ public class D2CreationState extends BaseAppState {
                                 geom.setMaterial(app.paper);
                             }
                             Vector3f newPoint = results.getClosestCollision().getContactPoint();
-                            if (autolock) {
+                            if (autoLock) {
                                 results.clear();
                                 app.patches.collideWith(ray, results);
                                 if (results.size() > 0) {
                                     
                                     Vector3f contactPoint = results.getClosestCollision().getContactPoint();
                                     PopUpBookTree.PatchNode collidePatch = app.popUpBook.geomPatchMap.get(results.getClosestCollision().getGeometry());
-                                    if (collidePatch.getNormal().cross(pageB.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePatch.equals(pageA)) {
+                                    if (collidePatch.getNormal().cross(patchB.getNormal()).distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && !collidePatch.equals(patchA)) {
                                         collidePatch.geometry.setMaterial(app.markPaper);
                                         Vector3f closest = collidePatch.boundary[0];
                                         for (int i = 1; i < collidePatch.boundary.length; i++) {
@@ -270,7 +294,7 @@ public class D2CreationState extends BaseAppState {
                                 point.addLocal(translation);
                             }
                             Plane plane = new Plane();
-                            plane.setOriginNormal(pageA.boundary[0], axisTranslationB.normalize());
+                            plane.setOriginNormal(patchA.boundary[0], axisTranslationB.normalize());
                             if (plane.pseudoDistance(verticesB.get(0)) < 0.25f) {
                                 for (int i = 0; i < verticesA.size(); i++) {
                                     verticesB.get(i).set(preTransState.get(1).get(i));
@@ -284,13 +308,13 @@ public class D2CreationState extends BaseAppState {
                                     }
 
                                 } else {
-                                    if (Util.lineTouchesBoundary(verticesB.get(0), deltaAxis, pageB.boundary)) {
+                                    if (Util.lineTouchesBoundary(verticesB.get(0), deltaAxis, patchB.boundary)) {
                                         //Still OK tall
                                         fitInBoundaries();
                                         referencePoint.addLocal(translation);
                                     } else {
                                         //Too tall
-                                        Vector3f tallestPoint = Util.closestPointToDirection(axisTranslationB, pageB.boundary);
+                                        Vector3f tallestPoint = Util.closestPointToDirection(axisTranslationB, patchB.boundary);
                                         Vector3f adjustTranslation = Util.lineIntersection(tallestPoint, tallestPoint.add(axisTranslationB.mult(100f)), verticesB.get(0).add(deltaAxis.mult(100f)), verticesB.get(1).add(deltaAxis.negate().mult(100f)));
                                         if (adjustTranslation != null) {
                                             adjustTranslation.set(tallestPoint.subtract(adjustTranslation));
@@ -298,7 +322,7 @@ public class D2CreationState extends BaseAppState {
                                                 point.addLocal(adjustTranslation);
                                             }
 
-                                            if (!Util.lineTouchesBoundary(verticesB.get(0), deltaAxis, pageB.boundary)) {
+                                            if (!Util.lineTouchesBoundary(verticesB.get(0), deltaAxis, patchB.boundary)) {
                                                 for (int i = 0; i < verticesA.size(); i++) {
                                                     verticesB.get(i).set(preTransState.get(0).get(i));
                                                 }
@@ -361,7 +385,7 @@ public class D2CreationState extends BaseAppState {
                                 updateGraphics();
                             }
 
-                            app.setText("Error", "In: " + Util.inBoundary(referencePoint.add(translation), pageA.boundary) +Util.inBoundary(referencePoint.add(translation), pageB.boundary)+ " Translation" + translation);
+                            app.setText("Error", "In: " + Util.inBoundary(referencePoint.add(translation), patchA.boundary) +Util.inBoundary(referencePoint.add(translation), patchB.boundary)+ " Translation" + translation);
                             
                         }
                         break;
@@ -376,7 +400,9 @@ public class D2CreationState extends BaseAppState {
         }
 
     }
-
+    /**
+     * ActionListener for key's and clicks 
+     */
     private class D2BasicListener implements ActionListener {
 
         @Override
@@ -402,8 +428,8 @@ public class D2CreationState extends BaseAppState {
                         length = verticesA.get(0).distance(verticesB.get(0)) * FastMath.cos(verticesA.get(1).subtract(verticesA.get(0)).normalize().angleBetween(verticesB.get(0).subtract(verticesA.get(0)).normalize()));
                         Vector3f jointPointB = verticesB.get(0).add(verticesA.get(0).subtract(verticesA.get(1)).normalize().mult(length));
 
-                        PopUpBookTree.PatchNode newPatchA = app.popUpBook.addPatch(pageA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
-                        PopUpBookTree.PatchNode newPatchB = app.popUpBook.addPatch(pageB.geometry, boundaryB, new Vector3f[]{jointPointB, verticesB.get(1).clone()});
+                        PopUpBookTree.PatchNode newPatchA = app.popUpBook.addPatch(patchA.geometry, boundaryA, new Vector3f[]{verticesA.get(0).clone(), verticesA.get(1).clone()});
+                        PopUpBookTree.PatchNode newPatchB = app.popUpBook.addPatch(patchB.geometry, boundaryB, new Vector3f[]{jointPointB, verticesB.get(1).clone()});
 
                         app.popUpBook.addJoint(newPatchA, newPatchB, new Vector3f[]{jointPointMid, verticesA.get(2)}, "D2Joint");
 
@@ -413,14 +439,13 @@ public class D2CreationState extends BaseAppState {
                     break;
                 }
                 case D2_LOCK: {
-                    autolock = isPressed;
-                    if (!autolock) {
+                    autoLock = isPressed;
+                    if (!autoLock) {
                         for (Geometry geom : app.popUpBook.geomPatchMap.keySet()) {
                             geom.setMaterial(app.paper);
                         }
                         mark.removeFromParent();
                     }
-                    System.out.println("Autolock =  " + autolock);
                     break;
                 }
                 case D2_SELECT: {
@@ -445,7 +470,6 @@ public class D2CreationState extends BaseAppState {
                                     referencePoint = closest.getContactPoint();
                                     Vector3f[] points = lineVecticesMap.get(selected);
                                     if ((verticesA.get(3).equals(points[0]) && verticesA.get(2).equals(points[1])) || (verticesA.get(2).equals(points[0]) && verticesA.get(3).equals(points[1]))) {
-                                        //enlarge
                                         dragMode = "shift";
                                         lineMaterialA.setColor("Color", ColorRGBA.Yellow);
                                         lineMaterialB.setColor("Color", ColorRGBA.Yellow);
@@ -460,7 +484,6 @@ public class D2CreationState extends BaseAppState {
                                         Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                         collisionNode.attachChild(collision);
 
-                                        //app.text.setText("shift");
                                     } else {
                                         if (verticesA.contains(points[0]) && verticesA.contains(points[1])) {
                                             dragMode = "shiftA";
@@ -476,8 +499,6 @@ public class D2CreationState extends BaseAppState {
                                             Vector3f[] temp = {point1, point2, point3, point4};
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
-
-                                            //app.text.setText("shiftA");
                                         } else {
                                             dragMode = "shiftB";
                                             lineMaterialB.setColor("Color", ColorRGBA.Yellow);
@@ -492,7 +513,6 @@ public class D2CreationState extends BaseAppState {
                                             Vector3f[] temp = {point1, point2, point3, point4};
                                             Geometry collision = new Geometry("Collision", Util.makeMesh(temp));
                                             collisionNode.attachChild(collision);
-                                            //app.text.setText("shiftB");
                                         }
                                     }
                                     break;
@@ -516,7 +536,6 @@ public class D2CreationState extends BaseAppState {
                                     Vector3f point4 = point1.add(direction1);
                                     Geometry collision = new Geometry("Collision", Util.makeMesh(new Vector3f[]{point1, point2, point3, point4}));
                                     collisionNode.attachChild(collision);
-                                    //app.text.setText("shiftDot");
 
                                 }
                                 default:
@@ -545,11 +564,18 @@ public class D2CreationState extends BaseAppState {
             }
         }
     }
-
+    /**
+     * Constructor for the app state. Set b to true to set enable to true
+     * @param b 
+     */
     D2CreationState(boolean b) {
         setEnabled(b);
     }
-
+    
+    /**
+     * intializes the appstate with the main application. Setting up input, and materials
+     * @param app 
+     */
     @Override
     protected void initialize(Application app) {
         this.app = (PopUpBook) app;
@@ -576,10 +602,13 @@ public class D2CreationState extends BaseAppState {
     @Override
     protected void cleanup(Application app) {
     }
-
+    
+    /**
+     * enable the app state setting remapping the inputlistener, and set up instruction and mode text.
+     */
     @Override
     protected void onEnable() {
-        app.setText("Mode", "D2 Creation Mode");
+        app.setText("Mode", "Step Joint Creation Mode");
         tempNode = new Node("temp");
         frameNode = new Node("frame");
         collisionNode = new Node("collision");
@@ -603,25 +632,28 @@ public class D2CreationState extends BaseAppState {
 
     }
 
+    /**
+     * Sets up the point of the patches of the step joint and build the frame for it
+     */
     private void initialize() {
 
-        pageA = app.popUpBook.geomPatchMap.get(app.selected.get(0));
-        pageB = app.popUpBook.geomPatchMap.get(app.selected.get(1));
+        patchA = app.popUpBook.geomPatchMap.get(app.selected.get(0));
+        patchB = app.popUpBook.geomPatchMap.get(app.selected.get(1));
         midPlane = null;
-        if (pageA.next.contains(pageB)) {
-            pageA = app.popUpBook.geomPatchMap.get(app.selected.get(1));
-            pageB = app.popUpBook.geomPatchMap.get(app.selected.get(0));
+        if (patchA.next.contains(patchB)) {
+            patchA = app.popUpBook.geomPatchMap.get(app.selected.get(1));
+            patchB = app.popUpBook.geomPatchMap.get(app.selected.get(0));
             midPlane = new Plane();
-            Vector3f[] boundary = pageA.boundary;
+            Vector3f[] boundary = patchA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);
-        } else if (pageB.next.contains(pageA)) {
+        } else if (patchB.next.contains(patchA)) {
             midPlane = new Plane();
-            Vector3f[] boundary = pageA.boundary;
+            Vector3f[] boundary = patchA.boundary;
             midPlane.setPlanePoints(boundary[0], boundary[1], boundary[2]);
         }
-        Vector3f[] listA = pageA.boundary;
-        Vector3f[] listB = pageB.boundary;
-        Vector3f[] jointPoint = app.popUpBook.axisBetween(pageA.geometry, pageB.geometry);
+        Vector3f[] listA = patchA.boundary;
+        Vector3f[] listB = patchB.boundary;
+        Vector3f[] jointPoint = app.popUpBook.axisBetween(patchA.geometry, patchB.geometry);
 
         Vector3f midPoint = jointPoint[0].add(jointPoint[1]).divide(2);
         Vector3f pointA = jointPoint[0].subtract(jointPoint[0].subtract(midPoint).mult(0.3f));
@@ -710,9 +742,12 @@ public class D2CreationState extends BaseAppState {
         }
 
     }
-
+    
+    /**
+     * fit all vertices within the safty boundary
+     */
     private void fitInBoundaries() {
-        Vector3f[] boundary = Util.lineBoundaryIntersectionPair(verticesA.get(0), deltaAxis, pageA.boundary);
+        Vector3f[] boundary = Util.lineBoundaryIntersectionPair(verticesA.get(0), deltaAxis, patchA.boundary);
 
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesA.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesA.get(1), boundary[1])) {
@@ -744,7 +779,7 @@ public class D2CreationState extends BaseAppState {
             }
         }
 
-        boundary = Util.lineBoundaryIntersectionPair(verticesB.get(0), deltaAxis, pageB.boundary);
+        boundary = Util.lineBoundaryIntersectionPair(verticesB.get(0), deltaAxis, patchB.boundary);
         if (boundary[0].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON && boundary[1].distance(Vector3f.ZERO) > FastMath.FLT_EPSILON) {
             if (!Util.isBetween(boundary[0], verticesB.get(0), boundary[1]) && !Util.isBetween(boundary[0], verticesB.get(1), boundary[1])) {
                 verticesB.get(0).set(Util.closestPointToDirection(deltaAxis.negate(), boundary));
@@ -775,23 +810,19 @@ public class D2CreationState extends BaseAppState {
         }
 
         if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))) {
-            if(!Util.isBetween(boundaryA.get(2), verticesA.get(2), boundaryA.get(3))){
-                //System.out.println("Error ::" + boundaryA.get(2) + " " + verticesA.get(2) + " " +boundaryA.get(3));
-            }
             verticesA.get(2).set(boundaryA.get(2));
         }
         if (boundaryA!= null && !Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))) {
-            
-            if(!Util.isBetween(boundaryA.get(2), verticesA.get(3), boundaryA.get(3))){
-                System.out.println("Error ::" + boundaryA.get(2) + " " + verticesA.get(3) + " " +boundaryA.get(3));
-            }
             verticesA.get(3).set(boundaryA.get(3));
         }
 
     }
-
+    
+    /**
+     * updates the safety area
+     */
     private void updateBoundaries() {
-        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(pageA.geometry, pageB.geometry,
+        ArrayList<ArrayList<Vector3f>> results = app.popUpBook.getBoundarys(patchA.geometry, patchB.geometry,
                                                                             verticesA.get(0),verticesA.get(0).add(deltaAxis) ,verticesB.get(0), verticesB.get(0).add(deltaAxis),
                                                                             verticesA.get(2), verticesA.get(3),verticesB.get(2), verticesB.get(3),
                                                                             "D2Joint");
@@ -825,7 +856,12 @@ public class D2CreationState extends BaseAppState {
         }
 
     }
-
+    
+    /**
+     * helper function to get the index of the point that is in line with the point(i) and is parallel with deltaAxis
+     * @param i
+     * @return index of the pair points
+     */
     private int pairNum(int i) {
         switch (i) {
             case 0: {
@@ -844,6 +880,11 @@ public class D2CreationState extends BaseAppState {
         return -1;
     }
 
+    /**
+     * add line between two points
+     * @param from
+     * @param to 
+     */
     private void addLine(Vector3f from, Vector3f to) {
         Geometry line = new Geometry("Line", new Cylinder());
         if (verticesA.contains(to) && verticesA.contains(from)) {
@@ -861,6 +902,12 @@ public class D2CreationState extends BaseAppState {
         frameNode.attachChild(line);
     }
 
+    /**
+     * updates the state of the line
+     * @param line geometry of the line
+     * @param vertexA line starting point
+     * @param vertexB line ending point
+     */
     private void updateLine(Geometry line, Vector3f vertexA, Vector3f vertexB) {
         if (line.getName().equals("Line")) {
             line.setLocalTranslation(vertexA.add(vertexB).divide(2f));
@@ -874,6 +921,10 @@ public class D2CreationState extends BaseAppState {
         }
     }
 
+    /**
+     * Adds Dot geometry to represent vertex
+     * @param dotLocation  vertex location
+     */
     private void addDot(Vector3f dotLocation) {
         if (!dotVecticesMap.values().contains(dotLocation)) {
             Sphere sphere = new Sphere(8, 8, sphereRadius);
@@ -885,12 +936,18 @@ public class D2CreationState extends BaseAppState {
         }
     }
 
+    /**
+     * remove listener and tempNode when app state is disabled
+     */
     @Override
     protected void onDisable() {
         inputManager.removeListener(d2BasicInput);
         app.getRootNode().detachChild(tempNode);
     }
 
+    /**
+     * update the visual of the patches when the data for the patches changed 
+     */
     private void updateGraphics() {
         for (HashMap.Entry pair : dotVecticesMap.entrySet()) {
             ((Geometry) pair.getKey()).setLocalTranslation((Vector3f) pair.getValue());
@@ -901,6 +958,10 @@ public class D2CreationState extends BaseAppState {
         }
     }
 
+    /**
+     * make a deepClone of the data of the Step Joint
+     * @return the copy of the data
+     */
     private ArrayList<ArrayList<Vector3f>> copyCurrentState() {
         ArrayList<ArrayList<Vector3f>> returnList = new ArrayList<>();
         ArrayList<Vector3f> listACopy = new ArrayList<>();
@@ -918,8 +979,4 @@ public class D2CreationState extends BaseAppState {
         returnList.add(listBCopy);
         return returnList;
     }
-
-//    @Override
-//    public void update(float fps) {
-//    }
 }

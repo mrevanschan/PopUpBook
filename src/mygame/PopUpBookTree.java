@@ -30,7 +30,6 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.util.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -39,30 +38,36 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 /**
- *
+ * The class the holds the data structure for the program.
  * @author Evans
  */
 public class PopUpBookTree {
-    
+    //Hashmap mapping the geometry with its patchNode;
     public HashMap<Geometry, PatchNode> geomPatchMap = new HashMap<>();
+    
+    //The PatchNode and JointNode for the front and back cover
     private PatchNode front;
     private PatchNode back;
     private JointNode bookJoint;
+    
+    //List of all JointNode in the structure
     private ArrayList<JointNode> joints;
+    
     private float height;
     private float width;
-    private Node lines;
-    private Geometry mark1;
-    private Geometry mark2;
     private PopUpBook app;
 
+    /**
+     * Constructor for the PopUpBookTree. Creates the front and back cover given width and height
+     * @param width
+     * @param height
+     * @param app reference to the PopUpBook object
+     */
     PopUpBookTree(float width, float height, PopUpBook app) {
 
         this.app = app;
         this.width = width;
         this.height = height;
-        lines = new Node("Line");
-        app.getRootNode().attachChild(lines);
         Vector3f[] backBoundary = new Vector3f[4];
         backBoundary[0] = new Vector3f(0f, 0f, -height / 2f);
         backBoundary[1] = new Vector3f(width, 0f, -height / 2f);
@@ -82,14 +87,12 @@ public class PopUpBookTree {
         back.joint = bookJoint;
         front.joint = bookJoint;
         joints.add(bookJoint);
-//        mark1 = new Geometry("hi", new Sphere(10, 10, 0.5f));
-//        mark2 = new Geometry("hi", new Sphere(10, 10, 0.5f));
-//        mark1.setMaterial(app.markPaper);
-//        mark2.setMaterial(app.markPaper);
-//        app.getRootNode().attachChild(mark1);
-//        app.getRootNode().attachChild(mark2);
     }
 
+    /**
+     * Checks if a collision exist, if yess, gets all point of collision of patches and marks the patches involved.
+     * @return the list of collision points
+     */
     public ArrayList<Vector3f> getCollisions() {
         ArrayList<Vector3f> collisionList = new ArrayList<>();
         PatchNode[] patchList = geomPatchMap.values().toArray(new PatchNode[geomPatchMap.size()]);
@@ -120,11 +123,18 @@ public class PopUpBookTree {
         }
     }
     
-
+    /**
+     * returns the geometry of the front cover
+     * @return front cover geometry
+     */
     public Geometry getFront() {
         return front.geometry;
     }
 
+    /**
+     * Delete a patch, and all its children and the patch at is joint to it.
+     * @param patch 
+     */
     public void delete(PatchNode patch) {
         if (!patch.equals(front) && !patch.equals(back)) {
             if(patch.geometry!= null){
@@ -147,14 +157,19 @@ public class PopUpBookTree {
             while (patch.next!= null && !patch.next.isEmpty()) {
                 delete(patch.next.get(0));
             }
-            //patch = null;
+            patch = null;
         }
 
     }
 
+    /**
+     * Builds a patch given the parent of the patch, its boundary, and its axis
+     * @param prev parent of the patch to add
+     * @param boundary boundary of the patch
+     * @param axis axis betwen the patch and its parent
+     * @return 
+     */
     public PatchNode addPatch(Geometry prev, Vector3f[] boundary, Vector3f[] axis) {
-
-        System.out.println("actually");
         Geometry geometry = new Geometry("Patch", Util.makeMesh(boundary));
         geometry.setMaterial(app.paper);
         app.patches.attachChild(geometry);
@@ -164,6 +179,13 @@ public class PopUpBookTree {
         return patch;
     }
 
+    /**
+     * Adds a joint relation between two patches given the two patch, the jointing axis, and the type of joint
+     * @param patchA patchA
+     * @param patchB patchB
+     * @param axis joint axis
+     * @param type Type of joint
+     */
     public void addJoint(PatchNode patchA, PatchNode patchB, Vector3f[] axis, String type) {
         JointNode joint = new JointNode(patchA, patchB, axis, type);
         patchA.joint = joint;
@@ -171,11 +193,22 @@ public class PopUpBookTree {
         joints.add(joint);
     }
 
+    /**
+     * Folds the design given a percentage. 1 is folded all the way and 0 is not folded.
+     * Updates the graphics after
+     * @param percent percentage of fold
+     */
     public void fold(float percent) {
         reset();
         fold(percent, true);
     }
 
+    /**
+     * Folds the design given a percentage. 1 is folded all the way and 0 is not folded.
+     * Option is given if graphics update is desired
+     * @param percent percentage of fold
+     * @param update update graphics of not
+     */
     private void fold(float percent, boolean update) {
         if (update) {
             reset();
@@ -201,9 +234,14 @@ public class PopUpBookTree {
         if (update) {
             update();
         }
-
     }
-
+    
+    /**
+     * Get the axis Between two Geometry
+     * @param geomA Geometry A
+     * @param geomB Geometry B
+     * @return the axis between the two geometries
+     */
     public Vector3f[] axisBetween(Geometry geomA, Geometry geomB) {
         PatchNode patchA = geomPatchMap.get(geomA);
         PatchNode patchB = geomPatchMap.get(geomB);
@@ -225,6 +263,12 @@ public class PopUpBookTree {
         return null;
     }
 
+    /**
+     * Checks if two geometry is patches that are neighbors
+     * @param geomA geometry A
+     * @param geomB geometry B
+     * @return true if they are neighbors, false otherwise.
+     */
     public boolean isNeighbor(Geometry geomA, Geometry geomB) {
         if (geomA == null || geomB == null) {
             return false;
@@ -232,6 +276,13 @@ public class PopUpBookTree {
         return geomPatchMap.get(geomB).isNeighbor(geomPatchMap.get(geomA));
     }
 
+    /**
+     * Attatch a point on a geometry. And get the position of the point when the design is folded 
+     * @param parent geometry to attach point to
+     * @param point geometry position to attatch
+     * @param percent percentage of fold
+     * @return the position of the point when design is folded
+     */
     public Vector3f predictWhenFold(Geometry parent, Vector3f point, float percent) {
         reset();
         point = point.clone();
@@ -242,6 +293,21 @@ public class PopUpBookTree {
         return point;
     }
 
+    /**
+     * Get the maximum safty area patches in a joint without patches sticking out when folded
+     * @param parentA parent A
+     * @param parentB parent B
+     * @param axisA1 joint point 1 between patch A and parent A
+     * @param axisA2 joint point 2 between patch A and parent A
+     * @param axisB1 joint point 1 between patch B and parent B
+     * @param axisB2 joint point 2 between patch B and parent B
+     * @param jointA1 joint point 1 between patch A and patch B on patch A
+     * @param jointA2 joint point 2 between patch A and patch B on patch A
+     * @param jointB1 joint point 1 between patch A and patch B on patch B
+     * @param jointB2 joint point 2 between patch A and patch B on patch B
+     * @param type type of joint
+     * @return pair of vertices list representing the maximum area of patch A and patch B
+     */
     public ArrayList<ArrayList<Vector3f>> getBoundarys(Geometry parentA, Geometry parentB,
             Vector3f axisA1, Vector3f axisA2, Vector3f axisB1, Vector3f axisB2,
             Vector3f jointA1, Vector3f jointA2, Vector3f jointB1, Vector3f jointB2, String type) {
@@ -250,6 +316,7 @@ public class PopUpBookTree {
         
         switch (type) {
             case "D1Joint": {
+                
                 ArrayList<Vector3f> pointsA = new ArrayList<>();
                 ArrayList<Vector3f> pointsB = new ArrayList<>();
                 pointsA.add(axisA1 .clone());
@@ -457,6 +524,9 @@ public class PopUpBookTree {
         return returnArray;
     }
 
+    /**
+     * reset the patches and joints to default position, meaning unfold position
+     */
     public void reset() {
         for (PatchNode patch : geomPatchMap.values()) {
             patch.reset();
@@ -465,12 +535,11 @@ public class PopUpBookTree {
             joint.reset();
         }
     }
-
+    /**
+     * updates the graphics of the program
+     */
     void update() {
-        for (Spatial line : lines.getChildren()) {
-            line.removeFromParent();
-            line = null;
-        }
+        app.lines.detachAllChildren();
         Material lineMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         lineMaterial.setColor("Color", ColorRGBA.Black);
 
@@ -484,26 +553,36 @@ public class PopUpBookTree {
                 line.setLocalTranslation(patch.translatedBoundary[i].add(patch.translatedBoundary[(i + 1) % patch.translatedBoundary.length]).divide(2));
                 ((Cylinder) line.getMesh()).updateGeometry(3, 3, 0.01f, 0.01f, patch.translatedBoundary[i].distance(patch.translatedBoundary[(i + 1) % patch.translatedBoundary.length]), false, false);
                 line.lookAt(patch.translatedBoundary[i], new Vector3f(0, 1, 0));
-                lines.attachChild(line);
+                app.lines.attachChild(line);
             }
         }
     }
-
+    
+    /**
+     * PatchNode class the the PopupbookTree class uses to represent patches
+     */
     public class PatchNode {
-
         public Geometry geometry;
-        private VertexBuffer originalBuffer;
-        private Vector3f[] translatedBuffer;
-        public Vector3f[] axis;
-        private Vector3f[] translatedAxis;
-        public Vector3f[] boundary;
-        public Vector3f[] translatedBoundary;
-        private boolean ready;
         public ArrayList<PatchNode> next;
         public PatchNode parent;
         public JointNode joint;
+        public Vector3f[] axis;
+        public Vector3f[] boundary;
+        private Vector3f[] translatedBoundary;
+        private VertexBuffer originalBuffer;
+        private Vector3f[] translatedBuffer;
+        private Vector3f[] translatedAxis;
+        private boolean ready;
+        
         private ArrayList<Vector3f> attatched;
 
+        /**
+         * Constructor of the PatchNode Class
+         * @param prev parent to the patch
+         * @param geometry the geometry representing the patch
+         * @param axis the axis between the patch and its parent
+         * @param boundary the boundary around the geometry 
+         */
         private PatchNode(Geometry prev, Geometry geometry, Vector3f[] axis, Vector3f[] boundary) {
             this.next = new ArrayList<>();
             this.joint = null;
@@ -525,7 +604,12 @@ public class PopUpBookTree {
                 this.parent = geomPatchMap.get(prev);
             }
         }
-
+        /**
+         * constructor for the patchNodes for phantom patches. These patches does not render and are only used for computations.
+         * @param prev parent of the patch
+         * @param axis axis between the patch and its parent
+         * @param boundary boundary that describe the patch
+         */
         private PatchNode(Geometry prev, Vector3f[] axis, Vector3f[] boundary) {
             this.axis = axis;
             translatedAxis = new Vector3f[2];
@@ -539,7 +623,12 @@ public class PopUpBookTree {
                 translatedBoundary[i] = boundary[i].clone();
             }
         }
-
+        
+        /**
+         * Checks if a patch is neighbor to this patch
+         * @param patch the patch to check
+         * @return true if is neighbor
+         */
         private boolean isNeighbor(PatchNode patch) {
             if (this == patch) {
                 return false;
@@ -549,13 +638,22 @@ public class PopUpBookTree {
             }
             return joint.patchA.equals(patch) || joint.patchB.equals(patch);
         }
-
+        
+        /**
+         * Gets the distance to a point from this patch
+         * @param point the point
+         * @return distance to point
+         */
         public float distanceFromPoint(Vector3f point) {
             Plane plane = new Plane();
             plane.setOriginNormal(boundary[0], getNormal());
             return FastMath.abs(plane.pseudoDistance(point));
         }
 
+        /**
+         * Gets the normal of this patch
+         * @return patch normal
+         */
         public Vector3f getNormal() {
             Vector3f vector1 = boundary[0].subtract(boundary[1]);
             Vector3f vector2;
@@ -567,7 +665,12 @@ public class PopUpBookTree {
             }
             return null;
         }
-
+        
+        /**
+         * Given point "from" is a point on this patch, rotate this patch from the point "from" to the point "to"
+         * @param from point "from"
+         * @param to point "to"
+         */
         private void rotateFromTo(Vector3f from, Vector3f to) {
             Plane fromPlane = new Plane();
             Plane toPlane = new Plane();
@@ -579,7 +682,13 @@ public class PopUpBookTree {
             }
             rotate(angle, true);
         }
-
+        
+        /**
+         * Rotate the patch, and all children with left hand rule and a specific radian. 
+         * If ready is true, mark the children of this patch as ready
+         * @param radian
+         * @param nextReady 
+         */
         private void rotate(float radian, boolean nextReady) {
             rotate(translatedAxis, radian, nextReady);
         }
@@ -610,6 +719,12 @@ public class PopUpBookTree {
             translatedAxis[1].set(Util.rotatePoint(translatedAxis[1], axis[0], axis[1], radian));
         }
 
+        /**
+         * rotate patch, and all children, with the left hand rule, a specific radian and a specific axis
+         * @param axis axis to rotate
+         * @param radian radian to rotate
+         * @param nextReady set children as ready or not
+         */
         private void rotate(Vector3f[] axis, float radian, boolean nextReady) {
             this.ready = true;
             if (next != null) {
@@ -620,7 +735,10 @@ public class PopUpBookTree {
 
             rotate(axis, radian);
         }
-
+        
+        /**
+         * reset patch to starting position
+         */
         private void reset() {
             translatedAxis[0].set(axis[0].clone());
             translatedAxis[1].set(axis[1].clone());
@@ -637,39 +755,63 @@ public class PopUpBookTree {
             
         }
     }
-
+    /**
+     * Class to represent joints in PopUpBookTree.
+     */
     public class JointNode {
-
         public String type;
+        public Vector3f[] jointAxis;
         private PatchNode patchA;
         private PatchNode patchB;
-        public Vector3f[] jointAxis;
         private Vector3f[] axisA;
         private Vector3f[] axisB;
         private HashMap<PatchNode, Vector3f[]> translatedJointAxis;
         private Plane.Side upSide;
         private Vector3f previousIntersection;
 
+        /**
+         * Constructor for the jointNode
+         * @param patchA patch A
+         * @param patchB patch B
+         * @param jointAxis joint Axis between patch A & B
+         * @param type the type of joint
+         */
         private JointNode(PatchNode patchA, PatchNode patchB, Vector3f[] jointAxis, String type) {
             this.type = type;
             this.jointAxis = jointAxis;
             translatedJointAxis = new HashMap<>();
+            
+            
+            //store the reference to the patches
+            this.patchA = patchA;
+            this.patchB = patchB;
+            
+            //the joint axis local to patch A and B
             axisA = new Vector3f[2];
             axisB = new Vector3f[2];
             axisA[0] = jointAxis[0].clone();
             axisA[1] = jointAxis[1].clone();
             axisB[0] = jointAxis[0].clone();
             axisB[1] = jointAxis[1].clone();
-            this.patchA = patchA;
-            this.patchB = patchB;
+            translatedJointAxis.put(patchA, axisA);
+            translatedJointAxis.put(patchB, axisB);
+            
+            
+            
+            //store a upSide and previousIntersection to use for reference for picking one from the two intersection point in fix Joint
             Plane plane = new Plane();
             plane.setPlanePoints(patchA.translatedBoundary[0], patchA.translatedBoundary[1], patchB.translatedBoundary[0]);
             upSide = plane.whichSide(axisA[0]);
             previousIntersection = new Vector3f(axisA[0]);
-            translatedJointAxis.put(patchA, axisA);
-            translatedJointAxis.put(patchB, axisB);
+            
+            
         }
-
+        
+        /**
+         * Provide a reference to the other patch in the joint, given a patch.
+         * @param thisPatch patch 1
+         * @return patch 2
+         */
         public PatchNode theOther(PatchNode thisPatch) {
             if (patchA.equals(thisPatch)) {
                 return patchB;
@@ -677,10 +819,20 @@ public class PopUpBookTree {
                 return patchA;
             }
         }
-        private void markReady(){
+        
+        /**
+         * marks the interesection point for reference use
+         */
+        private void markLastIntersection(){
             previousIntersection.set(axisA[0]);
         }
 
+        /**
+         * rotate the intersection points of a patch in this joint, given the patch, rotation axis, and radian
+         * @param patch patch
+         * @param axis rotation axis
+         * @param radian radian
+         */
         private void rotate(PatchNode patch, Vector3f[] axis, float radian) {
             if (patch.equals(patchA)) {
                 axisA[0].set(Util.rotatePoint(axisA[0], axis[0], axis[1], radian));
@@ -690,7 +842,9 @@ public class PopUpBookTree {
                 axisB[1].set(Util.rotatePoint(axisB[1], axis[0], axis[1], radian));
             }
         }
-
+        /**
+         * resets the intersection points to position when fold = 0
+         */
         private void reset() {
             axisA[0].set(jointAxis[0].clone());
             axisA[1].set(jointAxis[1].clone());
@@ -698,7 +852,10 @@ public class PopUpBookTree {
             axisB[1].set(jointAxis[1].clone());
         }
 
-        private boolean fixJoint() {
+        /**
+         * Fix a seperated joint by rotation both patches to aligning the intersection points.
+         */
+        private void fixJoint() {
             switch (type) {
                 case "D1Joint": {
                         Plane planeMid = new Plane();
@@ -742,7 +899,7 @@ public class PopUpBookTree {
                         patchA.rotateFromTo(axisA[0], midPoint);
                         patchB.rotateFromTo(axisB[0], midPoint);
                     
-                    markReady();
+                    markLastIntersection();
                     break;
                 }
                 case "D2Joint": {
@@ -768,7 +925,6 @@ public class PopUpBookTree {
                         System.out.println(c1);
                         System.out.println(c2);
                         System.out.println("fail");
-                        return false;
                     }
                     float a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
                     float h = FastMath.sqrt(r1 * r1 - a * a);
@@ -787,9 +943,11 @@ public class PopUpBookTree {
                 default:
                     break;
             }
-            return true;
         }
-
+        /**
+         * checks if a joint is ready, meaning both its patch is finalized
+         * @return true if ready, false otherwise.
+         */
         private boolean ready() {
             return patchA.ready && patchB.ready;
         }

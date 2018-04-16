@@ -609,7 +609,12 @@ public final class Util {
             return collisionList;
         }
     }
-
+    /**
+     * checks if an ArrayList of Vector3f contains a target
+     * @param list ArrayList
+     * @param target Target
+     * @return true if contains, false otherwise.
+     */
     private static boolean containsVector3f(ArrayList<Vector3f> list, Vector3f target) {
         for (Vector3f point : list) {
             if (target.distance(point) < Util.FLT_EPSILON) {
